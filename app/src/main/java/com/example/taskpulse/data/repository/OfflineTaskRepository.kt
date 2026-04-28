@@ -8,9 +8,8 @@ import com.example.taskpulse.domain.model.TaskDetails
 import com.example.taskpulse.domain.repository.TaskRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import javax.inject.Inject
 
-class OfflineTaskRepository @Inject constructor(
+class OfflineTaskRepository(
     private val taskDao: TaskDao
 ) : TaskRepository {
     override fun observeTasks(): Flow<List<Task>> = taskDao.observeTasks().map { tasks ->

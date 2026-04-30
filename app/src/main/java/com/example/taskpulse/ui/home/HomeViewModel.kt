@@ -7,6 +7,8 @@ import com.example.taskpulse.domain.usecase.CreateDefaultTaskUseCase
 import com.example.taskpulse.domain.usecase.ObserveTasksUseCase
 import com.example.taskpulse.domain.usecase.ScheduleTaskReminderUseCase
 import com.example.taskpulse.domain.usecase.UpsertTaskUseCase
+import com.example.taskpulse.domain.model.Task
+import com.example.taskpulse.domain.model.TaskStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,7 +27,14 @@ class HomeViewModel(
     init {
         viewModelScope.launch {
             observeTasksUseCase().collect { tasks ->
-                _uiState.update { it.copy(tasks = tasks) }
+                _uiState.update { previous ->
+                    previous.copy(
+                        tasks = tasks,
+                        filteredTasks = applyFilter(tasks, previous.selectedFilter),
+                        pendingCount = tasks.count { it.status != TaskStatus.COMPLETED },
+                        completedCount = tasks.count { it.status == TaskStatus.COMPLETED }
+                    )
+                }
             }
         }
     }
@@ -46,6 +55,21 @@ class HomeViewModel(
             scheduleTaskReminderUseCase(task.copy(id = taskId))
             _uiState.update { it.copy(isCreating = false) }
         }
+    }
+
+    fun selectFilter(filter: HomeTaskFilter) {
+        _uiState.update { previous ->
+            previous.copy(
+                selectedFilter = filter,
+                filteredTasks = applyFilter(previous.tasks, filter)
+            )
+        }
+    }
+
+    private fun applyFilter(tasks: List<Task>, filter: HomeTaskFilter): List<Task> = when (filter) {
+        HomeTaskFilter.ALL -> tasks
+        HomeTaskFilter.PENDING -> tasks.filter { it.status != TaskStatus.COMPLETED }
+        HomeTaskFilter.COMPLETED -> tasks.filter { it.status == TaskStatus.COMPLETED }
     }
 
     class Factory(

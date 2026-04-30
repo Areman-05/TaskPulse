@@ -3,9 +3,11 @@ package com.example.taskpulse.data.scheduler
 import android.content.Context
 import androidx.work.Constraints
 import androidx.work.Data
+import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.taskpulse.domain.model.Task
 import com.example.taskpulse.domain.scheduler.TaskScheduler
@@ -33,6 +35,7 @@ class WorkManagerTaskScheduler(
                     .putString(WorkerKeys.TASK_TITLE, task.title)
                     .build()
             )
+            .addTag("task-reminders")
             .addTag(taskTag(task.id))
             .build()
 
@@ -43,10 +46,54 @@ class WorkManagerTaskScheduler(
         )
     }
 
+    override fun scheduleRecurring(task: Task) {
+        val recurrence = task.recurrence ?: return
+        val repeatUnit = when (recurrence.unit.name) {
+            "DAY" -> TimeUnit.DAYS
+            "WEEK" -> TimeUnit.DAYS
+            else -> TimeUnit.DAYS
+        }
+        val repeatValue = if (recurrence.unit.name == "WEEK") {
+            recurrence.interval.toLong() * 7L
+        } else {
+            recurrence.interval.toLong().coerceAtLeast(1L)
+        }
+
+        val request = PeriodicWorkRequestBuilder<TaskReminderWorker>(repeatValue, repeatUnit)
+            .setConstraints(
+                Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
+            )
+            .setInputData(
+                Data.Builder()
+                    .putLong(WorkerKeys.TASK_ID, task.id)
+                    .putString(WorkerKeys.TASK_TITLE, task.title)
+                    .putString(WorkerKeys.ACTION_TYPE, "recurring")
+                    .build()
+            )
+            .addTag("task-reminders")
+            .addTag(recurringTag(task.id))
+            .build()
+
+        workManager.enqueueUniquePeriodicWork(
+            recurringName(task.id),
+            ExistingPeriodicWorkPolicy.UPDATE,
+            request
+        )
+    }
+
     override fun cancelReminder(taskId: Long) {
         workManager.cancelUniqueWork(uniqueName(taskId))
+        workManager.cancelUniqueWork(recurringName(taskId))
+    }
+
+    override fun cancelAll() {
+        workManager.cancelAllWorkByTag("task-reminders")
     }
 
     private fun uniqueName(taskId: Long): String = "task-reminder-$taskId"
+    private fun recurringName(taskId: Long): String = "task-recurring-$taskId"
     private fun taskTag(taskId: Long): String = "task:$taskId"
+    private fun recurringTag(taskId: Long): String = "task:recurring:$taskId"
 }

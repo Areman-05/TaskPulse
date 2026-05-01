@@ -24,4 +24,7 @@ interface TaskDao {
 
     @Query("UPDATE tasks SET status = :status, updatedAtMillis = :updatedAtMillis WHERE id = :taskId")
     suspend fun updateTaskStatus(taskId: Long, status: TaskStatus, updatedAtMillis: Long)
+
+    @Query("UPDATE tasks SET dueAtMillis = :dueAtMillis, updatedAtMillis = :updatedAtMillis WHERE id = :taskId")
+    suspend fun updateDueDate(taskId: Long, dueAtMillis: Long, updatedAtMillis: Long)
 }

@@ -7,6 +7,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import com.example.taskpulse.data.local.entity.TaskEntity
 import com.example.taskpulse.data.local.relation.TaskWithDetailsEntity
+import com.example.taskpulse.domain.model.TaskStatus
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -20,4 +21,7 @@ interface TaskDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertTask(task: TaskEntity): Long
+
+    @Query("UPDATE tasks SET status = :status, updatedAtMillis = :updatedAtMillis WHERE id = :taskId")
+    suspend fun updateTaskStatus(taskId: Long, status: TaskStatus, updatedAtMillis: Long)
 }

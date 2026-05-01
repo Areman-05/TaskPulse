@@ -7,8 +7,12 @@ import com.example.taskpulse.data.repository.OfflineTaskRepository
 import com.example.taskpulse.data.scheduler.WorkManagerTaskScheduler
 import com.example.taskpulse.domain.scheduler.TaskScheduler
 import com.example.taskpulse.domain.usecase.CreateDefaultTaskUseCase
+import com.example.taskpulse.domain.usecase.MarkTaskCompletedUseCase
+import com.example.taskpulse.domain.usecase.MarkTaskInProgressUseCase
 import com.example.taskpulse.domain.usecase.ObserveTasksUseCase
+import com.example.taskpulse.domain.usecase.ScheduleRecurringTaskUseCase
 import com.example.taskpulse.domain.usecase.ScheduleTaskReminderUseCase
+import com.example.taskpulse.domain.usecase.SnoozeTaskUseCase
 import com.example.taskpulse.domain.usecase.UpsertTaskUseCase
 
 class AppContainer(context: Context) {
@@ -25,4 +29,8 @@ class AppContainer(context: Context) {
     val upsertTaskUseCase = UpsertTaskUseCase(repository)
     val createDefaultTaskUseCase = CreateDefaultTaskUseCase()
     val scheduleTaskReminderUseCase = ScheduleTaskReminderUseCase(scheduler)
+    val scheduleRecurringTaskUseCase = ScheduleRecurringTaskUseCase(scheduler)
+    val markTaskCompletedUseCase = MarkTaskCompletedUseCase(repository)
+    val markTaskInProgressUseCase = MarkTaskInProgressUseCase(repository)
+    val snoozeTaskUseCase = SnoozeTaskUseCase(repository)
 }

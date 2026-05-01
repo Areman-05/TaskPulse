@@ -53,6 +53,7 @@ class TaskNotificationHelper(
             .setContentText(title)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
+            .setGroup("taskpulse-reminders")
             .addAction(0, "Completar", completeIntent)
             .addAction(0, "Posponer", snoozeIntent)
             .setContentIntent(openIntent)
@@ -70,6 +71,7 @@ class TaskNotificationHelper(
             this.action = action
             putExtra(TaskNotificationActions.EXTRA_TASK_ID, taskId)
             putExtra(TaskNotificationActions.EXTRA_TASK_TITLE, title)
+            putExtra(TaskNotificationActions.EXTRA_SNOOZE_MINUTES, 15)
         }
         return PendingIntent.getBroadcast(
             context,

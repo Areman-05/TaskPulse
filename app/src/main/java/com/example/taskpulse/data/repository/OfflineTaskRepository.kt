@@ -27,4 +27,8 @@ class OfflineTaskRepository(
     override suspend fun updateTaskStatus(taskId: Long, status: TaskStatus, updatedAtMillis: Long) {
         taskDao.updateTaskStatus(taskId, status, updatedAtMillis)
     }
+
+    override suspend fun updateTaskDueDate(taskId: Long, dueAtMillis: Long, updatedAtMillis: Long) {
+        taskDao.updateDueDate(taskId, dueAtMillis, updatedAtMillis)
+    }
 }

@@ -3,12 +3,13 @@ package com.example.taskpulse.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.taskpulse.domain.model.Task
+import com.example.taskpulse.domain.model.TaskStatus
 import com.example.taskpulse.domain.usecase.CreateDefaultTaskUseCase
+import com.example.taskpulse.domain.usecase.MarkTaskCompletedUseCase
 import com.example.taskpulse.domain.usecase.ObserveTasksUseCase
 import com.example.taskpulse.domain.usecase.ScheduleTaskReminderUseCase
 import com.example.taskpulse.domain.usecase.UpsertTaskUseCase
-import com.example.taskpulse.domain.model.Task
-import com.example.taskpulse.domain.model.TaskStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,6 +20,7 @@ class HomeViewModel(
     observeTasksUseCase: ObserveTasksUseCase,
     private val createDefaultTaskUseCase: CreateDefaultTaskUseCase,
     private val upsertTaskUseCase: UpsertTaskUseCase,
+    private val markTaskCompletedUseCase: MarkTaskCompletedUseCase,
     private val scheduleTaskReminderUseCase: ScheduleTaskReminderUseCase
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -66,6 +68,12 @@ class HomeViewModel(
         }
     }
 
+    fun markCompleted(taskId: Long) {
+        viewModelScope.launch {
+            markTaskCompletedUseCase(taskId, System.currentTimeMillis())
+        }
+    }
+
     private fun applyFilter(tasks: List<Task>, filter: HomeTaskFilter): List<Task> = when (filter) {
         HomeTaskFilter.ALL -> tasks
         HomeTaskFilter.PENDING -> tasks.filter { it.status != TaskStatus.COMPLETED }
@@ -76,6 +84,7 @@ class HomeViewModel(
         private val observeTasksUseCase: ObserveTasksUseCase,
         private val createDefaultTaskUseCase: CreateDefaultTaskUseCase,
         private val upsertTaskUseCase: UpsertTaskUseCase,
+        private val markTaskCompletedUseCase: MarkTaskCompletedUseCase,
         private val scheduleTaskReminderUseCase: ScheduleTaskReminderUseCase
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
@@ -84,6 +93,7 @@ class HomeViewModel(
                 observeTasksUseCase,
                 createDefaultTaskUseCase,
                 upsertTaskUseCase,
+                markTaskCompletedUseCase,
                 scheduleTaskReminderUseCase
             ) as T
         }

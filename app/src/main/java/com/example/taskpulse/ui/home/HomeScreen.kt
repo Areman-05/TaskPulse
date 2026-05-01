@@ -76,6 +76,11 @@ fun HomeScreen(
                         Column(modifier = Modifier.padding(12.dp)) {
                             Text(text = task.title, style = MaterialTheme.typography.titleMedium)
                             Text(text = task.status.name, style = MaterialTheme.typography.bodyMedium)
+                            if (task.status != com.example.taskpulse.domain.model.TaskStatus.COMPLETED) {
+                                TextButton(onClick = { viewModel.markCompleted(task.id) }) {
+                                    Text("Marcar completada")
+                                }
+                            }
                         }
                     }
                 }

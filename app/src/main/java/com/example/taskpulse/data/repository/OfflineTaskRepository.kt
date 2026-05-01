@@ -5,6 +5,7 @@ import com.example.taskpulse.data.mapper.toDomain
 import com.example.taskpulse.data.mapper.toEntity
 import com.example.taskpulse.domain.model.Task
 import com.example.taskpulse.domain.model.TaskDetails
+import com.example.taskpulse.domain.model.TaskStatus
 import com.example.taskpulse.domain.repository.TaskRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -22,4 +23,8 @@ class OfflineTaskRepository(
         }
 
     override suspend fun upsertTask(task: Task): Long = taskDao.upsertTask(task.toEntity())
+
+    override suspend fun updateTaskStatus(taskId: Long, status: TaskStatus, updatedAtMillis: Long) {
+        taskDao.updateTaskStatus(taskId, status, updatedAtMillis)
+    }
 }

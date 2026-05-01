@@ -24,6 +24,7 @@ class MainActivity : ComponentActivity() {
                         observeTasksUseCase = container.observeTasksUseCase,
                         createDefaultTaskUseCase = container.createDefaultTaskUseCase,
                         upsertTaskUseCase = container.upsertTaskUseCase,
+                        markTaskCompletedUseCase = container.markTaskCompletedUseCase,
                         scheduleTaskReminderUseCase = container.scheduleTaskReminderUseCase
                     )
                 )

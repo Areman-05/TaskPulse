@@ -10,4 +10,5 @@ interface TaskRepository {
     fun observeTaskDetails(taskId: Long): Flow<TaskDetails?>
     suspend fun upsertTask(task: Task): Long
     suspend fun updateTaskStatus(taskId: Long, status: TaskStatus, updatedAtMillis: Long)
+    suspend fun updateTaskDueDate(taskId: Long, dueAtMillis: Long, updatedAtMillis: Long)
 }

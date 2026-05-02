@@ -7,6 +7,11 @@ class MarkTaskInProgressUseCase(
     private val repository: TaskRepository
 ) {
     suspend operator fun invoke(taskId: Long, nowMillis: Long) {
-        repository.updateTaskStatus(taskId, TaskStatus.IN_PROGRESS, nowMillis)
+        repository.transitionTaskStatus(
+            taskId = taskId,
+            to = TaskStatus.IN_PROGRESS,
+            nowMillis = nowMillis,
+            reason = "mark_in_progress"
+        )
     }
 }

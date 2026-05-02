@@ -22,6 +22,7 @@ class MainActivity : ComponentActivity() {
                 val vm: HomeViewModel = viewModel(
                     factory = HomeViewModel.Factory(
                         observeTasksUseCase = container.observeTasksUseCase,
+                        observeDailyProductivityUseCase = container.observeDailyProductivityUseCase,
                         createDefaultTaskUseCase = container.createDefaultTaskUseCase,
                         upsertTaskUseCase = container.upsertTaskUseCase,
                         markTaskCompletedUseCase = container.markTaskCompletedUseCase,

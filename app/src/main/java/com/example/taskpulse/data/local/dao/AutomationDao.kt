@@ -15,6 +15,9 @@ interface AutomationDao {
     @Query("SELECT * FROM automation_rules ORDER BY id ASC")
     fun observeRules(): Flow<List<AutomationRuleEntity>>
 
+    @Query("SELECT * FROM automation_rules ORDER BY id ASC")
+    suspend fun listRules(): List<AutomationRuleEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertRule(rule: AutomationRuleEntity): Long
 }

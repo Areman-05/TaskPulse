@@ -6,6 +6,7 @@ import androidx.room.TypeConverters
 import com.example.taskpulse.data.local.converter.AutomationConverters
 import com.example.taskpulse.data.local.converter.TaskConverters
 import com.example.taskpulse.data.local.dao.AutomationDao
+import com.example.taskpulse.data.local.dao.CategoryDao
 import com.example.taskpulse.data.local.dao.TaskDao
 import com.example.taskpulse.data.local.entity.AutomationRuleEntity
 import com.example.taskpulse.data.local.entity.CategoryEntity
@@ -28,4 +29,5 @@ import com.example.taskpulse.data.local.entity.TaskHistoryEntity
 abstract class TaskPulseDatabase : RoomDatabase() {
     abstract fun taskDao(): TaskDao
     abstract fun automationDao(): AutomationDao
+    abstract fun categoryDao(): CategoryDao
 }

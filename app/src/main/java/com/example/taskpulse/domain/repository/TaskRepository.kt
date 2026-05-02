@@ -13,4 +13,10 @@ interface TaskRepository {
     suspend fun upsertTask(task: Task): Long
     suspend fun updateTaskStatus(taskId: Long, status: TaskStatus, updatedAtMillis: Long)
     suspend fun updateTaskDueDate(taskId: Long, dueAtMillis: Long, updatedAtMillis: Long)
+    suspend fun transitionTaskStatus(
+        taskId: Long,
+        to: TaskStatus,
+        nowMillis: Long,
+        reason: String?
+    )
 }

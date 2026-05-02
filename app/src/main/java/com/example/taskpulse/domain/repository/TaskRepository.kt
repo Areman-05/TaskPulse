@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface TaskRepository {
     fun observeTasks(): Flow<List<Task>>
+    suspend fun listTasks(): List<Task>
     fun observeDailyProductivity(limit: Int): Flow<List<DailyProductivityPoint>>
     fun observeTaskDetails(taskId: Long): Flow<TaskDetails?>
     suspend fun upsertTask(task: Task): Long

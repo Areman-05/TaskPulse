@@ -5,11 +5,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
 import com.example.taskpulse.core.AppContainer
-import com.example.taskpulse.ui.home.HomeScreen
-import com.example.taskpulse.ui.home.HomeViewModel
+import com.example.taskpulse.ui.navigation.TaskPulseNavHost
 import com.example.taskpulse.ui.theme.TaskPulseTheme
 
 class MainActivity : ComponentActivity() {
@@ -19,22 +17,13 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         container = AppContainer(applicationContext)
         lifecycleScope.launch {
+            container.ensureDefaultCategoryUseCase()
             container.ensureStarterAutomationRulesUseCase()
         }
         enableEdgeToEdge()
         setContent {
             TaskPulseTheme {
-                val vm: HomeViewModel = viewModel(
-                    factory = HomeViewModel.Factory(
-                        observeTasksUseCase = container.observeTasksUseCase,
-                        observeDailyProductivityUseCase = container.observeDailyProductivityUseCase,
-                        createDefaultTaskUseCase = container.createDefaultTaskUseCase,
-                        upsertTaskUseCase = container.upsertTaskUseCase,
-                        markTaskCompletedUseCase = container.markTaskCompletedUseCase,
-                        scheduleTaskReminderUseCase = container.scheduleTaskReminderUseCase
-                    )
-                )
-                HomeScreen(viewModel = vm)
+                TaskPulseNavHost(container)
             }
         }
     }

@@ -17,6 +17,9 @@ interface TaskDao {
     @Query("SELECT * FROM tasks ORDER BY updatedAtMillis DESC")
     fun observeTasks(): Flow<List<TaskEntity>>
 
+    @Query("SELECT * FROM tasks")
+    suspend fun listTasks(): List<TaskEntity>
+
     @Transaction
     @Query("SELECT * FROM tasks WHERE id = :taskId")
     fun observeTaskDetails(taskId: Long): Flow<TaskWithDetailsEntity?>

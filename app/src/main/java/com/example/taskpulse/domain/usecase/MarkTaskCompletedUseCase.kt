@@ -7,6 +7,11 @@ class MarkTaskCompletedUseCase(
     private val repository: TaskRepository
 ) {
     suspend operator fun invoke(taskId: Long, nowMillis: Long) {
-        repository.updateTaskStatus(taskId, TaskStatus.COMPLETED, nowMillis)
+        repository.transitionTaskStatus(
+            taskId = taskId,
+            to = TaskStatus.COMPLETED,
+            nowMillis = nowMillis,
+            reason = "mark_completed"
+        )
     }
 }

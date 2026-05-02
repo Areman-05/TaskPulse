@@ -7,6 +7,7 @@ import com.example.taskpulse.domain.model.Task
 import com.example.taskpulse.domain.model.TaskStatus
 import com.example.taskpulse.domain.usecase.CreateDefaultTaskUseCase
 import com.example.taskpulse.domain.usecase.MarkTaskCompletedUseCase
+import com.example.taskpulse.domain.usecase.ObserveDailyProductivityUseCase
 import com.example.taskpulse.domain.usecase.ObserveTasksUseCase
 import com.example.taskpulse.domain.usecase.ScheduleTaskReminderUseCase
 import com.example.taskpulse.domain.usecase.UpsertTaskUseCase
@@ -18,6 +19,7 @@ import kotlinx.coroutines.launch
 
 class HomeViewModel(
     observeTasksUseCase: ObserveTasksUseCase,
+    observeDailyProductivityUseCase: ObserveDailyProductivityUseCase,
     private val createDefaultTaskUseCase: CreateDefaultTaskUseCase,
     private val upsertTaskUseCase: UpsertTaskUseCase,
     private val markTaskCompletedUseCase: MarkTaskCompletedUseCase,
@@ -37,6 +39,12 @@ class HomeViewModel(
                         completedCount = tasks.count { it.status == TaskStatus.COMPLETED }
                     )
                 }
+            }
+        }
+
+        viewModelScope.launch {
+            observeDailyProductivityUseCase(limit = 7).collect { points ->
+                _uiState.update { it.copy(productivityWeek = points.asReversed()) }
             }
         }
     }
@@ -82,6 +90,7 @@ class HomeViewModel(
 
     class Factory(
         private val observeTasksUseCase: ObserveTasksUseCase,
+        private val observeDailyProductivityUseCase: ObserveDailyProductivityUseCase,
         private val createDefaultTaskUseCase: CreateDefaultTaskUseCase,
         private val upsertTaskUseCase: UpsertTaskUseCase,
         private val markTaskCompletedUseCase: MarkTaskCompletedUseCase,
@@ -91,6 +100,7 @@ class HomeViewModel(
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             return HomeViewModel(
                 observeTasksUseCase,
+                observeDailyProductivityUseCase,
                 createDefaultTaskUseCase,
                 upsertTaskUseCase,
                 markTaskCompletedUseCase,

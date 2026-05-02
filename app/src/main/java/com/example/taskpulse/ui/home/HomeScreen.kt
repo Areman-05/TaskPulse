@@ -19,6 +19,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+
+private val DayLabelFormatter =
+    DateTimeFormatter.ofPattern("dd/MM").withZone(ZoneId.systemDefault())
 
 @Composable
 fun HomeScreen(
@@ -55,6 +61,24 @@ fun HomeScreen(
                 Column(modifier = Modifier.padding(12.dp)) {
                     Text("Pendientes: ${state.pendingCount}")
                     Text("Completadas: ${state.completedCount}")
+                }
+            }
+
+            if (state.productivityWeek.isNotEmpty()) {
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(
+                            text = "Completadas (últimos 7 días)",
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                        state.productivityWeek.forEach { point ->
+                            val label = DayLabelFormatter.format(Instant.ofEpochMilli(point.dayStartMillis))
+                            Text(
+                                text = "$label • ${point.completedCount} completadas",
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
                 }
             }
 

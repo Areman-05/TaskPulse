@@ -21,7 +21,9 @@ class AppContainer(context: Context) {
         context.applicationContext,
         TaskPulseDatabase::class.java,
         "taskpulse.db"
-    ).build()
+    )
+        .fallbackToDestructiveMigration()
+        .build()
 
     private val repository = OfflineTaskRepository(database.taskDao())
     private val scheduler: TaskScheduler = WorkManagerTaskScheduler(context.applicationContext)

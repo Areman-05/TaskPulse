@@ -4,10 +4,12 @@ import android.content.Context
 import androidx.room.Room
 import com.example.taskpulse.data.local.TaskPulseDatabase
 import com.example.taskpulse.data.repository.OfflineAutomationRuleRepository
+import com.example.taskpulse.data.repository.OfflineCategoryRepository
 import com.example.taskpulse.data.repository.OfflineTaskRepository
 import com.example.taskpulse.data.scheduler.WorkManagerTaskScheduler
 import com.example.taskpulse.domain.scheduler.TaskScheduler
 import com.example.taskpulse.domain.usecase.CreateDefaultTaskUseCase
+import com.example.taskpulse.domain.usecase.EnsureDefaultCategoryUseCase
 import com.example.taskpulse.domain.usecase.MarkTaskCompletedUseCase
 import com.example.taskpulse.domain.usecase.MarkTaskInProgressUseCase
 import com.example.taskpulse.domain.usecase.EnsureStarterAutomationRulesUseCase
@@ -29,10 +31,12 @@ class AppContainer(context: Context) {
         .build()
 
     private val repository = OfflineTaskRepository(database.taskDao())
+    private val categoryRepository = OfflineCategoryRepository(database.categoryDao())
     private val automationRepository = OfflineAutomationRuleRepository(database.automationDao())
     private val scheduler: TaskScheduler = WorkManagerTaskScheduler(context.applicationContext)
 
     val observeTasksUseCase = ObserveTasksUseCase(repository)
+    val ensureDefaultCategoryUseCase = EnsureDefaultCategoryUseCase(categoryRepository)
     val observeAutomationRulesUseCase = ObserveAutomationRulesUseCase(automationRepository)
     val ensureStarterAutomationRulesUseCase = EnsureStarterAutomationRulesUseCase(automationRepository)
     val observeDailyProductivityUseCase = ObserveDailyProductivityUseCase(repository)

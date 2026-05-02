@@ -1,5 +1,6 @@
 package com.example.taskpulse.ui.home
 
+import com.example.taskpulse.domain.model.DailyProductivityPoint
 import com.example.taskpulse.domain.model.Task
 
 data class HomeUiState(
@@ -8,5 +9,6 @@ data class HomeUiState(
     val selectedFilter: HomeTaskFilter = HomeTaskFilter.ALL,
     val pendingCount: Int = 0,
     val completedCount: Int = 0,
+    val productivityWeek: List<DailyProductivityPoint> = emptyList(),
     val isCreating: Boolean = false
 )

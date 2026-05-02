@@ -19,6 +19,8 @@ class OfflineTaskRepository(
         tasks.map { it.toDomain() }
     }
 
+    override suspend fun listTasks(): List<Task> = taskDao.listTasks().map { it.toDomain() }
+
     override fun observeDailyProductivity(limit: Int): Flow<List<DailyProductivityPoint>> =
         taskDao.observeDailyCompletions(TaskStatus.COMPLETED, limit).map { rows ->
             rows.map { DailyProductivityPoint(it.dayStartMillis, it.completedCount) }

@@ -4,7 +4,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.launch
 import com.example.taskpulse.core.AppContainer
 import com.example.taskpulse.ui.home.HomeScreen
 import com.example.taskpulse.ui.home.HomeViewModel
@@ -16,6 +18,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         container = AppContainer(applicationContext)
+        lifecycleScope.launch {
+            container.ensureStarterAutomationRulesUseCase()
+        }
         enableEdgeToEdge()
         setContent {
             TaskPulseTheme {

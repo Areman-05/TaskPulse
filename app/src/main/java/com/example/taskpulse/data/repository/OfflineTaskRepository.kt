@@ -1,6 +1,7 @@
 package com.example.taskpulse.data.repository
 
 import com.example.taskpulse.data.local.dao.TaskDao
+import com.example.taskpulse.data.local.entity.TaskHistoryEntity
 import com.example.taskpulse.data.mapper.toDomain
 import com.example.taskpulse.data.mapper.toEntity
 import com.example.taskpulse.domain.model.DailyProductivityPoint
@@ -36,5 +37,25 @@ class OfflineTaskRepository(
 
     override suspend fun updateTaskDueDate(taskId: Long, dueAtMillis: Long, updatedAtMillis: Long) {
         taskDao.updateDueDate(taskId, dueAtMillis, updatedAtMillis)
+    }
+
+    override suspend fun transitionTaskStatus(
+        taskId: Long,
+        to: TaskStatus,
+        nowMillis: Long,
+        reason: String?
+    ) {
+        val existing = taskDao.getTask(taskId) ?: return
+        if (existing.status == to) return
+        taskDao.insertHistory(
+            TaskHistoryEntity(
+                taskId = taskId,
+                fromStatus = existing.status,
+                toStatus = to,
+                changedAtMillis = nowMillis,
+                reason = reason
+            )
+        )
+        taskDao.updateTaskStatus(taskId, to, nowMillis)
     }
 }

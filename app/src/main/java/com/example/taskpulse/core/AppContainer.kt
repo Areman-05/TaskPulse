@@ -3,6 +3,7 @@ package com.example.taskpulse.core
 import android.content.Context
 import androidx.room.Room
 import com.example.taskpulse.data.local.TaskPulseDatabase
+import com.example.taskpulse.data.repository.OfflineAutomationRuleRepository
 import com.example.taskpulse.data.repository.OfflineTaskRepository
 import com.example.taskpulse.data.scheduler.WorkManagerTaskScheduler
 import com.example.taskpulse.domain.scheduler.TaskScheduler
@@ -26,6 +27,7 @@ class AppContainer(context: Context) {
         .build()
 
     private val repository = OfflineTaskRepository(database.taskDao())
+    private val automationRepository = OfflineAutomationRuleRepository(database.automationDao())
     private val scheduler: TaskScheduler = WorkManagerTaskScheduler(context.applicationContext)
 
     val observeTasksUseCase = ObserveTasksUseCase(repository)

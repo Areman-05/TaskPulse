@@ -16,6 +16,9 @@ class OfflineAutomationRuleRepository(
     override fun observeRules(): Flow<List<AutomationRule>> =
         automationDao.observeRules().map { entities -> entities.map { it.toDomain() } }
 
+    override suspend fun listRules(): List<AutomationRule> =
+        automationDao.listRules().map { it.toDomain() }
+
     override suspend fun ensureStarterRules() {
         if (automationDao.countRules() > 0) return
 

@@ -10,6 +10,8 @@ import com.example.taskpulse.domain.scheduler.TaskScheduler
 import com.example.taskpulse.domain.usecase.CreateDefaultTaskUseCase
 import com.example.taskpulse.domain.usecase.MarkTaskCompletedUseCase
 import com.example.taskpulse.domain.usecase.MarkTaskInProgressUseCase
+import com.example.taskpulse.domain.usecase.EnsureStarterAutomationRulesUseCase
+import com.example.taskpulse.domain.usecase.ObserveAutomationRulesUseCase
 import com.example.taskpulse.domain.usecase.ObserveDailyProductivityUseCase
 import com.example.taskpulse.domain.usecase.ObserveTasksUseCase
 import com.example.taskpulse.domain.usecase.ScheduleRecurringTaskUseCase
@@ -31,6 +33,8 @@ class AppContainer(context: Context) {
     private val scheduler: TaskScheduler = WorkManagerTaskScheduler(context.applicationContext)
 
     val observeTasksUseCase = ObserveTasksUseCase(repository)
+    val observeAutomationRulesUseCase = ObserveAutomationRulesUseCase(automationRepository)
+    val ensureStarterAutomationRulesUseCase = EnsureStarterAutomationRulesUseCase(automationRepository)
     val observeDailyProductivityUseCase = ObserveDailyProductivityUseCase(repository)
     val upsertTaskUseCase = UpsertTaskUseCase(repository)
     val createDefaultTaskUseCase = CreateDefaultTaskUseCase()

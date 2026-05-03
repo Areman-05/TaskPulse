@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">TaskPulse</string>
+    <string name="notification_channel_automation_title">Automatización TaskPulse</string>
+    <string name="notification_channel_automation_description">Avisos generados por reglas de automatización</string>
+    <string name="notification_automation_title">Regla de automatización</string>
 </resources>

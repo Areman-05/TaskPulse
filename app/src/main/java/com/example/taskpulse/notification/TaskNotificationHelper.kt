@@ -27,6 +27,18 @@ class TaskNotificationHelper(
         manager.createNotificationChannel(channel)
     }
 
+    fun ensureAutomationChannel() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        val channel = NotificationChannel(
+            AUTOMATION_CHANNEL_ID,
+            context.getString(R.string.notification_channel_automation_title),
+            NotificationManager.IMPORTANCE_DEFAULT
+        ).apply {
+            description = context.getString(R.string.notification_channel_automation_description)
+        }
+        manager.createNotificationChannel(channel)
+    }
+
     fun showReminder(taskId: Long, title: String) {
         val completeIntent = actionIntent(
             action = TaskNotificationActions.ACTION_COMPLETE,
@@ -61,6 +73,19 @@ class TaskNotificationHelper(
         manager.notify(taskId.toInt(), notification)
     }
 
+    fun showAutomationAlert(ruleName: String, taskTitle: String, notificationId: Int) {
+        ensureAutomationChannel()
+        val notification = NotificationCompat.Builder(context, AUTOMATION_CHANNEL_ID)
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setContentTitle(context.getString(R.string.notification_automation_title))
+            .setContentText("$ruleName • $taskTitle")
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setAutoCancel(true)
+            .setGroup("taskpulse-automation")
+            .build()
+        manager.notify(notificationId, notification)
+    }
+
     private fun actionIntent(
         action: String,
         taskId: Long,
@@ -83,5 +108,6 @@ class TaskNotificationHelper(
 
     companion object {
         const val CHANNEL_ID = "task_reminders"
+        const val AUTOMATION_CHANNEL_ID = "task_automation"
     }
 }

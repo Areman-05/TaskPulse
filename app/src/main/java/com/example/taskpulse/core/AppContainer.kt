@@ -8,6 +8,8 @@ import com.example.taskpulse.data.repository.OfflineCategoryRepository
 import com.example.taskpulse.data.repository.OfflineTaskRepository
 import com.example.taskpulse.data.scheduler.WorkManagerTaskScheduler
 import com.example.taskpulse.domain.automation.SimpleRuleEngine
+import com.example.taskpulse.domain.model.AutomationRule
+import com.example.taskpulse.domain.model.Task
 import com.example.taskpulse.domain.scheduler.TaskScheduler
 import com.example.taskpulse.domain.usecase.CreateDefaultTaskUseCase
 import com.example.taskpulse.domain.usecase.EvaluateAutomationRulesUseCase
@@ -52,4 +54,8 @@ class AppContainer(context: Context) {
     val markTaskFailedUseCase = MarkTaskFailedUseCase(repository)
     val evaluateAutomationRulesUseCase = EvaluateAutomationRulesUseCase(SimpleRuleEngine())
     val snoozeTaskUseCase = SnoozeTaskUseCase(repository)
+
+    suspend fun loadTaskSnapshot(): List<Task> = repository.listTasks()
+
+    suspend fun loadAutomationRulesSnapshot(): List<AutomationRule> = automationRepository.listRules()
 }

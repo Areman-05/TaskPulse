@@ -12,7 +12,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.taskpulse.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import java.time.Instant
 import java.time.ZoneId
@@ -49,6 +51,11 @@ fun InsightsScreen(viewModel: InsightsViewModel) {
                 ) {
                     Text("Automatizaciones activas", style = MaterialTheme.typography.titleMedium)
                     Text("${state.enabledAutomationCount} habilitadas de ${state.automationRules.size}")
+                    Text(
+                        text = stringResource(R.string.insights_automation_sweep_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
 

@@ -7,10 +7,13 @@ import com.example.taskpulse.data.repository.OfflineAutomationRuleRepository
 import com.example.taskpulse.data.repository.OfflineCategoryRepository
 import com.example.taskpulse.data.repository.OfflineTaskRepository
 import com.example.taskpulse.data.scheduler.WorkManagerTaskScheduler
+import com.example.taskpulse.domain.automation.SimpleRuleEngine
 import com.example.taskpulse.domain.scheduler.TaskScheduler
 import com.example.taskpulse.domain.usecase.CreateDefaultTaskUseCase
+import com.example.taskpulse.domain.usecase.EvaluateAutomationRulesUseCase
 import com.example.taskpulse.domain.usecase.EnsureDefaultCategoryUseCase
 import com.example.taskpulse.domain.usecase.MarkTaskCompletedUseCase
+import com.example.taskpulse.domain.usecase.MarkTaskFailedUseCase
 import com.example.taskpulse.domain.usecase.MarkTaskInProgressUseCase
 import com.example.taskpulse.domain.usecase.EnsureStarterAutomationRulesUseCase
 import com.example.taskpulse.domain.usecase.ObserveAutomationRulesUseCase
@@ -46,5 +49,7 @@ class AppContainer(context: Context) {
     val scheduleRecurringTaskUseCase = ScheduleRecurringTaskUseCase(scheduler)
     val markTaskCompletedUseCase = MarkTaskCompletedUseCase(repository)
     val markTaskInProgressUseCase = MarkTaskInProgressUseCase(repository)
+    val markTaskFailedUseCase = MarkTaskFailedUseCase(repository)
+    val evaluateAutomationRulesUseCase = EvaluateAutomationRulesUseCase(SimpleRuleEngine())
     val snoozeTaskUseCase = SnoozeTaskUseCase(repository)
 }

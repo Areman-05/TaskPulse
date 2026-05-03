@@ -8,6 +8,7 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import com.example.taskpulse.core.AppContainer
 import com.example.taskpulse.ui.navigation.TaskPulseNavHost
+import com.example.taskpulse.worker.AutomationWorkScheduler
 import com.example.taskpulse.ui.theme.TaskPulseTheme
 
 class MainActivity : ComponentActivity() {
@@ -19,6 +20,7 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             container.ensureDefaultCategoryUseCase()
             container.ensureStarterAutomationRulesUseCase()
+            AutomationWorkScheduler.enqueue(applicationContext)
         }
         enableEdgeToEdge()
         setContent {

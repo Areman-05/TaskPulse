@@ -32,7 +32,7 @@ class AppContainer(context: Context) {
         TaskPulseDatabase::class.java,
         "taskpulse.db"
     )
-        .fallbackToDestructiveMigration()
+        .fallbackToDestructiveMigration(dropAllTables = true)
         .build()
 
     private val repository = OfflineTaskRepository(database.taskDao())

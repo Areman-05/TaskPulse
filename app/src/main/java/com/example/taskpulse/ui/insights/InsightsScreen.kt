@@ -31,7 +31,7 @@ fun InsightsScreen(viewModel: InsightsViewModel) {
         modifier = Modifier.fillMaxSize(),
         topBar = {
             Text(
-                text = "Insights",
+                text = stringResource(R.string.insights_screen_title),
                 style = MaterialTheme.typography.headlineSmall,
                 modifier = Modifier.padding(16.dp)
             )

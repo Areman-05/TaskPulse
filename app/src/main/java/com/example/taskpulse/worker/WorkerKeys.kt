@@ -7,4 +7,6 @@ object WorkerKeys {
     const val SNOOZE_MINUTES = "snooze_minutes"
     const val TAG_AUTOMATION_SWEEP = "taskpulse_automation_sweep"
     const val UNIQUE_WORK_AUTOMATION_SWEEP = "taskpulse_automation_sweep_unique"
+    const val TAG_AUTOMATION_INITIAL = "taskpulse_automation_initial"
+    const val UNIQUE_WORK_AUTOMATION_INITIAL = "taskpulse_automation_initial_unique"
 }

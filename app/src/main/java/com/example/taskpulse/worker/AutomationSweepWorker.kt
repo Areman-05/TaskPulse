@@ -6,21 +6,23 @@ import androidx.work.WorkerParameters
 import com.example.taskpulse.core.AppContainer
 import com.example.taskpulse.domain.model.AutomationAction
 import com.example.taskpulse.notification.TaskNotificationHelper
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class AutomationSweepWorker(
     appContext: Context,
     workerParams: WorkerParameters
 ) : CoroutineWorker(appContext, workerParams) {
 
-    override suspend fun doWork(): Result {
+    override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         val container = AppContainer(applicationContext)
         val tasks = container.loadTaskSnapshot()
         val rules = container.loadAutomationRulesSnapshot().filter { it.enabled }
-        if (rules.isEmpty()) return Result.success()
+        if (rules.isEmpty()) return@withContext Result.success()
 
         val now = System.currentTimeMillis()
         val matches = container.evaluateAutomationRulesUseCase(rules, tasks, now)
-        if (matches.isEmpty()) return Result.success()
+        if (matches.isEmpty()) return@withContext Result.success()
 
         val notifier = TaskNotificationHelper(applicationContext)
 
@@ -42,7 +44,7 @@ class AutomationSweepWorker(
             }
         }
 
-        return Result.success()
+        return@withContext Result.success()
     }
 
     private fun generateAutomationNotificationId(taskId: Long, ruleId: Long): Int {

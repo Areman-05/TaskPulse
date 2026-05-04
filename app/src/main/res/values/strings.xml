@@ -4,4 +4,8 @@
     <string name="notification_channel_automation_description">Avisos generados por reglas de automatización</string>
     <string name="notification_automation_title">Regla de automatización</string>
     <string name="insights_automation_sweep_hint">El motor de reglas se evalúa en segundo plano de forma periódica.</string>
+    <string name="post_notifications_rationale">TaskPulse usa notificaciones para recordatorios y reglas de automatización.</string>
+    <string name="notification_channel_reminders_title">Recordatorios de tareas</string>
+    <string name="notification_channel_reminders_description">Avisos para tareas pendientes y próximas a vencer</string>
+    <string name="insights_screen_title">Insights</string>
 </resources>

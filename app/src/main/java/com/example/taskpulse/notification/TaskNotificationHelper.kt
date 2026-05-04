@@ -19,10 +19,10 @@ class TaskNotificationHelper(
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val channel = NotificationChannel(
             CHANNEL_ID,
-            "Recordatorios de tareas",
+            context.getString(R.string.notification_channel_reminders_title),
             NotificationManager.IMPORTANCE_DEFAULT
         ).apply {
-            description = "Avisos para tareas pendientes y próximas a vencer"
+            description = context.getString(R.string.notification_channel_reminders_description)
         }
         manager.createNotificationChannel(channel)
     }

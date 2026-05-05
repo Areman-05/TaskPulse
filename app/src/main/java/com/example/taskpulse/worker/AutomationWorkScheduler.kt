@@ -3,7 +3,9 @@ package com.example.taskpulse.worker
 import android.content.Context
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import java.util.concurrent.TimeUnit
@@ -25,6 +27,18 @@ object AutomationWorkScheduler {
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
             WorkerKeys.UNIQUE_WORK_AUTOMATION_SWEEP,
             ExistingPeriodicWorkPolicy.KEEP,
+            request
+        )
+    }
+
+    fun enqueueNow(context: Context) {
+        val request = OneTimeWorkRequestBuilder<AutomationSweepWorker>()
+            .addTag(WorkerKeys.TAG_AUTOMATION_INITIAL)
+            .build()
+
+        WorkManager.getInstance(context).enqueueUniqueWork(
+            WorkerKeys.UNIQUE_WORK_AUTOMATION_INITIAL,
+            ExistingWorkPolicy.REPLACE,
             request
         )
     }

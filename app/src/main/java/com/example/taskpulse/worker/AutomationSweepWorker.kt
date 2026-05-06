@@ -22,6 +22,7 @@ class AutomationSweepWorker(
 
         val now = System.currentTimeMillis()
         val matches = container.evaluateAutomationRulesUseCase(rules, tasks, now)
+            .distinctBy { "${it.ruleId}:${it.taskId}" }
         if (matches.isEmpty()) return@withContext Result.success()
 
         val notifier = TaskNotificationHelper(applicationContext)

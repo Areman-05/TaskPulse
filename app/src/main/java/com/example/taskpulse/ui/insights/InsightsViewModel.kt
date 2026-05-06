@@ -7,6 +7,8 @@ import com.example.taskpulse.domain.model.AutomationRule
 import com.example.taskpulse.domain.model.DailyProductivityPoint
 import com.example.taskpulse.domain.usecase.ObserveAutomationRulesUseCase
 import com.example.taskpulse.domain.usecase.ObserveDailyProductivityUseCase
+import com.example.taskpulse.domain.usecase.SetAutomationRuleEnabledUseCase
+import com.example.taskpulse.domain.usecase.TriggerAutomationSweepNowUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,12 +18,15 @@ import kotlinx.coroutines.launch
 data class InsightsUiState(
     val productivityTrend: List<DailyProductivityPoint> = emptyList(),
     val automationRules: List<AutomationRule> = emptyList(),
-    val enabledAutomationCount: Int = 0
+    val enabledAutomationCount: Int = 0,
+    val isSweepRunning: Boolean = false
 )
 
 class InsightsViewModel(
     observeDailyProductivityUseCase: ObserveDailyProductivityUseCase,
-    observeAutomationRulesUseCase: ObserveAutomationRulesUseCase
+    observeAutomationRulesUseCase: ObserveAutomationRulesUseCase,
+    private val setAutomationRuleEnabledUseCase: SetAutomationRuleEnabledUseCase,
+    private val triggerAutomationSweepNowUseCase: TriggerAutomationSweepNowUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(InsightsUiState())
@@ -45,15 +50,33 @@ class InsightsViewModel(
         }
     }
 
+    fun toggleRule(ruleId: Long, currentlyEnabled: Boolean) {
+        viewModelScope.launch {
+            setAutomationRuleEnabledUseCase(ruleId, !currentlyEnabled)
+        }
+    }
+
+    fun runSweepNow() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isSweepRunning = true) }
+            triggerAutomationSweepNowUseCase()
+            _uiState.update { it.copy(isSweepRunning = false) }
+        }
+    }
+
     class Factory(
         private val observeDailyProductivityUseCase: ObserveDailyProductivityUseCase,
-        private val observeAutomationRulesUseCase: ObserveAutomationRulesUseCase
+        private val observeAutomationRulesUseCase: ObserveAutomationRulesUseCase,
+        private val setAutomationRuleEnabledUseCase: SetAutomationRuleEnabledUseCase,
+        private val triggerAutomationSweepNowUseCase: TriggerAutomationSweepNowUseCase
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             return InsightsViewModel(
                 observeDailyProductivityUseCase,
-                observeAutomationRulesUseCase
+                observeAutomationRulesUseCase,
+                setAutomationRuleEnabledUseCase,
+                triggerAutomationSweepNowUseCase
             ) as T
         }
     }

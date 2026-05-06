@@ -5,10 +5,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -56,6 +58,18 @@ fun InsightsScreen(viewModel: InsightsViewModel) {
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    Button(
+                        onClick = viewModel::runSweepNow,
+                        enabled = !state.isSweepRunning
+                    ) {
+                        Text(
+                            if (state.isSweepRunning) {
+                                stringResource(R.string.insights_run_sweep_running)
+                            } else {
+                                stringResource(R.string.insights_run_sweep_now)
+                            }
+                        )
+                    }
                 }
             }
 
@@ -85,10 +99,21 @@ fun InsightsScreen(viewModel: InsightsViewModel) {
                     Text("Reglas config.", style = MaterialTheme.typography.titleMedium)
                     state.automationRules.forEach { rule ->
                         val statusLabel = if (rule.enabled) "ON" else "OFF"
-                        Text(
-                            "- ${rule.name} [$statusLabel]",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
+                        Column {
+                            Text(
+                                "- ${rule.name} [$statusLabel]",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            TextButton(onClick = { viewModel.toggleRule(rule.id, rule.enabled) }) {
+                                Text(
+                                    if (rule.enabled) {
+                                        stringResource(R.string.insights_disable_rule)
+                                    } else {
+                                        stringResource(R.string.insights_enable_rule)
+                                    }
+                                )
+                            }
+                        }
                     }
                 }
             }

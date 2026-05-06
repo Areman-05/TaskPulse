@@ -18,6 +18,9 @@ interface AutomationDao {
     @Query("SELECT * FROM automation_rules ORDER BY id ASC")
     suspend fun listRules(): List<AutomationRuleEntity>
 
+    @Query("UPDATE automation_rules SET enabled = :enabled WHERE id = :ruleId")
+    suspend fun setRuleEnabled(ruleId: Long, enabled: Boolean)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertRule(rule: AutomationRuleEntity): Long
 }

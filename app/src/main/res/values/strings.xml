@@ -9,4 +9,8 @@
     <string name="notification_channel_reminders_title">Recordatorios de tareas</string>
     <string name="notification_channel_reminders_description">Avisos para tareas pendientes y próximas a vencer</string>
     <string name="insights_screen_title">Insights</string>
+    <string name="insights_run_sweep_now">Ejecutar barrido ahora</string>
+    <string name="insights_run_sweep_running">Ejecutando barrido...</string>
+    <string name="insights_enable_rule">Activar regla</string>
+    <string name="insights_disable_rule">Desactivar regla</string>
 </resources>

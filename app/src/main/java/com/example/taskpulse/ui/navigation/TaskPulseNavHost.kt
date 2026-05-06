@@ -86,7 +86,9 @@ fun TaskPulseNavHost(container: AppContainer) {
                 val vm: InsightsViewModel = viewModel(
                     factory = InsightsViewModel.Factory(
                         observeDailyProductivityUseCase = container.observeDailyProductivityUseCase,
-                        observeAutomationRulesUseCase = container.observeAutomationRulesUseCase
+                        observeAutomationRulesUseCase = container.observeAutomationRulesUseCase,
+                        setAutomationRuleEnabledUseCase = container.setAutomationRuleEnabledUseCase,
+                        triggerAutomationSweepNowUseCase = container.triggerAutomationSweepNowUseCase
                     )
                 )
                 InsightsScreen(viewModel = vm)

@@ -23,6 +23,7 @@ import com.example.taskpulse.domain.usecase.ObserveDailyProductivityUseCase
 import com.example.taskpulse.domain.usecase.ObserveTasksUseCase
 import com.example.taskpulse.domain.usecase.ScheduleRecurringTaskUseCase
 import com.example.taskpulse.domain.usecase.ScheduleTaskReminderUseCase
+import com.example.taskpulse.domain.usecase.SetAutomationRuleEnabledUseCase
 import com.example.taskpulse.domain.usecase.SnoozeTaskUseCase
 import com.example.taskpulse.domain.usecase.UpsertTaskUseCase
 
@@ -44,6 +45,7 @@ class AppContainer(context: Context) {
     val ensureDefaultCategoryUseCase = EnsureDefaultCategoryUseCase(categoryRepository)
     val observeAutomationRulesUseCase = ObserveAutomationRulesUseCase(automationRepository)
     val ensureStarterAutomationRulesUseCase = EnsureStarterAutomationRulesUseCase(automationRepository)
+    val setAutomationRuleEnabledUseCase = SetAutomationRuleEnabledUseCase(automationRepository)
     val observeDailyProductivityUseCase = ObserveDailyProductivityUseCase(repository)
     val upsertTaskUseCase = UpsertTaskUseCase(repository)
     val createDefaultTaskUseCase = CreateDefaultTaskUseCase()

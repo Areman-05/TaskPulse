@@ -58,6 +58,30 @@ class SimpleRuleEngineTest {
         assertEquals(0, result.size)
     }
 
+    @Test
+    fun `matches stale trigger when task exceeds threshold days`() {
+        val now = 20L * DAY_MS
+        val rule = AutomationRule(
+            id = 3L,
+            name = "stale rule",
+            enabled = true,
+            trigger = AutomationTrigger.TASK_STALE_DAYS,
+            action = AutomationAction.MARK_AS_IN_PROGRESS,
+            thresholdDays = 5
+        )
+        val task = sampleTask(
+            id = 12L,
+            status = TaskStatus.PENDING,
+            dueAtMillis = null,
+            updatedAtMillis = now - 6L * DAY_MS
+        )
+
+        val result = engine.evaluate(listOf(rule), listOf(task), now)
+
+        assertEquals(1, result.size)
+        assertEquals(3L, result.first().ruleId)
+    }
+
     private fun sampleTask(
         id: Long,
         status: TaskStatus,
@@ -75,4 +99,8 @@ class SimpleRuleEngineTest {
         createdAtMillis = updatedAtMillis,
         updatedAtMillis = updatedAtMillis
     )
+
+    private companion object {
+        const val DAY_MS = 24L * 60L * 60L * 1000L
+    }
 }

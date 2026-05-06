@@ -36,6 +36,28 @@ class SimpleRuleEngineTest {
         assertEquals(10L, result.first().taskId)
     }
 
+    @Test
+    fun `does not match overdue trigger when task is completed`() {
+        val now = 1_000_000L
+        val rule = AutomationRule(
+            id = 2L,
+            name = "overdue completed guard",
+            enabled = true,
+            trigger = AutomationTrigger.TASK_NOT_COMPLETED,
+            action = AutomationAction.SEND_NOTIFICATION
+        )
+        val task = sampleTask(
+            id = 11L,
+            status = TaskStatus.COMPLETED,
+            dueAtMillis = now - 5_000L,
+            updatedAtMillis = now
+        )
+
+        val result = engine.evaluate(listOf(rule), listOf(task), now)
+
+        assertEquals(0, result.size)
+    }
+
     private fun sampleTask(
         id: Long,
         status: TaskStatus,

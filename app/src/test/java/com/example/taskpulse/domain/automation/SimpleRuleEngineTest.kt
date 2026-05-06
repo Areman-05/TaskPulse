@@ -82,6 +82,35 @@ class SimpleRuleEngineTest {
         assertEquals(3L, result.first().ruleId)
     }
 
+    @Test
+    fun `matches failed trigger only for failed tasks`() {
+        val now = 5_000L
+        val rule = AutomationRule(
+            id = 4L,
+            name = "failed watcher",
+            enabled = true,
+            trigger = AutomationTrigger.TASK_FAILED,
+            action = AutomationAction.SEND_NOTIFICATION
+        )
+        val failed = sampleTask(
+            id = 13L,
+            status = TaskStatus.FAILED,
+            dueAtMillis = null,
+            updatedAtMillis = now
+        )
+        val active = sampleTask(
+            id = 14L,
+            status = TaskStatus.IN_PROGRESS,
+            dueAtMillis = null,
+            updatedAtMillis = now
+        )
+
+        val result = engine.evaluate(listOf(rule), listOf(failed, active), now)
+
+        assertEquals(1, result.size)
+        assertEquals(13L, result.first().taskId)
+    }
+
     private fun sampleTask(
         id: Long,
         status: TaskStatus,

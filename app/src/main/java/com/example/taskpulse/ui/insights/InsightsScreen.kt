@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -70,6 +71,17 @@ fun InsightsScreen(viewModel: InsightsViewModel) {
                             }
                         )
                     }
+
+                    OutlinedTextField(
+                        value = state.sweepIntervalHours,
+                        onValueChange = viewModel::onSweepIntervalChange,
+                        label = { Text(stringResource(R.string.insights_sweep_interval_label)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                    Button(onClick = viewModel::saveSweepInterval) {
+                        Text(stringResource(R.string.insights_save_interval))
+                    }
                 }
             }
 
@@ -97,6 +109,26 @@ fun InsightsScreen(viewModel: InsightsViewModel) {
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text("Reglas config.", style = MaterialTheme.typography.titleMedium)
+                    OutlinedTextField(
+                        value = state.draftRuleName,
+                        onValueChange = viewModel::onDraftNameChange,
+                        label = { Text(stringResource(R.string.insights_rule_name_label)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = state.draftThresholdDays,
+                        onValueChange = viewModel::onDraftThresholdChange,
+                        label = { Text(stringResource(R.string.insights_rule_threshold_label)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                    Button(onClick = viewModel::saveDraftRule) {
+                        Text(stringResource(R.string.insights_save_rule))
+                    }
+                    TextButton(onClick = viewModel::clearDraft) {
+                        Text(stringResource(R.string.insights_clear_rule_draft))
+                    }
                     state.automationRules.forEach { rule ->
                         val statusLabel = if (rule.enabled) "ON" else "OFF"
                         Column {
@@ -112,6 +144,12 @@ fun InsightsScreen(viewModel: InsightsViewModel) {
                                         stringResource(R.string.insights_enable_rule)
                                     }
                                 )
+                            }
+                            TextButton(onClick = { viewModel.beginEdit(rule) }) {
+                                Text(stringResource(R.string.insights_edit_rule))
+                            }
+                            TextButton(onClick = { viewModel.deleteRule(rule.id) }) {
+                                Text(stringResource(R.string.insights_delete_rule))
                             }
                         }
                     }

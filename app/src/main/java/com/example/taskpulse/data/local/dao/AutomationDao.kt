@@ -21,6 +21,9 @@ interface AutomationDao {
     @Query("UPDATE automation_rules SET enabled = :enabled WHERE id = :ruleId")
     suspend fun setRuleEnabled(ruleId: Long, enabled: Boolean)
 
+    @Query("DELETE FROM automation_rules WHERE id = :ruleId")
+    suspend fun deleteRule(ruleId: Long)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertRule(rule: AutomationRuleEntity): Long
 }

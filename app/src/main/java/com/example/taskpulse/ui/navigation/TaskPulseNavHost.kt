@@ -88,7 +88,12 @@ fun TaskPulseNavHost(container: AppContainer) {
                         observeDailyProductivityUseCase = container.observeDailyProductivityUseCase,
                         observeAutomationRulesUseCase = container.observeAutomationRulesUseCase,
                         setAutomationRuleEnabledUseCase = container.setAutomationRuleEnabledUseCase,
-                        triggerAutomationSweepNowUseCase = container.triggerAutomationSweepNowUseCase
+                        triggerAutomationSweepNowUseCase = container.triggerAutomationSweepNowUseCase,
+                        upsertAutomationRuleUseCase = container.upsertAutomationRuleUseCase,
+                        updateAutomationRuleDefinitionUseCase = container.updateAutomationRuleDefinitionUseCase,
+                        deleteAutomationRuleUseCase = container.deleteAutomationRuleUseCase,
+                        getAutomationSweepIntervalUseCase = container.getAutomationSweepIntervalUseCase,
+                        setAutomationSweepIntervalUseCase = container.setAutomationSweepIntervalUseCase
                     )
                 )
                 InsightsScreen(viewModel = vm)

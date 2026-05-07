@@ -23,6 +23,24 @@ class OfflineAutomationRuleRepository(
         automationDao.setRuleEnabled(ruleId, enabled)
     }
 
+    override suspend fun upsertRule(rule: AutomationRule): Long {
+        return automationDao.upsertRule(rule.toEntity())
+    }
+
+    override suspend fun updateRuleDefinition(rule: AutomationRule) {
+        automationDao.updateRuleDefinition(
+            ruleId = rule.id,
+            name = rule.name,
+            trigger = rule.trigger,
+            action = rule.action,
+            thresholdDays = rule.thresholdDays
+        )
+    }
+
+    override suspend fun deleteRule(ruleId: Long) {
+        automationDao.deleteRule(ruleId)
+    }
+
     override suspend fun ensureStarterRules() {
         if (automationDao.countRules() > 0) return
 

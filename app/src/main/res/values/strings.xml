@@ -13,4 +13,12 @@
     <string name="insights_run_sweep_running">Ejecutando barrido...</string>
     <string name="insights_enable_rule">Activar regla</string>
     <string name="insights_disable_rule">Desactivar regla</string>
+    <string name="insights_rule_name_label">Nombre de regla</string>
+    <string name="insights_rule_threshold_label">Umbral (días)</string>
+    <string name="insights_save_rule">Guardar regla</string>
+    <string name="insights_clear_rule_draft">Limpiar borrador</string>
+    <string name="insights_edit_rule">Editar</string>
+    <string name="insights_delete_rule">Eliminar</string>
+    <string name="insights_sweep_interval_label">Frecuencia barrido (horas)</string>
+    <string name="insights_save_interval">Guardar frecuencia</string>
 </resources>

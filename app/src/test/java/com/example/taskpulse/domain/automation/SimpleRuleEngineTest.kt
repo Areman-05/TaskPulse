@@ -111,6 +111,28 @@ class SimpleRuleEngineTest {
         assertEquals(13L, result.first().taskId)
     }
 
+    @Test
+    fun `ignores disabled rules during evaluation`() {
+        val now = 1_000_000L
+        val disabledRule = AutomationRule(
+            id = 5L,
+            name = "disabled overdue",
+            enabled = false,
+            trigger = AutomationTrigger.TASK_NOT_COMPLETED,
+            action = AutomationAction.SEND_NOTIFICATION
+        )
+        val task = sampleTask(
+            id = 20L,
+            status = TaskStatus.PENDING,
+            dueAtMillis = now - 1_000L,
+            updatedAtMillis = now
+        )
+
+        val result = engine.evaluate(listOf(disabledRule), listOf(task), now)
+
+        assertEquals(0, result.size)
+    }
+
     private fun sampleTask(
         id: Long,
         status: TaskStatus,

@@ -5,6 +5,8 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.example.taskpulse.data.local.entity.AutomationRuleEntity
+import com.example.taskpulse.domain.model.AutomationAction
+import com.example.taskpulse.domain.model.AutomationTrigger
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -23,6 +25,24 @@ interface AutomationDao {
 
     @Query("DELETE FROM automation_rules WHERE id = :ruleId")
     suspend fun deleteRule(ruleId: Long)
+
+    @Query(
+        """
+        UPDATE automation_rules
+        SET name = :name,
+            trigger = :trigger,
+            action = :action,
+            thresholdDays = :thresholdDays
+        WHERE id = :ruleId
+        """
+    )
+    suspend fun updateRuleDefinition(
+        ruleId: Long,
+        name: String,
+        trigger: AutomationTrigger,
+        action: AutomationAction,
+        thresholdDays: Int?
+    )
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertRule(rule: AutomationRuleEntity): Long

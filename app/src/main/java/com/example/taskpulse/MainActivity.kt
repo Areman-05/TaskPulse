@@ -47,7 +47,10 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             container.ensureDefaultCategoryUseCase()
             container.ensureStarterAutomationRulesUseCase()
-            AutomationWorkScheduler.enqueue(applicationContext)
+            AutomationWorkScheduler.enqueue(
+                context = applicationContext,
+                repeatIntervalHours = container.getAutomationSweepIntervalHours()
+            )
             AutomationInitialWork.enqueueOnce(applicationContext)
         }
         enableEdgeToEdge()

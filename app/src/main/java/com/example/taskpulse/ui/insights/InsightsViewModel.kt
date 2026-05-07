@@ -39,13 +39,21 @@ class InsightsViewModel(
     observeDailyProductivityUseCase: ObserveDailyProductivityUseCase,
     observeAutomationRulesUseCase: ObserveAutomationRulesUseCase,
     private val setAutomationRuleEnabledUseCase: SetAutomationRuleEnabledUseCase,
-    private val triggerAutomationSweepNowUseCase: TriggerAutomationSweepNowUseCase
+    private val triggerAutomationSweepNowUseCase: TriggerAutomationSweepNowUseCase,
+    private val upsertAutomationRuleUseCase: UpsertAutomationRuleUseCase,
+    private val updateAutomationRuleDefinitionUseCase: UpdateAutomationRuleDefinitionUseCase,
+    private val deleteAutomationRuleUseCase: DeleteAutomationRuleUseCase,
+    private val getAutomationSweepIntervalUseCase: GetAutomationSweepIntervalUseCase,
+    private val setAutomationSweepIntervalUseCase: SetAutomationSweepIntervalUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(InsightsUiState())
     val uiState: StateFlow<InsightsUiState> = _uiState.asStateFlow()
 
     init {
+        _uiState.update {
+            it.copy(sweepIntervalHours = getAutomationSweepIntervalUseCase().toString())
+        }
         viewModelScope.launch {
             observeDailyProductivityUseCase(limit = 7).collect { points ->
                 _uiState.update { it.copy(productivityTrend = points.asReversed()) }
@@ -77,11 +85,106 @@ class InsightsViewModel(
         }
     }
 
+    fun onDraftNameChange(value: String) {
+        _uiState.update { it.copy(draftRuleName = value) }
+    }
+
+    fun onDraftThresholdChange(value: String) {
+        _uiState.update { it.copy(draftThresholdDays = value.filter { ch -> ch.isDigit() }) }
+    }
+
+    fun onDraftTriggerChange(trigger: AutomationTrigger) {
+        _uiState.update { it.copy(draftTrigger = trigger) }
+    }
+
+    fun onDraftActionChange(action: AutomationAction) {
+        _uiState.update { it.copy(draftAction = action) }
+    }
+
+    fun beginEdit(rule: AutomationRule) {
+        _uiState.update {
+            it.copy(
+                draftRuleId = rule.id,
+                draftRuleName = rule.name,
+                draftTrigger = rule.trigger,
+                draftAction = rule.action,
+                draftThresholdDays = rule.thresholdDays?.toString().orEmpty()
+            )
+        }
+    }
+
+    fun clearDraft() {
+        _uiState.update {
+            it.copy(
+                draftRuleId = null,
+                draftRuleName = "",
+                draftTrigger = AutomationTrigger.TASK_NOT_COMPLETED,
+                draftAction = AutomationAction.SEND_NOTIFICATION,
+                draftThresholdDays = ""
+            )
+        }
+    }
+
+    fun saveDraftRule() {
+        viewModelScope.launch {
+            val state = _uiState.value
+            val trimmedName = state.draftRuleName.trim()
+            if (trimmedName.isBlank()) return@launch
+
+            val threshold = state.draftThresholdDays.toIntOrNull()
+            if (state.draftRuleId == null) {
+                upsertAutomationRuleUseCase(
+                    AutomationRule(
+                        id = 0,
+                        name = trimmedName,
+                        enabled = true,
+                        trigger = state.draftTrigger,
+                        action = state.draftAction,
+                        thresholdDays = threshold
+                    )
+                )
+            } else {
+                updateAutomationRuleDefinitionUseCase(
+                    AutomationRule(
+                        id = state.draftRuleId,
+                        name = trimmedName,
+                        enabled = true,
+                        trigger = state.draftTrigger,
+                        action = state.draftAction,
+                        thresholdDays = threshold
+                    )
+                )
+            }
+            clearDraft()
+        }
+    }
+
+    fun deleteRule(ruleId: Long) {
+        viewModelScope.launch {
+            deleteAutomationRuleUseCase(ruleId)
+        }
+    }
+
+    fun onSweepIntervalChange(value: String) {
+        _uiState.update { it.copy(sweepIntervalHours = value.filter { ch -> ch.isDigit() }) }
+    }
+
+    fun saveSweepInterval() {
+        val hours = _uiState.value.sweepIntervalHours.toLongOrNull()?.coerceAtLeast(1L) ?: return
+        setAutomationSweepIntervalUseCase(hours)
+        _uiState.update { it.copy(sweepIntervalHours = hours.toString()) }
+    }
+
     class Factory(
         private val observeDailyProductivityUseCase: ObserveDailyProductivityUseCase,
         private val observeAutomationRulesUseCase: ObserveAutomationRulesUseCase,
         private val setAutomationRuleEnabledUseCase: SetAutomationRuleEnabledUseCase,
-        private val triggerAutomationSweepNowUseCase: TriggerAutomationSweepNowUseCase
+        private val triggerAutomationSweepNowUseCase: TriggerAutomationSweepNowUseCase,
+        private val upsertAutomationRuleUseCase: UpsertAutomationRuleUseCase,
+        private val updateAutomationRuleDefinitionUseCase: UpdateAutomationRuleDefinitionUseCase,
+        private val deleteAutomationRuleUseCase: DeleteAutomationRuleUseCase,
+        private val getAutomationSweepIntervalUseCase: GetAutomationSweepIntervalUseCase,
+        private val setAutomationSweepIntervalUseCase: SetAutomationSweepIntervalUseCase
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -89,7 +192,12 @@ class InsightsViewModel(
                 observeDailyProductivityUseCase,
                 observeAutomationRulesUseCase,
                 setAutomationRuleEnabledUseCase,
-                triggerAutomationSweepNowUseCase
+                triggerAutomationSweepNowUseCase,
+                upsertAutomationRuleUseCase,
+                updateAutomationRuleDefinitionUseCase,
+                deleteAutomationRuleUseCase,
+                getAutomationSweepIntervalUseCase,
+                setAutomationSweepIntervalUseCase
             ) as T
         }
     }

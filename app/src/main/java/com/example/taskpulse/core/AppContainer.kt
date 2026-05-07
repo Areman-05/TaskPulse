@@ -6,6 +6,7 @@ import com.example.taskpulse.data.local.TaskPulseDatabase
 import com.example.taskpulse.data.repository.OfflineAutomationRuleRepository
 import com.example.taskpulse.data.repository.OfflineCategoryRepository
 import com.example.taskpulse.data.repository.OfflineTaskRepository
+import com.example.taskpulse.data.repository.SharedPrefsAutomationSettingsRepository
 import com.example.taskpulse.data.scheduler.WorkManagerTaskScheduler
 import com.example.taskpulse.domain.automation.SimpleRuleEngine
 import com.example.taskpulse.domain.model.AutomationRule
@@ -19,12 +20,14 @@ import com.example.taskpulse.domain.usecase.MarkTaskCompletedUseCase
 import com.example.taskpulse.domain.usecase.MarkTaskFailedUseCase
 import com.example.taskpulse.domain.usecase.MarkTaskInProgressUseCase
 import com.example.taskpulse.domain.usecase.EnsureStarterAutomationRulesUseCase
+import com.example.taskpulse.domain.usecase.GetAutomationSweepIntervalUseCase
 import com.example.taskpulse.domain.usecase.ObserveAutomationRulesUseCase
 import com.example.taskpulse.domain.usecase.ObserveDailyProductivityUseCase
 import com.example.taskpulse.domain.usecase.ObserveTasksUseCase
 import com.example.taskpulse.domain.usecase.ScheduleRecurringTaskUseCase
 import com.example.taskpulse.domain.usecase.ScheduleTaskReminderUseCase
 import com.example.taskpulse.domain.usecase.SetAutomationRuleEnabledUseCase
+import com.example.taskpulse.domain.usecase.SetAutomationSweepIntervalUseCase
 import com.example.taskpulse.domain.usecase.SnoozeTaskUseCase
 import com.example.taskpulse.domain.usecase.TriggerAutomationSweepNowUseCase
 import com.example.taskpulse.domain.usecase.UpdateAutomationRuleDefinitionUseCase
@@ -43,6 +46,7 @@ class AppContainer(context: Context) {
     private val repository = OfflineTaskRepository(database.taskDao())
     private val categoryRepository = OfflineCategoryRepository(database.categoryDao())
     private val automationRepository = OfflineAutomationRuleRepository(database.automationDao())
+    private val automationSettingsRepository = SharedPrefsAutomationSettingsRepository(context.applicationContext)
     private val scheduler: TaskScheduler = WorkManagerTaskScheduler(context.applicationContext)
 
     val observeTasksUseCase = ObserveTasksUseCase(repository)
@@ -54,6 +58,8 @@ class AppContainer(context: Context) {
     val updateAutomationRuleDefinitionUseCase = UpdateAutomationRuleDefinitionUseCase(automationRepository)
     val deleteAutomationRuleUseCase = DeleteAutomationRuleUseCase(automationRepository)
     val triggerAutomationSweepNowUseCase = TriggerAutomationSweepNowUseCase(context.applicationContext)
+    val getAutomationSweepIntervalUseCase = GetAutomationSweepIntervalUseCase(automationSettingsRepository)
+    val setAutomationSweepIntervalUseCase = SetAutomationSweepIntervalUseCase(automationSettingsRepository)
     val observeDailyProductivityUseCase = ObserveDailyProductivityUseCase(repository)
     val upsertTaskUseCase = UpsertTaskUseCase(repository)
     val createDefaultTaskUseCase = CreateDefaultTaskUseCase()
@@ -68,4 +74,6 @@ class AppContainer(context: Context) {
     suspend fun loadTaskSnapshot(): List<Task> = repository.listTasks()
 
     suspend fun loadAutomationRulesSnapshot(): List<AutomationRule> = automationRepository.listRules()
+
+    fun getAutomationSweepIntervalHours(): Long = getAutomationSweepIntervalUseCase()
 }

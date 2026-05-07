@@ -14,8 +14,9 @@ import java.util.concurrent.TimeUnit
  * Schedules a lightweight automation sweep that evaluates persisted rules against local tasks.
  */
 object AutomationWorkScheduler {
-    fun enqueue(context: Context) {
-        val request = PeriodicWorkRequestBuilder<AutomationSweepWorker>(1, TimeUnit.HOURS)
+    fun enqueue(context: Context, repeatIntervalHours: Long) {
+        val clampedInterval = repeatIntervalHours.coerceAtLeast(1L)
+        val request = PeriodicWorkRequestBuilder<AutomationSweepWorker>(clampedInterval, TimeUnit.HOURS)
             .setConstraints(
                 Constraints.Builder()
                     .setRequiredNetworkType(NetworkType.NOT_REQUIRED)

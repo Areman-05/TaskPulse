@@ -3,12 +3,19 @@ package com.example.taskpulse.ui.insights
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.taskpulse.domain.model.AutomationAction
 import com.example.taskpulse.domain.model.AutomationRule
+import com.example.taskpulse.domain.model.AutomationTrigger
 import com.example.taskpulse.domain.model.DailyProductivityPoint
+import com.example.taskpulse.domain.usecase.DeleteAutomationRuleUseCase
+import com.example.taskpulse.domain.usecase.GetAutomationSweepIntervalUseCase
 import com.example.taskpulse.domain.usecase.ObserveAutomationRulesUseCase
 import com.example.taskpulse.domain.usecase.ObserveDailyProductivityUseCase
 import com.example.taskpulse.domain.usecase.SetAutomationRuleEnabledUseCase
+import com.example.taskpulse.domain.usecase.SetAutomationSweepIntervalUseCase
 import com.example.taskpulse.domain.usecase.TriggerAutomationSweepNowUseCase
+import com.example.taskpulse.domain.usecase.UpdateAutomationRuleDefinitionUseCase
+import com.example.taskpulse.domain.usecase.UpsertAutomationRuleUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,7 +26,13 @@ data class InsightsUiState(
     val productivityTrend: List<DailyProductivityPoint> = emptyList(),
     val automationRules: List<AutomationRule> = emptyList(),
     val enabledAutomationCount: Int = 0,
-    val isSweepRunning: Boolean = false
+    val isSweepRunning: Boolean = false,
+    val draftRuleId: Long? = null,
+    val draftRuleName: String = "",
+    val draftTrigger: AutomationTrigger = AutomationTrigger.TASK_NOT_COMPLETED,
+    val draftAction: AutomationAction = AutomationAction.SEND_NOTIFICATION,
+    val draftThresholdDays: String = "",
+    val sweepIntervalHours: String = "1"
 )
 
 class InsightsViewModel(

@@ -133,6 +133,29 @@ class SimpleRuleEngineTest {
         assertEquals(0, result.size)
     }
 
+    @Test
+    fun `stale trigger requires threshold to produce matches`() {
+        val now = 20L * DAY_MS
+        val invalidRule = AutomationRule(
+            id = 6L,
+            name = "stale without threshold",
+            enabled = true,
+            trigger = AutomationTrigger.TASK_STALE_DAYS,
+            action = AutomationAction.MARK_AS_IN_PROGRESS,
+            thresholdDays = null
+        )
+        val task = sampleTask(
+            id = 21L,
+            status = TaskStatus.PENDING,
+            dueAtMillis = null,
+            updatedAtMillis = now - 30L * DAY_MS
+        )
+
+        val result = engine.evaluate(listOf(invalidRule), listOf(task), now)
+
+        assertEquals(0, result.size)
+    }
+
     private fun sampleTask(
         id: Long,
         status: TaskStatus,

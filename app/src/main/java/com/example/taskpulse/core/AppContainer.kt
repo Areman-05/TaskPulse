@@ -12,6 +12,7 @@ import com.example.taskpulse.domain.model.AutomationRule
 import com.example.taskpulse.domain.model.Task
 import com.example.taskpulse.domain.scheduler.TaskScheduler
 import com.example.taskpulse.domain.usecase.CreateDefaultTaskUseCase
+import com.example.taskpulse.domain.usecase.DeleteAutomationRuleUseCase
 import com.example.taskpulse.domain.usecase.EvaluateAutomationRulesUseCase
 import com.example.taskpulse.domain.usecase.EnsureDefaultCategoryUseCase
 import com.example.taskpulse.domain.usecase.MarkTaskCompletedUseCase
@@ -26,6 +27,8 @@ import com.example.taskpulse.domain.usecase.ScheduleTaskReminderUseCase
 import com.example.taskpulse.domain.usecase.SetAutomationRuleEnabledUseCase
 import com.example.taskpulse.domain.usecase.SnoozeTaskUseCase
 import com.example.taskpulse.domain.usecase.TriggerAutomationSweepNowUseCase
+import com.example.taskpulse.domain.usecase.UpdateAutomationRuleDefinitionUseCase
+import com.example.taskpulse.domain.usecase.UpsertAutomationRuleUseCase
 import com.example.taskpulse.domain.usecase.UpsertTaskUseCase
 
 class AppContainer(context: Context) {
@@ -47,6 +50,9 @@ class AppContainer(context: Context) {
     val observeAutomationRulesUseCase = ObserveAutomationRulesUseCase(automationRepository)
     val ensureStarterAutomationRulesUseCase = EnsureStarterAutomationRulesUseCase(automationRepository)
     val setAutomationRuleEnabledUseCase = SetAutomationRuleEnabledUseCase(automationRepository)
+    val upsertAutomationRuleUseCase = UpsertAutomationRuleUseCase(automationRepository)
+    val updateAutomationRuleDefinitionUseCase = UpdateAutomationRuleDefinitionUseCase(automationRepository)
+    val deleteAutomationRuleUseCase = DeleteAutomationRuleUseCase(automationRepository)
     val triggerAutomationSweepNowUseCase = TriggerAutomationSweepNowUseCase(context.applicationContext)
     val observeDailyProductivityUseCase = ObserveDailyProductivityUseCase(repository)
     val upsertTaskUseCase = UpsertTaskUseCase(repository)

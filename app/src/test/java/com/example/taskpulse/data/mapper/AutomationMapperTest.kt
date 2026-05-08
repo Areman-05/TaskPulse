@@ -39,4 +39,20 @@ class AutomationMapperTest {
 
         assertEquals(null, mapped.thresholdDays)
     }
+
+    @Test
+    fun `toDomain preserves id for existing persisted rules`() {
+        val rule = AutomationRule(
+            id = 1234L,
+            name = "existing",
+            enabled = true,
+            trigger = AutomationTrigger.TASK_STALE_DAYS,
+            action = AutomationAction.MARK_AS_IN_PROGRESS,
+            thresholdDays = 4
+        )
+
+        val mapped = rule.toEntity().toDomain()
+
+        assertEquals(1234L, mapped.id)
+    }
 }

@@ -92,6 +92,8 @@ fun TaskPulseNavHost(container: AppContainer) {
                         upsertAutomationRuleUseCase = container.upsertAutomationRuleUseCase,
                         updateAutomationRuleDefinitionUseCase = container.updateAutomationRuleDefinitionUseCase,
                         deleteAutomationRuleUseCase = container.deleteAutomationRuleUseCase,
+                        getAutomationRuleUseCase = container.getAutomationRuleUseCase,
+                        getEnabledAutomationRuleCountUseCase = container.getEnabledAutomationRuleCountUseCase,
                         getAutomationSweepIntervalUseCase = container.getAutomationSweepIntervalUseCase,
                         setAutomationSweepIntervalUseCase = container.setAutomationSweepIntervalUseCase
                     )

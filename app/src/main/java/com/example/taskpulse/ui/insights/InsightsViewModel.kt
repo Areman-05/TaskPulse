@@ -32,7 +32,9 @@ data class InsightsUiState(
     val draftTrigger: AutomationTrigger = AutomationTrigger.TASK_NOT_COMPLETED,
     val draftAction: AutomationAction = AutomationAction.SEND_NOTIFICATION,
     val draftThresholdDays: String = "",
-    val sweepIntervalHours: String = "1"
+    val sweepIntervalHours: String = "1",
+    val draftValidationError: String? = null,
+    val saveIntervalMessage: String? = null
 )
 
 class InsightsViewModel(

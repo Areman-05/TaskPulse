@@ -30,6 +30,7 @@ import com.example.taskpulse.domain.usecase.ScheduleRecurringTaskUseCase
 import com.example.taskpulse.domain.usecase.ScheduleTaskReminderUseCase
 import com.example.taskpulse.domain.usecase.SetAutomationRuleEnabledUseCase
 import com.example.taskpulse.domain.usecase.SetAutomationSweepIntervalUseCase
+import com.example.taskpulse.domain.usecase.RescheduleAutomationSweepUseCase
 import com.example.taskpulse.domain.usecase.SnoozeTaskUseCase
 import com.example.taskpulse.domain.usecase.TriggerAutomationSweepNowUseCase
 import com.example.taskpulse.domain.usecase.UpdateAutomationRuleDefinitionUseCase
@@ -64,6 +65,7 @@ class AppContainer(context: Context) {
     val triggerAutomationSweepNowUseCase = TriggerAutomationSweepNowUseCase(context.applicationContext)
     val getAutomationSweepIntervalUseCase = GetAutomationSweepIntervalUseCase(automationSettingsRepository)
     val setAutomationSweepIntervalUseCase = SetAutomationSweepIntervalUseCase(automationSettingsRepository)
+    val rescheduleAutomationSweepUseCase = RescheduleAutomationSweepUseCase(context.applicationContext)
     val observeDailyProductivityUseCase = ObserveDailyProductivityUseCase(repository)
     val upsertTaskUseCase = UpsertTaskUseCase(repository)
     val createDefaultTaskUseCase = CreateDefaultTaskUseCase()

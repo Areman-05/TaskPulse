@@ -23,4 +23,20 @@ class AutomationMapperTest {
         assertEquals(AutomationTrigger.TASK_FAILED, entity.trigger)
         assertEquals(AutomationAction.MARK_AS_FAILED, entity.action)
     }
+
+    @Test
+    fun `toDomain preserves nullable threshold`() {
+        val rule = AutomationRule(
+            id = 77L,
+            name = "no-threshold",
+            enabled = false,
+            trigger = AutomationTrigger.TASK_NOT_COMPLETED,
+            action = AutomationAction.SEND_NOTIFICATION,
+            thresholdDays = null
+        )
+
+        val mapped = rule.toEntity().toDomain()
+
+        assertEquals(null, mapped.thresholdDays)
+    }
 }

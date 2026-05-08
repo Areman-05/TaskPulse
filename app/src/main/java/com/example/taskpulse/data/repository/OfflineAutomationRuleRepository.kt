@@ -19,6 +19,11 @@ class OfflineAutomationRuleRepository(
     override suspend fun listRules(): List<AutomationRule> =
         automationDao.listRules().map { it.toDomain() }
 
+    override suspend fun getRule(ruleId: Long): AutomationRule? =
+        automationDao.getRule(ruleId)?.toDomain()
+
+    override suspend fun countEnabledRules(): Int = automationDao.countEnabledRules()
+
     override suspend fun setRuleEnabled(ruleId: Long, enabled: Boolean) {
         automationDao.setRuleEnabled(ruleId, enabled)
     }

@@ -186,6 +186,28 @@ class SimpleRuleEngineTest {
         assertEquals(2, result.size)
     }
 
+    @Test
+    fun `overdue trigger requires due date to be set`() {
+        val now = 100_000L
+        val rule = AutomationRule(
+            id = 9L,
+            name = "overdue without due",
+            enabled = true,
+            trigger = AutomationTrigger.TASK_NOT_COMPLETED,
+            action = AutomationAction.SEND_NOTIFICATION
+        )
+        val task = sampleTask(
+            id = 51L,
+            status = TaskStatus.PENDING,
+            dueAtMillis = null,
+            updatedAtMillis = now
+        )
+
+        val result = engine.evaluate(listOf(rule), listOf(task), now)
+
+        assertEquals(0, result.size)
+    }
+
     private fun sampleTask(
         id: Long,
         status: TaskStatus,

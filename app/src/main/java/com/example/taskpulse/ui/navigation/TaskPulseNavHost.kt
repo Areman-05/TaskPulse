@@ -95,7 +95,8 @@ fun TaskPulseNavHost(container: AppContainer) {
                         getAutomationRuleUseCase = container.getAutomationRuleUseCase,
                         getEnabledAutomationRuleCountUseCase = container.getEnabledAutomationRuleCountUseCase,
                         getAutomationSweepIntervalUseCase = container.getAutomationSweepIntervalUseCase,
-                        setAutomationSweepIntervalUseCase = container.setAutomationSweepIntervalUseCase
+                        setAutomationSweepIntervalUseCase = container.setAutomationSweepIntervalUseCase,
+                        rescheduleAutomationSweepUseCase = container.rescheduleAutomationSweepUseCase
                     )
                 )
                 InsightsScreen(viewModel = vm)

@@ -23,6 +23,9 @@ interface AutomationDao {
     @Query("SELECT * FROM automation_rules ORDER BY id ASC")
     suspend fun listRules(): List<AutomationRuleEntity>
 
+    @Query("SELECT * FROM automation_rules WHERE id = :ruleId LIMIT 1")
+    suspend fun getRule(ruleId: Long): AutomationRuleEntity?
+
     @Query("UPDATE automation_rules SET enabled = :enabled WHERE id = :ruleId")
     suspend fun setRuleEnabled(ruleId: Long, enabled: Boolean)
 

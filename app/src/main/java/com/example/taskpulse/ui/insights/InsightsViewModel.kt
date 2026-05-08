@@ -45,6 +45,8 @@ class InsightsViewModel(
     private val upsertAutomationRuleUseCase: UpsertAutomationRuleUseCase,
     private val updateAutomationRuleDefinitionUseCase: UpdateAutomationRuleDefinitionUseCase,
     private val deleteAutomationRuleUseCase: DeleteAutomationRuleUseCase,
+    private val getAutomationRuleUseCase: GetAutomationRuleUseCase,
+    private val getEnabledAutomationRuleCountUseCase: GetEnabledAutomationRuleCountUseCase,
     private val getAutomationSweepIntervalUseCase: GetAutomationSweepIntervalUseCase,
     private val setAutomationSweepIntervalUseCase: SetAutomationSweepIntervalUseCase
 ) : ViewModel() {
@@ -63,10 +65,11 @@ class InsightsViewModel(
         }
         viewModelScope.launch {
             observeAutomationRulesUseCase().collect { rules ->
+                val enabledCount = getEnabledAutomationRuleCountUseCase()
                 _uiState.update {
                     it.copy(
                         automationRules = rules,
-                        enabledAutomationCount = rules.count { rule -> rule.enabled }
+                        enabledAutomationCount = enabledCount
                     )
                 }
             }
@@ -104,14 +107,18 @@ class InsightsViewModel(
     }
 
     fun beginEdit(rule: AutomationRule) {
-        _uiState.update {
-            it.copy(
-                draftRuleId = rule.id,
-                draftRuleName = rule.name,
-                draftTrigger = rule.trigger,
-                draftAction = rule.action,
-                draftThresholdDays = rule.thresholdDays?.toString().orEmpty()
-            )
+        viewModelScope.launch {
+            val persisted = getAutomationRuleUseCase(rule.id) ?: return@launch
+            _uiState.update {
+                it.copy(
+                    draftRuleId = persisted.id,
+                    draftRuleName = persisted.name,
+                    draftTrigger = persisted.trigger,
+                    draftAction = persisted.action,
+                    draftThresholdDays = persisted.thresholdDays?.toString().orEmpty(),
+                    draftValidationError = null
+                )
+            }
         }
     }
 
@@ -122,7 +129,8 @@ class InsightsViewModel(
                 draftRuleName = "",
                 draftTrigger = AutomationTrigger.TASK_NOT_COMPLETED,
                 draftAction = AutomationAction.SEND_NOTIFICATION,
-                draftThresholdDays = ""
+                draftThresholdDays = "",
+                draftValidationError = null
             )
         }
     }
@@ -131,9 +139,16 @@ class InsightsViewModel(
         viewModelScope.launch {
             val state = _uiState.value
             val trimmedName = state.draftRuleName.trim()
-            if (trimmedName.isBlank()) return@launch
+            if (trimmedName.isBlank()) {
+                _uiState.update { it.copy(draftValidationError = "El nombre es obligatorio.") }
+                return@launch
+            }
 
             val threshold = state.draftThresholdDays.toIntOrNull()
+            if (state.draftTrigger == AutomationTrigger.TASK_STALE_DAYS && threshold == null) {
+                _uiState.update { it.copy(draftValidationError = "Stale Days requiere umbral.") }
+                return@launch
+            }
             if (state.draftRuleId == null) {
                 upsertAutomationRuleUseCase(
                     AutomationRule(
@@ -172,9 +187,17 @@ class InsightsViewModel(
     }
 
     fun saveSweepInterval() {
-        val hours = _uiState.value.sweepIntervalHours.toLongOrNull()?.coerceAtLeast(1L) ?: return
+        val hours = _uiState.value.sweepIntervalHours.toLongOrNull()?.coerceAtLeast(1L) ?: run {
+            _uiState.update { it.copy(saveIntervalMessage = "Frecuencia inválida.") }
+            return
+        }
         setAutomationSweepIntervalUseCase(hours)
-        _uiState.update { it.copy(sweepIntervalHours = hours.toString()) }
+        _uiState.update {
+            it.copy(
+                sweepIntervalHours = hours.toString(),
+                saveIntervalMessage = "Frecuencia guardada."
+            )
+        }
     }
 
     class Factory(
@@ -185,6 +208,8 @@ class InsightsViewModel(
         private val upsertAutomationRuleUseCase: UpsertAutomationRuleUseCase,
         private val updateAutomationRuleDefinitionUseCase: UpdateAutomationRuleDefinitionUseCase,
         private val deleteAutomationRuleUseCase: DeleteAutomationRuleUseCase,
+        private val getAutomationRuleUseCase: GetAutomationRuleUseCase,
+        private val getEnabledAutomationRuleCountUseCase: GetEnabledAutomationRuleCountUseCase,
         private val getAutomationSweepIntervalUseCase: GetAutomationSweepIntervalUseCase,
         private val setAutomationSweepIntervalUseCase: SetAutomationSweepIntervalUseCase
     ) : ViewModelProvider.Factory {
@@ -198,6 +223,8 @@ class InsightsViewModel(
                 upsertAutomationRuleUseCase,
                 updateAutomationRuleDefinitionUseCase,
                 deleteAutomationRuleUseCase,
+                getAutomationRuleUseCase,
+                getEnabledAutomationRuleCountUseCase,
                 getAutomationSweepIntervalUseCase,
                 setAutomationSweepIntervalUseCase
             ) as T

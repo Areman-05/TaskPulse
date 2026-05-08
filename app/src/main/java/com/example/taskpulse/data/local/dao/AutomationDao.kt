@@ -14,6 +14,9 @@ interface AutomationDao {
     @Query("SELECT COUNT(*) FROM automation_rules")
     suspend fun countRules(): Int
 
+    @Query("SELECT COUNT(*) FROM automation_rules WHERE enabled = 1")
+    suspend fun countEnabledRules(): Int
+
     @Query("SELECT * FROM automation_rules ORDER BY id ASC")
     fun observeRules(): Flow<List<AutomationRuleEntity>>
 

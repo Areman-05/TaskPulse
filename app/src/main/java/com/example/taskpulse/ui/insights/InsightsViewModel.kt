@@ -8,9 +8,12 @@ import com.example.taskpulse.domain.model.AutomationRule
 import com.example.taskpulse.domain.model.AutomationTrigger
 import com.example.taskpulse.domain.model.DailyProductivityPoint
 import com.example.taskpulse.domain.usecase.DeleteAutomationRuleUseCase
+import com.example.taskpulse.domain.usecase.GetAutomationRuleUseCase
 import com.example.taskpulse.domain.usecase.GetAutomationSweepIntervalUseCase
+import com.example.taskpulse.domain.usecase.GetEnabledAutomationRuleCountUseCase
 import com.example.taskpulse.domain.usecase.ObserveAutomationRulesUseCase
 import com.example.taskpulse.domain.usecase.ObserveDailyProductivityUseCase
+import com.example.taskpulse.domain.usecase.RescheduleAutomationSweepUseCase
 import com.example.taskpulse.domain.usecase.SetAutomationRuleEnabledUseCase
 import com.example.taskpulse.domain.usecase.SetAutomationSweepIntervalUseCase
 import com.example.taskpulse.domain.usecase.TriggerAutomationSweepNowUseCase
@@ -48,7 +51,8 @@ class InsightsViewModel(
     private val getAutomationRuleUseCase: GetAutomationRuleUseCase,
     private val getEnabledAutomationRuleCountUseCase: GetEnabledAutomationRuleCountUseCase,
     private val getAutomationSweepIntervalUseCase: GetAutomationSweepIntervalUseCase,
-    private val setAutomationSweepIntervalUseCase: SetAutomationSweepIntervalUseCase
+    private val setAutomationSweepIntervalUseCase: SetAutomationSweepIntervalUseCase,
+    private val rescheduleAutomationSweepUseCase: RescheduleAutomationSweepUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(InsightsUiState())
@@ -210,6 +214,7 @@ class InsightsViewModel(
             return
         }
         setAutomationSweepIntervalUseCase(hours)
+        rescheduleAutomationSweepUseCase(hours)
         _uiState.update {
             it.copy(
                 sweepIntervalHours = hours.toString(),
@@ -229,7 +234,8 @@ class InsightsViewModel(
         private val getAutomationRuleUseCase: GetAutomationRuleUseCase,
         private val getEnabledAutomationRuleCountUseCase: GetEnabledAutomationRuleCountUseCase,
         private val getAutomationSweepIntervalUseCase: GetAutomationSweepIntervalUseCase,
-        private val setAutomationSweepIntervalUseCase: SetAutomationSweepIntervalUseCase
+        private val setAutomationSweepIntervalUseCase: SetAutomationSweepIntervalUseCase,
+        private val rescheduleAutomationSweepUseCase: RescheduleAutomationSweepUseCase
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -244,7 +250,8 @@ class InsightsViewModel(
                 getAutomationRuleUseCase,
                 getEnabledAutomationRuleCountUseCase,
                 getAutomationSweepIntervalUseCase,
-                setAutomationSweepIntervalUseCase
+                setAutomationSweepIntervalUseCase,
+                rescheduleAutomationSweepUseCase
             ) as T
         }
     }

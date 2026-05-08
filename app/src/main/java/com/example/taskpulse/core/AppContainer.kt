@@ -21,6 +21,8 @@ import com.example.taskpulse.domain.usecase.MarkTaskFailedUseCase
 import com.example.taskpulse.domain.usecase.MarkTaskInProgressUseCase
 import com.example.taskpulse.domain.usecase.EnsureStarterAutomationRulesUseCase
 import com.example.taskpulse.domain.usecase.GetAutomationSweepIntervalUseCase
+import com.example.taskpulse.domain.usecase.GetAutomationRuleUseCase
+import com.example.taskpulse.domain.usecase.GetEnabledAutomationRuleCountUseCase
 import com.example.taskpulse.domain.usecase.ObserveAutomationRulesUseCase
 import com.example.taskpulse.domain.usecase.ObserveDailyProductivityUseCase
 import com.example.taskpulse.domain.usecase.ObserveTasksUseCase
@@ -57,6 +59,8 @@ class AppContainer(context: Context) {
     val upsertAutomationRuleUseCase = UpsertAutomationRuleUseCase(automationRepository)
     val updateAutomationRuleDefinitionUseCase = UpdateAutomationRuleDefinitionUseCase(automationRepository)
     val deleteAutomationRuleUseCase = DeleteAutomationRuleUseCase(automationRepository)
+    val getAutomationRuleUseCase = GetAutomationRuleUseCase(automationRepository)
+    val getEnabledAutomationRuleCountUseCase = GetEnabledAutomationRuleCountUseCase(automationRepository)
     val triggerAutomationSweepNowUseCase = TriggerAutomationSweepNowUseCase(context.applicationContext)
     val getAutomationSweepIntervalUseCase = GetAutomationSweepIntervalUseCase(automationSettingsRepository)
     val setAutomationSweepIntervalUseCase = SetAutomationSweepIntervalUseCase(automationSettingsRepository)

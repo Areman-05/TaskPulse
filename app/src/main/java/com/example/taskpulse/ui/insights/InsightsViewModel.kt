@@ -106,6 +106,24 @@ class InsightsViewModel(
         _uiState.update { it.copy(draftAction = action) }
     }
 
+    fun cycleTrigger() {
+        val next = when (_uiState.value.draftTrigger) {
+            AutomationTrigger.TASK_NOT_COMPLETED -> AutomationTrigger.TASK_STALE_DAYS
+            AutomationTrigger.TASK_STALE_DAYS -> AutomationTrigger.TASK_FAILED
+            AutomationTrigger.TASK_FAILED -> AutomationTrigger.TASK_NOT_COMPLETED
+        }
+        _uiState.update { it.copy(draftTrigger = next) }
+    }
+
+    fun cycleAction() {
+        val next = when (_uiState.value.draftAction) {
+            AutomationAction.SEND_NOTIFICATION -> AutomationAction.MARK_AS_IN_PROGRESS
+            AutomationAction.MARK_AS_IN_PROGRESS -> AutomationAction.MARK_AS_FAILED
+            AutomationAction.MARK_AS_FAILED -> AutomationAction.SEND_NOTIFICATION
+        }
+        _uiState.update { it.copy(draftAction = next) }
+    }
+
     fun beginEdit(rule: AutomationRule) {
         viewModelScope.launch {
             val persisted = getAutomationRuleUseCase(rule.id) ?: return@launch
@@ -140,13 +158,13 @@ class InsightsViewModel(
             val state = _uiState.value
             val trimmedName = state.draftRuleName.trim()
             if (trimmedName.isBlank()) {
-                _uiState.update { it.copy(draftValidationError = "El nombre es obligatorio.") }
+                _uiState.update { it.copy(draftValidationError = "insights_error_name_required") }
                 return@launch
             }
 
             val threshold = state.draftThresholdDays.toIntOrNull()
             if (state.draftTrigger == AutomationTrigger.TASK_STALE_DAYS && threshold == null) {
-                _uiState.update { it.copy(draftValidationError = "Stale Days requiere umbral.") }
+                _uiState.update { it.copy(draftValidationError = "insights_error_stale_needs_threshold") }
                 return@launch
             }
             if (state.draftRuleId == null) {
@@ -188,14 +206,14 @@ class InsightsViewModel(
 
     fun saveSweepInterval() {
         val hours = _uiState.value.sweepIntervalHours.toLongOrNull()?.coerceAtLeast(1L) ?: run {
-            _uiState.update { it.copy(saveIntervalMessage = "Frecuencia inválida.") }
+            _uiState.update { it.copy(saveIntervalMessage = "insights_interval_invalid") }
             return
         }
         setAutomationSweepIntervalUseCase(hours)
         _uiState.update {
             it.copy(
                 sweepIntervalHours = hours.toString(),
-                saveIntervalMessage = "Frecuencia guardada."
+                saveIntervalMessage = "insights_interval_saved"
             )
         }
     }

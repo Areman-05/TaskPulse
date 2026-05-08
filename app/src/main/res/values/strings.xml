@@ -21,4 +21,12 @@
     <string name="insights_delete_rule">Eliminar</string>
     <string name="insights_sweep_interval_label">Frecuencia barrido (horas)</string>
     <string name="insights_save_interval">Guardar frecuencia</string>
+    <string name="insights_trigger_label">Trigger: %1$s</string>
+    <string name="insights_action_label">Acción: %1$s</string>
+    <string name="insights_change_trigger">Cambiar trigger</string>
+    <string name="insights_change_action">Cambiar acción</string>
+    <string name="insights_error_name_required">El nombre es obligatorio.</string>
+    <string name="insights_error_stale_needs_threshold">Stale Days requiere umbral.</string>
+    <string name="insights_interval_invalid">Frecuencia inválida.</string>
+    <string name="insights_interval_saved">Frecuencia guardada.</string>
 </resources>

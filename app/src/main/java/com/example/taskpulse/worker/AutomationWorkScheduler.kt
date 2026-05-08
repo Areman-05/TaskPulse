@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit
  */
 object AutomationWorkScheduler {
     fun enqueue(context: Context, repeatIntervalHours: Long) {
-        val clampedInterval = repeatIntervalHours.coerceAtLeast(1L)
+        val clampedInterval = repeatIntervalHours.coerceIn(1L, 24L)
         val request = PeriodicWorkRequestBuilder<AutomationSweepWorker>(clampedInterval, TimeUnit.HOURS)
             .setConstraints(
                 Constraints.Builder()

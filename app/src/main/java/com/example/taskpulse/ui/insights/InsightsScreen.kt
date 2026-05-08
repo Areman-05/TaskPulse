@@ -123,11 +123,53 @@ fun InsightsScreen(viewModel: InsightsViewModel) {
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true
                     )
+                    Text(
+                        text = stringResource(R.string.insights_trigger_label, state.draftTrigger.name),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    TextButton(onClick = viewModel::cycleTrigger) {
+                        Text(stringResource(R.string.insights_change_trigger))
+                    }
+                    Text(
+                        text = stringResource(R.string.insights_action_label, state.draftAction.name),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    TextButton(onClick = viewModel::cycleAction) {
+                        Text(stringResource(R.string.insights_change_action))
+                    }
                     Button(onClick = viewModel::saveDraftRule) {
                         Text(stringResource(R.string.insights_save_rule))
                     }
                     TextButton(onClick = viewModel::clearDraft) {
                         Text(stringResource(R.string.insights_clear_rule_draft))
+                    }
+                    state.draftValidationError?.let { key ->
+                        val message = when (key) {
+                            "insights_error_name_required" ->
+                                stringResource(R.string.insights_error_name_required)
+                            "insights_error_stale_needs_threshold" ->
+                                stringResource(R.string.insights_error_stale_needs_threshold)
+                            else -> key
+                        }
+                        Text(
+                            text = message,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                    state.saveIntervalMessage?.let { key ->
+                        val message = when (key) {
+                            "insights_interval_invalid" ->
+                                stringResource(R.string.insights_interval_invalid)
+                            "insights_interval_saved" ->
+                                stringResource(R.string.insights_interval_saved)
+                            else -> key
+                        }
+                        Text(
+                            text = message,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
                     }
                     state.automationRules.forEach { rule ->
                         val statusLabel = if (rule.enabled) "ON" else "OFF"

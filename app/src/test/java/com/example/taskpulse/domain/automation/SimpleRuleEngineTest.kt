@@ -156,6 +156,36 @@ class SimpleRuleEngineTest {
         assertEquals(0, result.size)
     }
 
+    @Test
+    fun `multiple rules can match the same task independently`() {
+        val now = 100L * DAY_MS
+        val overdue = AutomationRule(
+            id = 7L,
+            name = "overdue",
+            enabled = true,
+            trigger = AutomationTrigger.TASK_NOT_COMPLETED,
+            action = AutomationAction.SEND_NOTIFICATION
+        )
+        val stale = AutomationRule(
+            id = 8L,
+            name = "stale",
+            enabled = true,
+            trigger = AutomationTrigger.TASK_STALE_DAYS,
+            action = AutomationAction.MARK_AS_IN_PROGRESS,
+            thresholdDays = 2
+        )
+        val task = sampleTask(
+            id = 50L,
+            status = TaskStatus.PENDING,
+            dueAtMillis = now - 1_000L,
+            updatedAtMillis = now - 5L * DAY_MS
+        )
+
+        val result = engine.evaluate(listOf(overdue, stale), listOf(task), now)
+
+        assertEquals(2, result.size)
+    }
+
     private fun sampleTask(
         id: Long,
         status: TaskStatus,

@@ -3,6 +3,8 @@ package com.example.taskpulse.worker
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.example.taskpulse.core.AppContainer
+import com.example.taskpulse.domain.model.TaskStatus
 import com.example.taskpulse.notification.TaskNotificationHelper
 
 class TaskReminderWorker(
@@ -13,6 +15,16 @@ class TaskReminderWorker(
         val taskId = inputData.getLong(WorkerKeys.TASK_ID, 0L)
         val taskTitle = inputData.getString(WorkerKeys.TASK_TITLE).orEmpty()
         if (taskId == 0L || taskTitle.isBlank()) return Result.failure()
+
+        val container = AppContainer(applicationContext)
+        val task = container.getTaskUseCase(taskId) ?: return Result.failure()
+        val blockerId = task.blockedByTaskId
+        if (blockerId != null) {
+            val blocker = container.getTaskUseCase(blockerId)
+            if (blocker == null || blocker.status != TaskStatus.COMPLETED) {
+                return Result.retry()
+            }
+        }
 
         val notifier = TaskNotificationHelper(applicationContext)
         notifier.ensureChannel()

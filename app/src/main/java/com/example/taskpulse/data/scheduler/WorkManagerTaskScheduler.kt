@@ -1,6 +1,7 @@
 package com.example.taskpulse.data.scheduler
 
 import android.content.Context
+import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.Data
 import androidx.work.ExistingPeriodicWorkPolicy
@@ -26,9 +27,10 @@ class WorkManagerTaskScheduler(
             .setInitialDelay(delay, TimeUnit.MILLISECONDS)
             .setConstraints(
                 Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
                     .build()
             )
+            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 10, TimeUnit.MINUTES)
             .setInputData(
                 Data.Builder()
                     .putLong(WorkerKeys.TASK_ID, task.id)
@@ -62,9 +64,10 @@ class WorkManagerTaskScheduler(
         val request = PeriodicWorkRequestBuilder<TaskReminderWorker>(repeatValue, repeatUnit)
             .setConstraints(
                 Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
                     .build()
             )
+            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 10, TimeUnit.MINUTES)
             .setInputData(
                 Data.Builder()
                     .putLong(WorkerKeys.TASK_ID, task.id)

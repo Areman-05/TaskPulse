@@ -26,6 +26,7 @@ class TaskNotificationReceiver : BroadcastReceiver() {
             val message = when (intent.action) {
                 TaskNotificationActions.ACTION_COMPLETE -> {
                     app.markTaskCompletedUseCase(taskId, now)
+                    app.scheduleDependentRemindersUseCase(taskId)
                     "Tarea completada: $title"
                 }
                 TaskNotificationActions.ACTION_SNOOZE -> {

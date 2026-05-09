@@ -1,0 +1,22 @@
+package com.example.taskpulse.ui.theme
+
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.taskpulse.core.AppContainer
+import com.example.taskpulse.domain.model.AppThemeMode
+
+@Composable
+fun TaskPulseThemeRoot(
+    container: AppContainer,
+    content: @Composable () -> Unit
+) {
+    val mode by container.themeRepository.mode.collectAsStateWithLifecycle(initialValue = AppThemeMode.SYSTEM)
+    val darkTheme = when (mode) {
+        AppThemeMode.SYSTEM -> isSystemInDarkTheme()
+        AppThemeMode.LIGHT -> false
+        AppThemeMode.DARK -> true
+    }
+    TaskPulseTheme(darkTheme = darkTheme, content = content)
+}

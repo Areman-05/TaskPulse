@@ -16,7 +16,7 @@ import com.example.taskpulse.core.AppContainer
 import com.example.taskpulse.ui.navigation.TaskPulseNavHost
 import com.example.taskpulse.worker.AutomationInitialWork
 import com.example.taskpulse.worker.AutomationWorkScheduler
-import com.example.taskpulse.ui.theme.TaskPulseTheme
+import com.example.taskpulse.ui.theme.TaskPulseThemeRoot
 
 class MainActivity : ComponentActivity() {
     private lateinit var container: AppContainer
@@ -49,13 +49,14 @@ class MainActivity : ComponentActivity() {
             container.ensureStarterAutomationRulesUseCase()
             AutomationWorkScheduler.enqueue(
                 context = applicationContext,
-                repeatIntervalHours = container.getAutomationSweepIntervalHours()
+                repeatIntervalHours = container.getAutomationSweepIntervalHours(),
+                settings = container.automationSettingsRepository
             )
             AutomationInitialWork.enqueueOnce(applicationContext)
         }
         enableEdgeToEdge()
         setContent {
-            TaskPulseTheme {
+            TaskPulseThemeRoot(container) {
                 TaskPulseNavHost(container)
             }
         }

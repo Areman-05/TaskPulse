@@ -29,4 +29,56 @@
     <string name="insights_error_stale_needs_threshold">Stale Days requiere umbral.</string>
     <string name="insights_interval_invalid">Frecuencia inválida.</string>
     <string name="insights_interval_saved">Frecuencia guardada.</string>
+
+    <string name="home_theme_toggle_cd">Alternar tema</string>
+    <string name="home_creating_quick">Creando…</string>
+    <string name="home_create_quick">Crear tarea rápida</string>
+    <string name="home_create_chained_demo">Demo dependencias WorkManager</string>
+    <string name="home_chained_creating">Creando pareja…</string>
+    <string name="home_search_label">Buscar título o descripción</string>
+    <string name="home_pending_count">Pendientes: %1$d</string>
+    <string name="home_completed_count">Completadas: %1$d</string>
+    <string name="home_streak">Racha (días con cierre UTC): %1$d</string>
+    <string name="home_weekly_completions">Completadas (últimos 7 días)</string>
+    <string name="home_day_completion_line">%1$s • %2$d completadas</string>
+    <string name="home_filters_status">Estado</string>
+    <string name="home_filter_all">Todas</string>
+    <string name="home_filter_pending">Pendientes</string>
+    <string name="home_filter_completed">Completadas</string>
+    <string name="home_filters_priority">Prioridad</string>
+    <string name="home_priority_all">Todas</string>
+    <string name="home_priority_critical_short">Crit</string>
+    <string name="home_priority_high_short">Alt</string>
+    <string name="home_priority_medium_short">Med</string>
+    <string name="home_priority_low_short">Baj</string>
+    <string name="home_swipe_complete_hint">Desliza para marcar lista</string>
+    <string name="home_blocked_by">Bloqueada por tarea #%1$d hasta completarse</string>
+    <string name="home_task_status_line">%1$s · prioridad %2$s</string>
+    <string name="home_mark_complete">Marcar completada</string>
+
+    <string name="insights_automation_active_title">Automatizaciones activas</string>
+    <string name="insights_automation_rule_count">%1$d habilitadas de %2$d</string>
+    <string name="insights_sweep_unmetered_label">Barrido solo sin coste datos (Wi‑Fi típ.)</string>
+    <string name="insights_sweep_charging_label">Barrido solo cargando</string>
+    <string name="insights_sweep_history_title">Historial de barridos</string>
+    <string name="insights_sweep_history_line">%1$s · %2$d coincidencias</string>
+    <string name="insights_sweep_history_refresh">Refrescar historial</string>
+    <string name="insights_recent_completions_title">Completadas recientes</string>
+    <string name="insights_no_productivity_yet">Sin datos suficientes aún.</string>
+    <string name="insights_export_section_title">Exportar y respaldo local</string>
+    <string name="insights_export_json">Exportar JSON</string>
+    <string name="insights_export_csv">Exportar CSV</string>
+    <string name="insights_export_backup">Copia de base de datos</string>
+    <string name="insights_export_hint">Comparte el archivo generado con cualquier app compatible.</string>
+    <string name="insights_share_chooser_title">Compartir exportación</string>
+    <string name="insights_rules_section_title">Reglas config.</string>
+    <string name="insights_trigger_pick_label">Trigger</string>
+    <string name="insights_action_pick_label">Acción</string>
+    <string name="insights_delete_dialog_title">Eliminar regla</string>
+    <string name="insights_delete_dialog_body">Esta regla se borrará de forma permanente.</string>
+    <string name="insights_delete_confirm">Eliminar</string>
+    <string name="insights_delete_cancel">Cancelar</string>
+
+    <string name="widget_title">Pendientes</string>
+    <string name="widget_subtitle">Pulsa para abrir TaskPulse</string>
 </resources>

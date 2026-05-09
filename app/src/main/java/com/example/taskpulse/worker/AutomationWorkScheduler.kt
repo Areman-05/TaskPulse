@@ -8,18 +8,26 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.example.taskpulse.domain.repository.AutomationSettingsRepository
 import java.util.concurrent.TimeUnit
 
 /**
  * Schedules a lightweight automation sweep that evaluates persisted rules against local tasks.
  */
 object AutomationWorkScheduler {
-    fun enqueue(context: Context, repeatIntervalHours: Long) {
+    fun enqueue(
+        context: Context,
+        repeatIntervalHours: Long,
+        settings: AutomationSettingsRepository
+    ) {
         val clampedInterval = repeatIntervalHours.coerceIn(1L, 24L)
+        val network =
+            if (settings.isSweepUnmeteredOnly()) NetworkType.UNMETERED else NetworkType.NOT_REQUIRED
         val request = PeriodicWorkRequestBuilder<AutomationSweepWorker>(clampedInterval, TimeUnit.HOURS)
             .setConstraints(
                 Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
+                    .setRequiredNetworkType(network)
+                    .setRequiresCharging(settings.isSweepRequiresCharging())
                     .build()
             )
             .addTag(WorkerKeys.TAG_AUTOMATION_SWEEP)

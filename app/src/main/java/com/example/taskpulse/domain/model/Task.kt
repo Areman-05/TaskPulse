@@ -9,6 +9,10 @@ data class Task(
     val priority: TaskPriority,
     val dueAtMillis: Long?,
     val recurrence: TaskRecurrence?,
+    /**
+     * If set, reminders for this task wait until [blockedByTaskId] enters [TaskStatus.COMPLETED].
+     */
+    val blockedByTaskId: Long? = null,
     val createdAtMillis: Long,
     val updatedAtMillis: Long
 )

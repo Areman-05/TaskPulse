@@ -24,6 +24,7 @@ fun TaskEntity.toDomain(): Task {
         priority = priority,
         dueAtMillis = dueAtMillis,
         recurrence = recurrence,
+        blockedByTaskId = blockedByTaskId,
         createdAtMillis = createdAtMillis,
         updatedAtMillis = updatedAtMillis
     )
@@ -39,6 +40,7 @@ fun Task.toEntity(): TaskEntity = TaskEntity(
     dueAtMillis = dueAtMillis,
     recurrenceInterval = recurrence?.interval,
     recurrenceUnit = recurrence?.unit?.name,
+    blockedByTaskId = blockedByTaskId,
     createdAtMillis = createdAtMillis,
     updatedAtMillis = updatedAtMillis
 )

@@ -17,7 +17,7 @@ import com.example.taskpulse.domain.model.TaskStatus
             onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [Index("categoryId")]
+    indices = [Index("categoryId"), Index("blockedByTaskId")]
 )
 data class TaskEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -29,6 +29,7 @@ data class TaskEntity(
     val dueAtMillis: Long?,
     val recurrenceInterval: Int?,
     val recurrenceUnit: String?,
+    val blockedByTaskId: Long? = null,
     val createdAtMillis: Long,
     val updatedAtMillis: Long
 )

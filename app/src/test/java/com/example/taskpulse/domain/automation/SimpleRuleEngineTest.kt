@@ -222,6 +222,7 @@ class SimpleRuleEngineTest {
         priority = TaskPriority.MEDIUM,
         dueAtMillis = dueAtMillis,
         recurrence = null,
+        blockedByTaskId = null,
         createdAtMillis = updatedAtMillis,
         updatedAtMillis = updatedAtMillis
     )

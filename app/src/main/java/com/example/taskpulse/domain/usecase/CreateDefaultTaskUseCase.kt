@@ -18,6 +18,7 @@ class CreateDefaultTaskUseCase {
         priority = TaskPriority.MEDIUM,
         dueAtMillis = null,
         recurrence = null,
+        blockedByTaskId = null,
         createdAtMillis = nowMillis,
         updatedAtMillis = nowMillis
     )

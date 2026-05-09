@@ -20,6 +20,9 @@ interface TaskDao {
     @Query("SELECT * FROM tasks")
     suspend fun listTasks(): List<TaskEntity>
 
+    @Query("SELECT * FROM tasks WHERE blockedByTaskId = :blockerTaskId")
+    suspend fun listTasksBlockedBy(blockerTaskId: Long): List<TaskEntity>
+
     @Transaction
     @Query("SELECT * FROM tasks WHERE id = :taskId")
     fun observeTaskDetails(taskId: Long): Flow<TaskWithDetailsEntity?>
@@ -50,4 +53,7 @@ interface TaskDao {
         """
     )
     fun observeDailyCompletions(completedStatus: TaskStatus, limit: Int): Flow<List<DailyCompletionCount>>
+
+    @Query("SELECT COUNT(*) FROM tasks WHERE status != :completed")
+    suspend fun countTasksNotCompleted(completed: TaskStatus): Int
 }

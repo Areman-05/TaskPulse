@@ -16,14 +16,20 @@ class AutomationSweepWorker(
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         val container = AppContainer(applicationContext)
+        val now = System.currentTimeMillis()
         val tasks = container.loadTaskSnapshot()
         val rules = container.loadAutomationRulesSnapshot().filter { it.enabled }
-        if (rules.isEmpty()) return@withContext Result.success()
+        if (rules.isEmpty()) {
+            container.appendAutomationSweepRunUseCase(0, now)
+            return@withContext Result.success()
+        }
 
-        val now = System.currentTimeMillis()
         val matches = container.evaluateAutomationRulesUseCase(rules, tasks, now)
             .distinctBy { "${it.ruleId}:${it.taskId}" }
-        if (matches.isEmpty()) return@withContext Result.success()
+        if (matches.isEmpty()) {
+            container.appendAutomationSweepRunUseCase(0, now)
+            return@withContext Result.success()
+        }
 
         val notifier = TaskNotificationHelper(applicationContext)
 
@@ -44,6 +50,8 @@ class AutomationSweepWorker(
                 }
             }
         }
+
+        container.appendAutomationSweepRunUseCase(matches.size, now)
 
         return@withContext Result.success()
     }

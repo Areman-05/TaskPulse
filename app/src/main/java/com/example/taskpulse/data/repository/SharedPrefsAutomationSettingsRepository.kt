@@ -16,9 +16,25 @@ class SharedPrefsAutomationSettingsRepository(
         prefs.edit().putLong(KEY_SWEEP_INTERVAL_HOURS, hours).apply()
     }
 
+    override fun isSweepUnmeteredOnly(): Boolean =
+        prefs.getBoolean(KEY_SWEEP_UNMETERED_ONLY, false)
+
+    override fun setSweepUnmeteredOnly(value: Boolean) {
+        prefs.edit().putBoolean(KEY_SWEEP_UNMETERED_ONLY, value).apply()
+    }
+
+    override fun isSweepRequiresCharging(): Boolean =
+        prefs.getBoolean(KEY_SWEEP_REQUIRES_CHARGING, false)
+
+    override fun setSweepRequiresCharging(value: Boolean) {
+        prefs.edit().putBoolean(KEY_SWEEP_REQUIRES_CHARGING, value).apply()
+    }
+
     private companion object {
         const val PREFS_NAME = "taskpulse_automation_settings"
         const val KEY_SWEEP_INTERVAL_HOURS = "sweep_interval_hours"
+        const val KEY_SWEEP_UNMETERED_ONLY = "sweep_unmetered_only"
+        const val KEY_SWEEP_REQUIRES_CHARGING = "sweep_requires_charging"
         const val DEFAULT_SWEEP_INTERVAL_HOURS = 1L
     }
 }

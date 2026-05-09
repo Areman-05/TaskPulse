@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -26,6 +27,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun TaskPulseNavHost(container: AppContainer) {
+    val appContext = LocalContext.current.applicationContext
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: AppDestinations.TASKS_ROUTE
@@ -74,10 +76,13 @@ fun TaskPulseNavHost(container: AppContainer) {
                     factory = HomeViewModel.Factory(
                         observeTasksUseCase = container.observeTasksUseCase,
                         observeDailyProductivityUseCase = container.observeDailyProductivityUseCase,
+                        application = appContext as android.app.Application,
                         createDefaultTaskUseCase = container.createDefaultTaskUseCase,
                         upsertTaskUseCase = container.upsertTaskUseCase,
                         markTaskCompletedUseCase = container.markTaskCompletedUseCase,
-                        scheduleTaskReminderUseCase = container.scheduleTaskReminderUseCase
+                        scheduleTaskReminderUseCase = container.scheduleTaskReminderUseCase,
+                        scheduleDependentRemindersUseCase = container.scheduleDependentRemindersUseCase,
+                        themeRepository = container.themeRepository
                     )
                 )
                 HomeScreen(viewModel = vm)
@@ -96,7 +101,11 @@ fun TaskPulseNavHost(container: AppContainer) {
                         getEnabledAutomationRuleCountUseCase = container.getEnabledAutomationRuleCountUseCase,
                         getAutomationSweepIntervalUseCase = container.getAutomationSweepIntervalUseCase,
                         setAutomationSweepIntervalUseCase = container.setAutomationSweepIntervalUseCase,
-                        rescheduleAutomationSweepUseCase = container.rescheduleAutomationSweepUseCase
+                        rescheduleAutomationSweepUseCase = container.rescheduleAutomationSweepUseCase,
+                        automationSettingsRepository = container.automationSettingsRepository,
+                        loadAutomationSweepHistoryUseCase = container.loadAutomationSweepHistoryUseCase,
+                        taskSnapshotFileExporter = container.taskSnapshotFileExporter,
+                        roomDatabaseFile = appContext.getDatabasePath("taskpulse.db")
                     )
                 )
                 InsightsScreen(viewModel = vm)

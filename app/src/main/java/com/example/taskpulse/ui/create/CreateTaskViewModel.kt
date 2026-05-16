@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.taskpulse.domain.model.TaskEntryType
 import com.example.taskpulse.domain.model.TaskPriority
 import com.example.taskpulse.domain.usecase.CreateDefaultTaskUseCase
 import com.example.taskpulse.domain.usecase.ScheduleTaskReminderUseCase
@@ -24,6 +25,15 @@ class CreateTaskViewModel(
 ) : AndroidViewModel(application) {
     private val _uiState = MutableStateFlow(CreateTaskUiState())
     val uiState: StateFlow<CreateTaskUiState> = _uiState.asStateFlow()
+
+    fun onEntryTypeChange(type: TaskEntryType) {
+        _uiState.update {
+            it.copy(
+                entryType = type,
+                scheduleReminder = if (type == TaskEntryType.NOTE) false else it.scheduleReminder
+            )
+        }
+    }
 
     fun onTitleChange(value: String) {
         _uiState.update { it.copy(title = value) }
@@ -47,14 +57,20 @@ class CreateTaskViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true) }
             val now = System.currentTimeMillis()
+            val entryType = _uiState.value.entryType
             val task = createDefaultTaskUseCase(
                 title = title,
                 categoryId = 1L,
-                nowMillis = now
+                nowMillis = now,
+                entryType = entryType
             ).copy(
                 description = _uiState.value.description.trim(),
-                priority = _uiState.value.priority,
-                dueAtMillis = if (_uiState.value.scheduleReminder) {
+                priority = if (entryType == TaskEntryType.TASK) {
+                    _uiState.value.priority
+                } else {
+                    TaskPriority.MEDIUM
+                },
+                dueAtMillis = if (entryType == TaskEntryType.TASK && _uiState.value.scheduleReminder) {
                     now + 30L * 60L * 1000L
                 } else {
                     null
@@ -62,7 +78,7 @@ class CreateTaskViewModel(
             )
             val taskId = upsertTaskUseCase(task)
             val savedTask = task.copy(id = taskId)
-            if (_uiState.value.scheduleReminder) {
+            if (entryType == TaskEntryType.TASK && _uiState.value.scheduleReminder) {
                 scheduleTaskReminderUseCase(savedTask)
             }
             TaskPulseWidgetProvider.updatePendingCount(application)

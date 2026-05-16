@@ -34,6 +34,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.taskpulse.R
+import com.example.taskpulse.domain.model.TaskEntryType
 import com.example.taskpulse.domain.model.TaskPriority
 import com.example.taskpulse.ui.components.TaskPulsePrimaryButton
 import com.example.taskpulse.ui.components.TaskPulseScrollableColumn
@@ -60,7 +61,11 @@ fun CreateTaskScreen(
             TopAppBar(
                 title = {
                     Text(
-                        stringResource(R.string.create_task_title),
+                        if (state.entryType == TaskEntryType.NOTE) {
+                            stringResource(R.string.create_screen_title_note)
+                        } else {
+                            stringResource(R.string.create_screen_title_task)
+                        },
                         style = MaterialTheme.typography.titleLarge
                     )
                 },
@@ -90,6 +95,24 @@ fun CreateTaskScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                Text(
+                    text = stringResource(R.string.create_entry_type_label),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(
+                        selected = state.entryType == TaskEntryType.NOTE,
+                        onClick = { viewModel.onEntryTypeChange(TaskEntryType.NOTE) },
+                        label = { Text(stringResource(R.string.create_entry_note)) }
+                    )
+                    FilterChip(
+                        selected = state.entryType == TaskEntryType.TASK,
+                        onClick = { viewModel.onEntryTypeChange(TaskEntryType.TASK) },
+                        label = { Text(stringResource(R.string.create_entry_task)) }
+                    )
+                }
+
                 OutlinedTextField(
                     value = state.title,
                     onValueChange = viewModel::onTitleChange,
@@ -110,52 +133,54 @@ fun CreateTaskScreen(
                     colors = fieldColors()
                 )
 
-                Text(
-                    text = stringResource(R.string.create_task_priority_label),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        listOf(TaskPriority.CRITICAL, TaskPriority.HIGH).forEach { priority ->
-                            FilterChip(
-                                selected = state.priority == priority,
-                                onClick = { viewModel.onPriorityChange(priority) },
-                                label = { Text(priorityLabel(priority)) }
-                            )
-                        }
-                    }
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        listOf(TaskPriority.MEDIUM, TaskPriority.LOW).forEach { priority ->
-                            FilterChip(
-                                selected = state.priority == priority,
-                                onClick = { viewModel.onPriorityChange(priority) },
-                                label = { Text(priorityLabel(priority)) }
-                            )
-                        }
-                    }
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = stringResource(R.string.create_task_reminder_label),
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                        Text(
-                            text = stringResource(R.string.create_task_reminder_hint),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Switch(
-                        checked = state.scheduleReminder,
-                        onCheckedChange = viewModel::onScheduleReminderChange
+                if (state.entryType == TaskEntryType.TASK) {
+                    Text(
+                        text = stringResource(R.string.create_task_priority_label),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            listOf(TaskPriority.CRITICAL, TaskPriority.HIGH).forEach { priority ->
+                                FilterChip(
+                                    selected = state.priority == priority,
+                                    onClick = { viewModel.onPriorityChange(priority) },
+                                    label = { Text(priorityLabel(priority)) }
+                                )
+                            }
+                        }
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            listOf(TaskPriority.MEDIUM, TaskPriority.LOW).forEach { priority ->
+                                FilterChip(
+                                    selected = state.priority == priority,
+                                    onClick = { viewModel.onPriorityChange(priority) },
+                                    label = { Text(priorityLabel(priority)) }
+                                )
+                            }
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.create_task_reminder_label),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            Text(
+                                text = stringResource(R.string.create_task_reminder_hint),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Switch(
+                            checked = state.scheduleReminder,
+                            onCheckedChange = viewModel::onScheduleReminderChange
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))

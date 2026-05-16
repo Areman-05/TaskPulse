@@ -7,6 +7,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.taskpulse.domain.model.Task
 import com.example.taskpulse.domain.model.TaskPriority
+import com.example.taskpulse.domain.model.TaskStatus
+import com.example.taskpulse.domain.model.isTaskItem
+import com.example.taskpulse.domain.usecase.CompleteTaskAndStopRemindersUseCase
 import com.example.taskpulse.domain.usecase.DeleteTasksUseCase
 import com.example.taskpulse.domain.usecase.ObserveTasksUseCase
 import com.example.taskpulse.domain.usecase.UpdateTasksPriorityUseCase
@@ -22,7 +25,8 @@ class HomeViewModel(
     observeTasksUseCase: ObserveTasksUseCase,
     private val application: Application,
     private val deleteTasksUseCase: DeleteTasksUseCase,
-    private val updateTasksPriorityUseCase: UpdateTasksPriorityUseCase
+    private val updateTasksPriorityUseCase: UpdateTasksPriorityUseCase,
+    private val completeTaskAndStopRemindersUseCase: CompleteTaskAndStopRemindersUseCase
 ) : AndroidViewModel(application) {
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
@@ -142,7 +146,7 @@ class HomeViewModel(
     }
 
     fun showPriorityPicker() {
-        if (_uiState.value.selectedTaskIds.isEmpty()) return
+        if (selectedTaskIdsOnly().isEmpty()) return
         _uiState.update { it.copy(showPriorityPicker = true) }
     }
 
@@ -151,11 +155,37 @@ class HomeViewModel(
     }
 
     fun applyPriorityToSelected(priority: TaskPriority) {
-        val ids = _uiState.value.selectedTaskIds.toList()
+        val taskIds = selectedTaskIdsOnly()
+        if (taskIds.isEmpty()) return
+        viewModelScope.launch {
+            updateTasksPriorityUseCase(taskIds, priority)
+            exitSelectionMode()
+        }
+    }
+
+    fun completeSelectedTasks() {
+        val ids = selectedCompletableTaskIds()
         if (ids.isEmpty()) return
         viewModelScope.launch {
-            updateTasksPriorityUseCase(ids, priority)
+            val now = System.currentTimeMillis()
+            ids.forEach { taskId ->
+                completeTaskAndStopRemindersUseCase(taskId, now)
+                TaskNotificationHelper(application).cancelReminderNotification(taskId)
+            }
+            TaskPulseWidgetProvider.updatePendingCount(application)
             exitSelectionMode()
+        }
+    }
+
+    fun markTaskCompleted(taskId: Long) {
+        if (_uiState.value.selectionMode) return
+        val task = _uiState.value.tasks.find { it.id == taskId } ?: return
+        if (!task.isTaskItem || task.status == TaskStatus.COMPLETED) return
+        viewModelScope.launch {
+            val now = System.currentTimeMillis()
+            completeTaskAndStopRemindersUseCase(taskId, now)
+            TaskNotificationHelper(application).cancelReminderNotification(taskId)
+            TaskPulseWidgetProvider.updatePendingCount(application)
         }
     }
 
@@ -191,11 +221,26 @@ class HomeViewModel(
         return if (sortOrder == TaskSortOrder.NEWEST_FIRST) sorted.reversed() else sorted
     }
 
+    private fun selectedCompletableTaskIds(): List<Long> {
+        val selected = _uiState.value.selectedTaskIds
+        return _uiState.value.tasks
+            .filter { it.id in selected && it.isTaskItem && it.status != TaskStatus.COMPLETED }
+            .map { it.id }
+    }
+
+    private fun selectedTaskIdsOnly(): List<Long> {
+        val selected = _uiState.value.selectedTaskIds
+        return _uiState.value.tasks
+            .filter { it.id in selected && it.isTaskItem }
+            .map { it.id }
+    }
+
     class Factory(
         private val observeTasksUseCase: ObserveTasksUseCase,
         private val application: Application,
         private val deleteTasksUseCase: DeleteTasksUseCase,
-        private val updateTasksPriorityUseCase: UpdateTasksPriorityUseCase
+        private val updateTasksPriorityUseCase: UpdateTasksPriorityUseCase,
+        private val completeTaskAndStopRemindersUseCase: CompleteTaskAndStopRemindersUseCase
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -203,7 +248,8 @@ class HomeViewModel(
                 observeTasksUseCase,
                 application,
                 deleteTasksUseCase,
-                updateTasksPriorityUseCase
+                updateTasksPriorityUseCase,
+                completeTaskAndStopRemindersUseCase
             ) as T
         }
     }

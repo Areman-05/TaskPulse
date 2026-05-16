@@ -13,6 +13,10 @@ data class Task(
      * If set, reminders for this task wait until [blockedByTaskId] enters [TaskStatus.COMPLETED].
      */
     val blockedByTaskId: Long? = null,
+    val entryType: TaskEntryType = TaskEntryType.TASK,
     val createdAtMillis: Long,
     val updatedAtMillis: Long
 )
+
+val Task.isNote: Boolean get() = entryType == TaskEntryType.NOTE
+val Task.isTaskItem: Boolean get() = entryType == TaskEntryType.TASK

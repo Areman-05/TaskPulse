@@ -1,6 +1,7 @@
 package com.example.taskpulse.data.local.converter
 
 import androidx.room.TypeConverter
+import com.example.taskpulse.domain.model.TaskEntryType
 import com.example.taskpulse.domain.model.TaskPriority
 import com.example.taskpulse.domain.model.TaskStatus
 
@@ -16,4 +17,10 @@ class TaskConverters {
 
     @TypeConverter
     fun fromTaskPriority(value: TaskPriority): String = value.name
+
+    @TypeConverter
+    fun toTaskEntryType(value: String): TaskEntryType = TaskEntryType.valueOf(value)
+
+    @TypeConverter
+    fun fromTaskEntryType(value: TaskEntryType): String = value.name
 }

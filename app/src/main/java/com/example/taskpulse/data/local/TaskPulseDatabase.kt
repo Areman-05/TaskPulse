@@ -25,7 +25,7 @@ import com.example.taskpulse.data.local.entity.TaskHistoryEntity
         AutomationRuleEntity::class,
         AutomationSweepRunEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 @TypeConverters(TaskConverters::class, AutomationConverters::class)

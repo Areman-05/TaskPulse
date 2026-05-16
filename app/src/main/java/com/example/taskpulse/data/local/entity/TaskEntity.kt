@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.example.taskpulse.domain.model.TaskEntryType
 import com.example.taskpulse.domain.model.TaskPriority
 import com.example.taskpulse.domain.model.TaskStatus
 
@@ -30,6 +31,7 @@ data class TaskEntity(
     val recurrenceInterval: Int?,
     val recurrenceUnit: String?,
     val blockedByTaskId: Long? = null,
+    val entryType: TaskEntryType = TaskEntryType.TASK,
     val createdAtMillis: Long,
     val updatedAtMillis: Long
 )

@@ -133,7 +133,8 @@ fun TaskPulseNavHost(container: AppContainer) {
                         observeTasksUseCase = container.observeTasksUseCase,
                         application = appContext as android.app.Application,
                         deleteTasksUseCase = container.deleteTasksUseCase,
-                        updateTasksPriorityUseCase = container.updateTasksPriorityUseCase
+                        updateTasksPriorityUseCase = container.updateTasksPriorityUseCase,
+                        completeTaskAndStopRemindersUseCase = container.completeTaskAndStopRemindersUseCase
                     )
                 )
                 HomeScreen(

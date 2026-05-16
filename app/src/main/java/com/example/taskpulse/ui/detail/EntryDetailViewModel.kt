@@ -6,9 +6,11 @@ import androidx.lifecycle.viewModelScope
 import com.example.taskpulse.domain.model.Task
 import com.example.taskpulse.domain.model.TaskEntryType
 import com.example.taskpulse.domain.model.TaskPriority
+import com.example.taskpulse.domain.model.TaskStatus
 import com.example.taskpulse.domain.model.isNote
 import com.example.taskpulse.domain.model.isTaskItem
 import com.example.taskpulse.domain.usecase.CancelTaskReminderUseCase
+import com.example.taskpulse.domain.usecase.CompleteTaskAndStopRemindersUseCase
 import com.example.taskpulse.domain.usecase.ObserveTasksUseCase
 import com.example.taskpulse.domain.usecase.ScheduleTaskReminderUseCase
 import com.example.taskpulse.domain.usecase.UpsertTaskUseCase
@@ -37,7 +39,8 @@ class EntryDetailViewModel(
     observeTasksUseCase: ObserveTasksUseCase,
     private val upsertTaskUseCase: UpsertTaskUseCase,
     private val scheduleTaskReminderUseCase: ScheduleTaskReminderUseCase,
-    private val cancelTaskReminderUseCase: CancelTaskReminderUseCase
+    private val cancelTaskReminderUseCase: CancelTaskReminderUseCase,
+    private val completeTaskAndStopRemindersUseCase: CompleteTaskAndStopRemindersUseCase
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(EntryDetailUiState())
     val uiState: StateFlow<EntryDetailUiState> = _uiState.asStateFlow()
@@ -136,6 +139,14 @@ class EntryDetailViewModel(
         _uiState.update { it.copy(editReminderMinutes = minutes) }
     }
 
+    fun markTaskCompleted() {
+        val entry = _uiState.value.entry ?: return
+        if (!entry.isTaskItem || entry.status == TaskStatus.COMPLETED) return
+        viewModelScope.launch {
+            completeTaskAndStopRemindersUseCase(entry.id, System.currentTimeMillis())
+        }
+    }
+
     fun saveEdits() {
         val entry = _uiState.value.entry ?: return
         if (_uiState.value.isSaving) return
@@ -212,7 +223,8 @@ class EntryDetailViewModel(
         private val observeTasksUseCase: ObserveTasksUseCase,
         private val upsertTaskUseCase: UpsertTaskUseCase,
         private val scheduleTaskReminderUseCase: ScheduleTaskReminderUseCase,
-        private val cancelTaskReminderUseCase: CancelTaskReminderUseCase
+        private val cancelTaskReminderUseCase: CancelTaskReminderUseCase,
+        private val completeTaskAndStopRemindersUseCase: CompleteTaskAndStopRemindersUseCase
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -221,7 +233,8 @@ class EntryDetailViewModel(
                 observeTasksUseCase,
                 upsertTaskUseCase,
                 scheduleTaskReminderUseCase,
-                cancelTaskReminderUseCase
+                cancelTaskReminderUseCase,
+                completeTaskAndStopRemindersUseCase
             ) as T
         }
     }

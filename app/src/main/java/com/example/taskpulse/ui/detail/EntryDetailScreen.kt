@@ -12,11 +12,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -30,13 +33,18 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.taskpulse.R
+import com.example.taskpulse.domain.model.Task
 import com.example.taskpulse.domain.model.TaskPriority
+import com.example.taskpulse.domain.model.TaskStatus
 import com.example.taskpulse.domain.model.isNote
 import com.example.taskpulse.domain.model.isTaskItem
 import com.example.taskpulse.ui.components.TaskPulseAccentButton
@@ -46,7 +54,6 @@ import com.example.taskpulse.ui.create.TaskReminderIntervals
 import com.example.taskpulse.ui.create.TaskReminderSelectorRow
 import com.example.taskpulse.ui.create.closestReminderMinutes
 import com.example.taskpulse.ui.create.taskReminderEnabled
-import androidx.compose.foundation.rememberScrollState
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -90,6 +97,15 @@ fun EntryDetailScreen(
                 },
                 actions = {
                     if (entry != null && !state.isEditing) {
+                        if (entry.isTaskItem && entry.status != TaskStatus.COMPLETED) {
+                            IconButton(onClick = viewModel::markTaskCompleted) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Check,
+                                    contentDescription = stringResource(R.string.detail_complete_cd),
+                                    tint = MaterialTheme.colorScheme.tertiary
+                                )
+                            }
+                        }
                         IconButton(onClick = viewModel::startEditing) {
                             Icon(
                                 imageVector = Icons.Outlined.Edit,
@@ -104,30 +120,35 @@ fun EntryDetailScreen(
             )
         },
         bottomBar = {
-            if (entry != null && state.isEditing) {
-                Surface(color = MaterialTheme.colorScheme.background) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .navigationBarsPadding()
-                            .padding(horizontal = 20.dp, vertical = 12.dp)
-                    ) {
-                        TaskPulseAccentButton(
-                            text = if (state.isSaving) {
-                                stringResource(R.string.create_task_saving)
-                            } else {
-                                stringResource(R.string.detail_save)
-                            },
-                            onClick = viewModel::saveEdits,
-                            enabled = !state.isSaving && canSaveEdits(state, entry)
-                        )
-                        TextButton(
-                            onClick = viewModel::cancelEditing,
-                            modifier = Modifier.fillMaxWidth()
+            when {
+                entry != null && state.isEditing -> {
+                    Surface(color = MaterialTheme.colorScheme.background) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .navigationBarsPadding()
+                                .padding(horizontal = 20.dp, vertical = 12.dp)
                         ) {
-                            Text(stringResource(R.string.detail_cancel_edit))
+                            TaskPulseAccentButton(
+                                text = if (state.isSaving) {
+                                    stringResource(R.string.create_task_saving)
+                                } else {
+                                    stringResource(R.string.detail_save)
+                                },
+                                onClick = viewModel::saveEdits,
+                                enabled = !state.isSaving && canSaveEdits(state, entry)
+                            )
+                            TextButton(
+                                onClick = viewModel::cancelEditing,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(stringResource(R.string.detail_cancel_edit))
+                            }
                         }
                     }
+                }
+                entry != null && entry.isTaskItem && !state.isEditing -> {
+                    EntryTaskMetaFooter(entry = entry)
                 }
             }
         }
@@ -141,6 +162,12 @@ fun EntryDetailScreen(
             return@Scaffold
         }
 
+        val bottomPadding = when {
+            state.isEditing -> 120.dp
+            entry.isTaskItem -> 88.dp
+            else -> 32.dp
+        }
+
         TaskPulseScrollableColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -148,7 +175,7 @@ fun EntryDetailScreen(
                 .padding(start = 20.dp, end = 4.dp),
             showAmbientGrid = false,
             scrollbarCompact = true,
-            contentPaddingBottom = if (state.isEditing) 120.dp else 32.dp
+            contentPaddingBottom = bottomPadding
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 if (state.isEditing) {
@@ -156,17 +183,12 @@ fun EntryDetailScreen(
                 } else {
                     EntryViewContent(entry = entry)
                 }
-
-                if (!state.isEditing) {
-                    Spacer(modifier = Modifier.height(24.dp))
-                    EntryMetaSection(entry = entry)
-                }
             }
         }
     }
 }
 
-private fun canSaveEdits(state: EntryDetailUiState, entry: com.example.taskpulse.domain.model.Task): Boolean {
+private fun canSaveEdits(state: EntryDetailUiState, entry: Task): Boolean {
     return if (entry.isNote) {
         state.editNoteBody.trim().isNotEmpty()
     } else {
@@ -175,27 +197,38 @@ private fun canSaveEdits(state: EntryDetailUiState, entry: com.example.taskpulse
 }
 
 @Composable
-private fun EntryViewContent(entry: com.example.taskpulse.domain.model.Task) {
+private fun EntryCreatedDateLine(createdAtMillis: Long) {
+    Text(
+        text = DetailDateFormatter.format(Instant.ofEpochMilli(createdAtMillis)),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+}
+
+@Composable
+private fun EntryViewContent(entry: Task) {
     if (entry.isNote) {
+        EntryCreatedDateLine(createdAtMillis = entry.createdAtMillis)
+        Spacer(modifier = Modifier.height(12.dp))
         Text(
             text = entry.description.ifBlank { entry.title },
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurface
         )
     } else {
+        EntryCreatedDateLine(createdAtMillis = entry.createdAtMillis)
+        Spacer(modifier = Modifier.height(12.dp))
         Text(
             text = entry.title,
             style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.onSurface
+            color = if (entry.status == TaskStatus.COMPLETED) {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            } else {
+                MaterialTheme.colorScheme.onSurface
+            }
         )
         if (entry.description.isNotBlank()) {
             Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = stringResource(R.string.detail_notes_section),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier = Modifier.height(6.dp))
             Text(
                 text = entry.description,
                 style = MaterialTheme.typography.bodyLarge,
@@ -209,15 +242,17 @@ private fun EntryViewContent(entry: com.example.taskpulse.domain.model.Task) {
 private fun EntryEditContent(
     state: EntryDetailUiState,
     viewModel: EntryDetailViewModel,
-    entry: com.example.taskpulse.domain.model.Task
+    entry: Task
 ) {
     if (entry.isNote) {
+        EntryCreatedDateLine(createdAtMillis = entry.createdAtMillis)
+        Spacer(modifier = Modifier.height(12.dp))
         OutlinedTextField(
             value = state.editNoteBody,
             onValueChange = viewModel::onEditNoteBodyChange,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(280.dp),
+                .height(320.dp),
             placeholder = {
                 Text(stringResource(R.string.create_note_placeholder))
             },
@@ -225,6 +260,8 @@ private fun EntryEditContent(
             colors = fieldColors()
         )
     } else {
+        EntryCreatedDateLine(createdAtMillis = entry.createdAtMillis)
+        Spacer(modifier = Modifier.height(12.dp))
         OutlinedTextField(
             value = state.editTitle,
             onValueChange = viewModel::onEditTitleChange,
@@ -262,7 +299,7 @@ private fun EntryEditContent(
                 TaskPulseFilterChip(
                     selected = state.editPriority == priority,
                     onClick = { viewModel.onEditPriorityChange(priority) },
-                    label = { Text(priorityLabel(priority)) }
+                    label = { Text(priorityShortLabel(priority)) }
                 )
             }
         }
@@ -277,51 +314,80 @@ private fun EntryEditContent(
 }
 
 @Composable
-private fun EntryMetaSection(entry: com.example.taskpulse.domain.model.Task) {
-    Text(
-        text = stringResource(R.string.detail_meta_section),
-        style = MaterialTheme.typography.labelLarge,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
-    )
-    Spacer(modifier = Modifier.height(8.dp))
-    if (entry.isTaskItem) {
-        Text(
-            text = stringResource(R.string.detail_status_line, entry.status.name),
-            style = MaterialTheme.typography.bodyMedium
-        )
-        Text(
-            text = stringResource(R.string.detail_priority_line, entry.priority.name),
-            style = MaterialTheme.typography.bodyMedium
-        )
-        val reminderLabel = if (taskReminderEnabled(entry)) {
-            TaskReminderIntervals
-                .find { it.minutes == closestReminderMinutesForDisplay(entry) }
-                ?.let { stringResource(it.labelRes) }
-                ?: stringResource(R.string.create_reminder_30min)
-        } else {
-            stringResource(R.string.detail_reminder_off)
+private fun EntryTaskMetaFooter(entry: Task) {
+    val reminderLabel = if (taskReminderEnabled(entry)) {
+        TaskReminderIntervals
+            .find { it.minutes == closestReminderMinutesForDisplay(entry) }
+            ?.let { stringResource(it.labelRes) }
+            ?: stringResource(R.string.create_reminder_30min)
+    } else {
+        stringResource(R.string.detail_reminder_off)
+    }
+
+    Surface(color = MaterialTheme.colorScheme.background) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+        ) {
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 14.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.Top
+            ) {
+                TaskMetaColumn(
+                    label = stringResource(R.string.detail_meta_status),
+                    value = taskStatusLabel(entry.status),
+                    modifier = Modifier.weight(1f)
+                )
+                TaskMetaColumn(
+                    label = stringResource(R.string.detail_meta_priority),
+                    value = priorityShortLabel(entry.priority),
+                    modifier = Modifier.weight(1f)
+                )
+                TaskMetaColumn(
+                    label = stringResource(R.string.detail_meta_reminder),
+                    value = reminderLabel,
+                    modifier = Modifier.weight(1f)
+                )
+            }
         }
+    }
+}
+
+@Composable
+private fun TaskMetaColumn(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.padding(horizontal = 4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Text(
-            text = stringResource(R.string.detail_reminder_line, reminderLabel),
-            style = MaterialTheme.typography.bodyMedium
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
         )
     }
-    Text(
-        text = stringResource(
-            R.string.detail_created_line,
-            DetailDateFormatter.format(Instant.ofEpochMilli(entry.createdAtMillis))
-        ),
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
-    )
-    Text(
-        text = stringResource(
-            R.string.detail_edited_line,
-            DetailDateFormatter.format(Instant.ofEpochMilli(entry.updatedAtMillis))
-        ),
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
-    )
 }
 
 @Composable
@@ -332,11 +398,19 @@ private fun fieldColors() = OutlinedTextFieldDefaults.colors(
     unfocusedContainerColor = Color.Transparent
 )
 
-private fun closestReminderMinutesForDisplay(entry: com.example.taskpulse.domain.model.Task): Int =
+private fun closestReminderMinutesForDisplay(entry: Task): Int =
     closestReminderMinutes(entry.dueAtMillis, entry.createdAtMillis)
 
 @Composable
-private fun priorityLabel(priority: TaskPriority): String = when (priority) {
+private fun taskStatusLabel(status: TaskStatus): String = when (status) {
+    TaskStatus.PENDING -> stringResource(R.string.detail_status_pending)
+    TaskStatus.IN_PROGRESS -> stringResource(R.string.detail_status_in_progress)
+    TaskStatus.COMPLETED -> stringResource(R.string.detail_status_completed)
+    TaskStatus.FAILED -> stringResource(R.string.detail_status_failed)
+}
+
+@Composable
+private fun priorityShortLabel(priority: TaskPriority): String = when (priority) {
     TaskPriority.CRITICAL -> stringResource(R.string.home_priority_critical_short)
     TaskPriority.HIGH -> stringResource(R.string.home_priority_high_short)
     TaskPriority.MEDIUM -> stringResource(R.string.home_priority_medium_short)

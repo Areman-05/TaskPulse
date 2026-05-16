@@ -108,9 +108,17 @@
     <string name="detail_task_title">Tarea</string>
     <string name="detail_notes_section">Contenido</string>
     <string name="detail_meta_section">Información</string>
+    <string name="detail_meta_status">Estado</string>
+    <string name="detail_meta_priority">Prioridad</string>
+    <string name="detail_meta_reminder">Recordatorio</string>
     <string name="detail_status_line">Estado: %1$s</string>
     <string name="detail_priority_line">Prioridad: %1$s</string>
     <string name="detail_reminder_line">Recordatorio: %1$s</string>
+    <string name="detail_status_pending">Pendiente</string>
+    <string name="detail_status_in_progress">En curso</string>
+    <string name="detail_status_completed">Completada</string>
+    <string name="detail_status_failed">Fallida</string>
+    <string name="detail_complete_cd">Marcar como completada</string>
     <string name="detail_created_line">Creado: %1$s</string>
     <string name="detail_edited_line">Editado: %1$s</string>
     <string name="detail_edit_cd">Editar</string>

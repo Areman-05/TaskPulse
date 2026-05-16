@@ -164,7 +164,8 @@ fun TaskPulseNavHost(container: AppContainer) {
                         observeTasksUseCase = container.observeTasksUseCase,
                         upsertTaskUseCase = container.upsertTaskUseCase,
                         scheduleTaskReminderUseCase = container.scheduleTaskReminderUseCase,
-                        cancelTaskReminderUseCase = container.cancelTaskReminderUseCase
+                        cancelTaskReminderUseCase = container.cancelTaskReminderUseCase,
+                        completeTaskAndStopRemindersUseCase = container.completeTaskAndStopRemindersUseCase
                     )
                 )
                 EntryDetailScreen(

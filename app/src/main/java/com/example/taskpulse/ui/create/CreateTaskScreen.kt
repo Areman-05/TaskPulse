@@ -2,15 +2,20 @@
 
 package com.example.taskpulse.ui.create
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -21,7 +26,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -30,7 +34,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -41,7 +44,6 @@ import com.example.taskpulse.domain.model.TaskEntryType
 import com.example.taskpulse.domain.model.TaskPriority
 import com.example.taskpulse.ui.components.TaskPulseAccentButton
 import com.example.taskpulse.ui.components.TaskPulseFilterChip
-import com.example.taskpulse.ui.components.TaskPulseScrollableColumn
 
 private val FieldShape = RoundedCornerShape(10.dp)
 
@@ -98,10 +100,7 @@ fun CreateTaskScreen(
             )
         },
         bottomBar = {
-            Surface(
-                color = MaterialTheme.colorScheme.background,
-                tonalElevation = 0.dp
-            ) {
+            Surface(color = MaterialTheme.colorScheme.background) {
                 TaskPulseAccentButton(
                     text = saveLabel,
                     onClick = viewModel::saveTask,
@@ -109,44 +108,42 @@ fun CreateTaskScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .navigationBarsPadding()
-                        .padding(horizontal = 20.dp, vertical = 12.dp)
+                        .padding(horizontal = 20.dp, vertical = 8.dp)
                 )
             }
         }
     ) { innerPadding ->
-        TaskPulseScrollableColumn(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 20.dp, vertical = 8.dp),
-            showAmbientGrid = false,
-            scrollbarCompact = true,
-            contentPaddingBottom = 16.dp
+                .padding(horizontal = 20.dp)
+                .imePadding()
         ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+            Row(
+                modifier = Modifier.padding(top = 8.dp, bottom = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TaskPulseFilterChip(
-                        selected = state.entryType == TaskEntryType.NOTE,
-                        onClick = { viewModel.onEntryTypeChange(TaskEntryType.NOTE) },
-                        label = { Text(stringResource(R.string.create_entry_note)) }
-                    )
-                    TaskPulseFilterChip(
-                        selected = state.entryType == TaskEntryType.TASK,
-                        onClick = { viewModel.onEntryTypeChange(TaskEntryType.TASK) },
-                        label = { Text(stringResource(R.string.create_entry_task)) }
-                    )
-                }
+                TaskPulseFilterChip(
+                    selected = state.entryType == TaskEntryType.NOTE,
+                    onClick = { viewModel.onEntryTypeChange(TaskEntryType.NOTE) },
+                    label = { Text(stringResource(R.string.create_entry_note)) }
+                )
+                TaskPulseFilterChip(
+                    selected = state.entryType == TaskEntryType.TASK,
+                    onClick = { viewModel.onEntryTypeChange(TaskEntryType.TASK) },
+                    label = { Text(stringResource(R.string.create_entry_task)) }
+                )
+            }
 
-                if (state.entryType == TaskEntryType.NOTE) {
+            when (state.entryType) {
+                TaskEntryType.NOTE -> {
                     TextField(
                         value = state.noteBody,
                         onValueChange = viewModel::onNoteBodyChange,
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(420.dp),
+                            .weight(1f)
+                            .fillMaxWidth(),
                         placeholder = {
                             Text(
                                 stringResource(R.string.create_note_placeholder),
@@ -156,72 +153,61 @@ fun CreateTaskScreen(
                         textStyle = MaterialTheme.typography.bodyLarge,
                         colors = noteFieldColors()
                     )
-                } else {
-                    OutlinedTextField(
-                        value = state.title,
-                        onValueChange = viewModel::onTitleChange,
-                        label = { Text(stringResource(R.string.create_task_title_label)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        shape = FieldShape,
-                        colors = fieldColors()
-                    )
-                    OutlinedTextField(
-                        value = state.description,
-                        onValueChange = viewModel::onDescriptionChange,
-                        label = { Text(stringResource(R.string.create_task_description_label)) },
+                }
+                TaskEntryType.TASK -> {
+                    Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(120.dp),
-                        shape = FieldShape,
-                        colors = fieldColors()
-                    )
-
-                    Text(
-                        text = stringResource(R.string.create_task_priority_label),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            listOf(TaskPriority.CRITICAL, TaskPriority.HIGH).forEach { priority ->
-                                TaskPulseFilterChip(
-                                    selected = state.priority == priority,
-                                    onClick = { viewModel.onPriorityChange(priority) },
-                                    label = { Text(priorityLabel(priority)) }
-                                )
-                            }
-                        }
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            listOf(TaskPriority.MEDIUM, TaskPriority.LOW).forEach { priority ->
-                                TaskPulseFilterChip(
-                                    selected = state.priority == priority,
-                                    onClick = { viewModel.onPriorityChange(priority) },
-                                    label = { Text(priorityLabel(priority)) }
-                                )
-                            }
-                        }
-                    }
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = stringResource(R.string.create_task_reminder_label),
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                            Text(
-                                text = stringResource(R.string.create_task_reminder_hint),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                        OutlinedTextField(
+                            value = state.title,
+                            onValueChange = viewModel::onTitleChange,
+                            label = { Text(stringResource(R.string.create_task_title_label)) },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            shape = FieldShape,
+                            colors = fieldColors()
+                        )
+                        OutlinedTextField(
+                            value = state.description,
+                            onValueChange = viewModel::onDescriptionChange,
+                            label = { Text(stringResource(R.string.create_task_description_label)) },
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth()
+                                .heightIn(min = 120.dp),
+                            shape = FieldShape,
+                            colors = fieldColors()
+                        )
+
+                        Text(
+                            text = stringResource(R.string.create_task_priority_label),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            TaskPriority.entries.forEach { priority ->
+                                TaskPulseFilterChip(
+                                    selected = state.priority == priority,
+                                    onClick = { viewModel.onPriorityChange(priority) },
+                                    label = { Text(priorityLabel(priority)) }
+                                )
+                            }
                         }
-                        Switch(
-                            checked = state.scheduleReminder,
-                            onCheckedChange = viewModel::onScheduleReminderChange
+
+                        TaskReminderSelectorRow(
+                            enabled = state.reminderEnabled,
+                            onEnabledChange = viewModel::onReminderEnabledChange,
+                            selectedMinutes = state.reminderMinutes,
+                            onMinutesSelected = viewModel::onReminderMinutesChange,
+                            modifier = Modifier.padding(bottom = 4.dp)
                         )
                     }
                 }

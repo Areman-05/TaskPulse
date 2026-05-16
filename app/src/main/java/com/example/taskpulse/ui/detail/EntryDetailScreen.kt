@@ -2,6 +2,7 @@
 
 package com.example.taskpulse.ui.detail
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -41,6 +42,11 @@ import com.example.taskpulse.domain.model.isTaskItem
 import com.example.taskpulse.ui.components.TaskPulseAccentButton
 import com.example.taskpulse.ui.components.TaskPulseFilterChip
 import com.example.taskpulse.ui.components.TaskPulseScrollableColumn
+import com.example.taskpulse.ui.create.TaskReminderIntervals
+import com.example.taskpulse.ui.create.TaskReminderSelectorRow
+import com.example.taskpulse.ui.create.closestReminderMinutes
+import com.example.taskpulse.ui.create.taskReminderEnabled
+import androidx.compose.foundation.rememberScrollState
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -246,26 +252,27 @@ private fun EntryEditContent(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(modifier = Modifier.height(8.dp))
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf(TaskPriority.CRITICAL, TaskPriority.HIGH).forEach { priority ->
-                    TaskPulseFilterChip(
-                        selected = state.editPriority == priority,
-                        onClick = { viewModel.onEditPriorityChange(priority) },
-                        label = { Text(priorityLabel(priority)) }
-                    )
-                }
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf(TaskPriority.MEDIUM, TaskPriority.LOW).forEach { priority ->
-                    TaskPulseFilterChip(
-                        selected = state.editPriority == priority,
-                        onClick = { viewModel.onEditPriorityChange(priority) },
-                        label = { Text(priorityLabel(priority)) }
-                    )
-                }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            TaskPriority.entries.forEach { priority ->
+                TaskPulseFilterChip(
+                    selected = state.editPriority == priority,
+                    onClick = { viewModel.onEditPriorityChange(priority) },
+                    label = { Text(priorityLabel(priority)) }
+                )
             }
         }
+        Spacer(modifier = Modifier.height(16.dp))
+        TaskReminderSelectorRow(
+            enabled = state.editReminderEnabled,
+            onEnabledChange = viewModel::onEditReminderEnabledChange,
+            selectedMinutes = state.editReminderMinutes,
+            onMinutesSelected = viewModel::onEditReminderMinutesChange
+        )
     }
 }
 
@@ -284,6 +291,18 @@ private fun EntryMetaSection(entry: com.example.taskpulse.domain.model.Task) {
         )
         Text(
             text = stringResource(R.string.detail_priority_line, entry.priority.name),
+            style = MaterialTheme.typography.bodyMedium
+        )
+        val reminderLabel = if (taskReminderEnabled(entry)) {
+            TaskReminderIntervals
+                .find { it.minutes == closestReminderMinutesForDisplay(entry) }
+                ?.let { stringResource(it.labelRes) }
+                ?: stringResource(R.string.create_reminder_30min)
+        } else {
+            stringResource(R.string.detail_reminder_off)
+        }
+        Text(
+            text = stringResource(R.string.detail_reminder_line, reminderLabel),
             style = MaterialTheme.typography.bodyMedium
         )
     }
@@ -312,6 +331,9 @@ private fun fieldColors() = OutlinedTextFieldDefaults.colors(
     focusedContainerColor = Color.Transparent,
     unfocusedContainerColor = Color.Transparent
 )
+
+private fun closestReminderMinutesForDisplay(entry: com.example.taskpulse.domain.model.Task): Int =
+    closestReminderMinutes(entry.dueAtMillis, entry.createdAtMillis)
 
 @Composable
 private fun priorityLabel(priority: TaskPriority): String = when (priority) {

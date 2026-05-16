@@ -7,8 +7,13 @@ import com.example.taskpulse.domain.model.Task
 import com.example.taskpulse.domain.model.TaskEntryType
 import com.example.taskpulse.domain.model.TaskPriority
 import com.example.taskpulse.domain.model.isNote
+import com.example.taskpulse.domain.model.isTaskItem
+import com.example.taskpulse.domain.usecase.CancelTaskReminderUseCase
 import com.example.taskpulse.domain.usecase.ObserveTasksUseCase
+import com.example.taskpulse.domain.usecase.ScheduleTaskReminderUseCase
 import com.example.taskpulse.domain.usecase.UpsertTaskUseCase
+import com.example.taskpulse.ui.create.closestReminderMinutes
+import com.example.taskpulse.ui.create.taskReminderEnabled
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,13 +27,17 @@ data class EntryDetailUiState(
     val editTitle: String = "",
     val editDescription: String = "",
     val editPriority: TaskPriority = TaskPriority.MEDIUM,
+    val editReminderEnabled: Boolean = false,
+    val editReminderMinutes: Int = 30,
     val isSaving: Boolean = false
 )
 
 class EntryDetailViewModel(
     private val entryId: Long,
     observeTasksUseCase: ObserveTasksUseCase,
-    private val upsertTaskUseCase: UpsertTaskUseCase
+    private val upsertTaskUseCase: UpsertTaskUseCase,
+    private val scheduleTaskReminderUseCase: ScheduleTaskReminderUseCase,
+    private val cancelTaskReminderUseCase: CancelTaskReminderUseCase
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(EntryDetailUiState())
     val uiState: StateFlow<EntryDetailUiState> = _uiState.asStateFlow()
@@ -56,6 +65,16 @@ class EntryDetailViewModel(
                             previous.editPriority
                         } else {
                             entry?.priority ?: TaskPriority.MEDIUM
+                        },
+                        editReminderEnabled = if (keepDraft) {
+                            previous.editReminderEnabled
+                        } else {
+                            entry?.let { taskReminderEnabled(it) } ?: false
+                        },
+                        editReminderMinutes = if (keepDraft) {
+                            previous.editReminderMinutes
+                        } else {
+                            entry?.let { closestReminderMinutes(it.dueAtMillis, it.createdAtMillis) } ?: 30
                         }
                     )
                 }
@@ -71,7 +90,9 @@ class EntryDetailViewModel(
                 editNoteBody = noteBodyFromEntry(entry),
                 editTitle = entry.title,
                 editDescription = entry.description,
-                editPriority = entry.priority
+                editPriority = entry.priority,
+                editReminderEnabled = taskReminderEnabled(entry),
+                editReminderMinutes = closestReminderMinutes(entry.dueAtMillis, entry.createdAtMillis)
             )
         }
     }
@@ -84,7 +105,9 @@ class EntryDetailViewModel(
                 editNoteBody = noteBodyFromEntry(entry),
                 editTitle = entry.title,
                 editDescription = entry.description,
-                editPriority = entry.priority
+                editPriority = entry.priority,
+                editReminderEnabled = taskReminderEnabled(entry),
+                editReminderMinutes = closestReminderMinutes(entry.dueAtMillis, entry.createdAtMillis)
             )
         }
     }
@@ -103,6 +126,14 @@ class EntryDetailViewModel(
 
     fun onEditPriorityChange(priority: TaskPriority) {
         _uiState.update { it.copy(editPriority = priority) }
+    }
+
+    fun onEditReminderEnabledChange(enabled: Boolean) {
+        _uiState.update { it.copy(editReminderEnabled = enabled) }
+    }
+
+    fun onEditReminderMinutesChange(minutes: Int) {
+        _uiState.update { it.copy(editReminderMinutes = minutes) }
     }
 
     fun saveEdits() {
@@ -131,22 +162,38 @@ class EntryDetailViewModel(
                     _uiState.update { it.copy(isSaving = false) }
                     return@launch
                 }
+                val reminderEnabled = _uiState.value.editReminderEnabled
                 entry.copy(
                     title = title,
                     description = _uiState.value.editDescription.trim(),
                     priority = _uiState.value.editPriority,
+                    dueAtMillis = if (reminderEnabled) {
+                        now + _uiState.value.editReminderMinutes * 60L * 1000L
+                    } else {
+                        null
+                    },
                     updatedAtMillis = now
                 )
             }
-            upsertTaskUseCase(updated)
+            val savedId = upsertTaskUseCase(updated)
+            val saved = updated.copy(id = savedId)
+            if (saved.isTaskItem) {
+                if (_uiState.value.editReminderEnabled) {
+                    scheduleTaskReminderUseCase(saved)
+                } else {
+                    cancelTaskReminderUseCase(saved.id)
+                }
+            }
             _uiState.update {
                 it.copy(
                     isEditing = false,
                     isSaving = false,
-                    editNoteBody = noteBodyFromEntry(updated),
-                    editTitle = updated.title,
-                    editDescription = updated.description,
-                    editPriority = updated.priority
+                    editNoteBody = noteBodyFromEntry(saved),
+                    editTitle = saved.title,
+                    editDescription = saved.description,
+                    editPriority = saved.priority,
+                    editReminderEnabled = taskReminderEnabled(saved),
+                    editReminderMinutes = closestReminderMinutes(saved.dueAtMillis, saved.createdAtMillis)
                 )
             }
         }
@@ -163,14 +210,18 @@ class EntryDetailViewModel(
     class Factory(
         private val entryId: Long,
         private val observeTasksUseCase: ObserveTasksUseCase,
-        private val upsertTaskUseCase: UpsertTaskUseCase
+        private val upsertTaskUseCase: UpsertTaskUseCase,
+        private val scheduleTaskReminderUseCase: ScheduleTaskReminderUseCase,
+        private val cancelTaskReminderUseCase: CancelTaskReminderUseCase
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             return EntryDetailViewModel(
                 entryId,
                 observeTasksUseCase,
-                upsertTaskUseCase
+                upsertTaskUseCase,
+                scheduleTaskReminderUseCase,
+                cancelTaskReminderUseCase
             ) as T
         }
     }

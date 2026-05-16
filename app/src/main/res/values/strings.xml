@@ -110,6 +110,7 @@
     <string name="detail_meta_section">Información</string>
     <string name="detail_status_line">Estado: %1$s</string>
     <string name="detail_priority_line">Prioridad: %1$s</string>
+    <string name="detail_reminder_line">Recordatorio: %1$s</string>
     <string name="detail_created_line">Creado: %1$s</string>
     <string name="detail_edited_line">Editado: %1$s</string>
     <string name="detail_edit_cd">Editar</string>
@@ -128,7 +129,15 @@
     <string name="create_task_description_label">Notas</string>
     <string name="create_task_priority_label">Prioridad</string>
     <string name="create_task_reminder_label">Recordatorio</string>
-    <string name="create_task_reminder_hint">Aviso en 30 minutos</string>
+    <string name="create_task_reminder_hint">Aviso en %1$s</string>
+    <string name="create_task_reminder_cd">Elegir cuándo avisar</string>
+    <string name="create_reminder_disabled_hint">Recordatorio desactivado</string>
+    <string name="detail_reminder_off">Desactivado</string>
+    <string name="create_reminder_15min">15 minutos</string>
+    <string name="create_reminder_30min">30 minutos</string>
+    <string name="create_reminder_1h">1 hora</string>
+    <string name="create_reminder_2h">2 horas</string>
+    <string name="create_reminder_1d">1 día</string>
     <string name="create_note_save">Guardar nota</string>
     <string name="create_task_save">Guardar tarea</string>
     <string name="create_task_saving">Guardando…</string>

@@ -162,7 +162,9 @@ fun TaskPulseNavHost(container: AppContainer) {
                     factory = EntryDetailViewModel.Factory(
                         entryId = entryId,
                         observeTasksUseCase = container.observeTasksUseCase,
-                        upsertTaskUseCase = container.upsertTaskUseCase
+                        upsertTaskUseCase = container.upsertTaskUseCase,
+                        scheduleTaskReminderUseCase = container.scheduleTaskReminderUseCase,
+                        cancelTaskReminderUseCase = container.cancelTaskReminderUseCase
                     )
                 )
                 EntryDetailScreen(

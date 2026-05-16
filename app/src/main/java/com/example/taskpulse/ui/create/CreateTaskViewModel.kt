@@ -30,7 +30,8 @@ class CreateTaskViewModel(
         _uiState.update {
             it.copy(
                 entryType = type,
-                scheduleReminder = if (type == TaskEntryType.NOTE) false else it.scheduleReminder
+                reminderEnabled = if (type == TaskEntryType.NOTE) false else it.reminderEnabled,
+                reminderMinutes = if (type == TaskEntryType.NOTE) 30 else it.reminderMinutes
             )
         }
     }
@@ -51,8 +52,12 @@ class CreateTaskViewModel(
         _uiState.update { it.copy(priority = priority) }
     }
 
-    fun onScheduleReminderChange(enabled: Boolean) {
-        _uiState.update { it.copy(scheduleReminder = enabled) }
+    fun onReminderEnabledChange(enabled: Boolean) {
+        _uiState.update { it.copy(reminderEnabled = enabled) }
+    }
+
+    fun onReminderMinutesChange(minutes: Int) {
+        _uiState.update { it.copy(reminderMinutes = minutes) }
     }
 
     fun saveTask() {
@@ -85,15 +90,15 @@ class CreateTaskViewModel(
                 } else {
                     TaskPriority.MEDIUM
                 },
-                dueAtMillis = if (entryType == TaskEntryType.TASK && state.scheduleReminder) {
-                    now + 30L * 60L * 1000L
+                dueAtMillis = if (entryType == TaskEntryType.TASK && state.reminderEnabled) {
+                    now + state.reminderMinutes * 60L * 1000L
                 } else {
                     null
                 }
             )
             val taskId = upsertTaskUseCase(task)
             val savedTask = task.copy(id = taskId)
-            if (entryType == TaskEntryType.TASK && _uiState.value.scheduleReminder) {
+            if (entryType == TaskEntryType.TASK && _uiState.value.reminderEnabled) {
                 scheduleTaskReminderUseCase(savedTask)
             }
             TaskPulseWidgetProvider.updatePendingCount(application)

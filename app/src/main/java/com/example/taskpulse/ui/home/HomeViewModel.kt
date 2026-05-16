@@ -6,8 +6,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.taskpulse.domain.model.Task
+import com.example.taskpulse.domain.model.TaskPriority
 import com.example.taskpulse.domain.usecase.CompleteTaskAndStopRemindersUseCase
+import com.example.taskpulse.domain.usecase.DeleteTasksUseCase
 import com.example.taskpulse.domain.usecase.ObserveTasksUseCase
+import com.example.taskpulse.domain.usecase.UpdateTasksPriorityUseCase
 import com.example.taskpulse.notification.TaskNotificationHelper
 import com.example.taskpulse.widget.TaskPulseWidgetProvider
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,7 +22,9 @@ import kotlinx.coroutines.launch
 class HomeViewModel(
     observeTasksUseCase: ObserveTasksUseCase,
     private val application: Application,
-    private val completeTaskAndStopRemindersUseCase: CompleteTaskAndStopRemindersUseCase
+    private val completeTaskAndStopRemindersUseCase: CompleteTaskAndStopRemindersUseCase,
+    private val deleteTasksUseCase: DeleteTasksUseCase,
+    private val updateTasksPriorityUseCase: UpdateTasksPriorityUseCase
 ) : AndroidViewModel(application) {
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
@@ -28,10 +33,14 @@ class HomeViewModel(
         viewModelScope.launch {
             observeTasksUseCase().collect { tasks ->
                 _uiState.update { previous ->
-                    val sorted = tasks.sortedByDescending { it.updatedAtMillis }
                     previous.copy(
-                        tasks = sorted,
-                        filteredTasks = applySearch(sorted, previous.searchQuery)
+                        tasks = tasks,
+                        filteredTasks = buildDisplayedTasks(
+                            tasks = tasks,
+                            query = previous.searchQuery,
+                            sortField = previous.sortField,
+                            sortOrder = previous.sortOrder
+                        )
                     )
                 }
             }
@@ -42,12 +51,118 @@ class HomeViewModel(
         _uiState.update { previous ->
             previous.copy(
                 searchQuery = value,
-                filteredTasks = applySearch(previous.tasks, value)
+                filteredTasks = buildDisplayedTasks(
+                    tasks = previous.tasks,
+                    query = value,
+                    sortField = previous.sortField,
+                    sortOrder = previous.sortOrder
+                )
             )
         }
     }
 
+    fun setViewMode(mode: TaskViewMode) {
+        _uiState.update { it.copy(viewMode = mode) }
+    }
+
+    fun toggleSelectionMode() {
+        _uiState.update { previous ->
+            if (previous.selectionMode) {
+                previous.copy(selectionMode = false, selectedTaskIds = emptySet())
+            } else {
+                previous.copy(selectionMode = true, selectedTaskIds = emptySet())
+            }
+        }
+    }
+
+    fun exitSelectionMode() {
+        _uiState.update {
+            it.copy(
+                selectionMode = false,
+                selectedTaskIds = emptySet(),
+                showDeleteConfirm = false,
+                showPriorityPicker = false
+            )
+        }
+    }
+
+    fun onTaskClick(taskId: Long) {
+        _uiState.update { previous ->
+            if (!previous.selectionMode) return@update previous
+            val next = previous.selectedTaskIds.toMutableSet()
+            if (taskId in next) next.remove(taskId) else next.add(taskId)
+            previous.copy(selectedTaskIds = next)
+        }
+    }
+
+    fun setSortField(field: TaskSortField) {
+        _uiState.update { previous ->
+            previous.copy(
+                sortField = field,
+                filteredTasks = buildDisplayedTasks(
+                    tasks = previous.tasks,
+                    query = previous.searchQuery,
+                    sortField = field,
+                    sortOrder = previous.sortOrder
+                )
+            )
+        }
+    }
+
+    fun setSortOrder(order: TaskSortOrder) {
+        _uiState.update { previous ->
+            previous.copy(
+                sortOrder = order,
+                filteredTasks = buildDisplayedTasks(
+                    tasks = previous.tasks,
+                    query = previous.searchQuery,
+                    sortField = previous.sortField,
+                    sortOrder = order
+                )
+            )
+        }
+    }
+
+    fun requestDeleteSelected() {
+        if (_uiState.value.selectedTaskIds.isEmpty()) return
+        _uiState.update { it.copy(showDeleteConfirm = true) }
+    }
+
+    fun dismissDeleteConfirm() {
+        _uiState.update { it.copy(showDeleteConfirm = false) }
+    }
+
+    fun confirmDeleteSelected() {
+        val ids = _uiState.value.selectedTaskIds.toList()
+        if (ids.isEmpty()) return
+        viewModelScope.launch {
+            ids.forEach { TaskNotificationHelper(application).cancelReminderNotification(it) }
+            deleteTasksUseCase(ids)
+            TaskPulseWidgetProvider.updatePendingCount(application)
+            exitSelectionMode()
+        }
+    }
+
+    fun showPriorityPicker() {
+        if (_uiState.value.selectedTaskIds.isEmpty()) return
+        _uiState.update { it.copy(showPriorityPicker = true) }
+    }
+
+    fun dismissPriorityPicker() {
+        _uiState.update { it.copy(showPriorityPicker = false) }
+    }
+
+    fun applyPriorityToSelected(priority: TaskPriority) {
+        val ids = _uiState.value.selectedTaskIds.toList()
+        if (ids.isEmpty()) return
+        viewModelScope.launch {
+            updateTasksPriorityUseCase(ids, priority)
+            exitSelectionMode()
+        }
+    }
+
     fun markCompleted(taskId: Long) {
+        if (_uiState.value.selectionMode) return
         viewModelScope.launch {
             val now = System.currentTimeMillis()
             completeTaskAndStopRemindersUseCase(taskId, now)
@@ -56,26 +171,44 @@ class HomeViewModel(
         }
     }
 
-    private fun applySearch(tasks: List<Task>, query: String): List<Task> {
+    private fun buildDisplayedTasks(
+        tasks: List<Task>,
+        query: String,
+        sortField: TaskSortField,
+        sortOrder: TaskSortOrder
+    ): List<Task> {
         val q = query.trim().lowercase()
-        if (q.isBlank()) return tasks
-        return tasks.filter { task ->
-            task.title.lowercase().contains(q) ||
-                task.description.lowercase().contains(q)
+        val filtered = if (q.isBlank()) {
+            tasks
+        } else {
+            tasks.filter { task ->
+                task.title.lowercase().contains(q) ||
+                    task.description.lowercase().contains(q)
+            }
         }
+        val sorted = when (sortField) {
+            TaskSortField.EDIT_DATE -> filtered.sortedBy { it.updatedAtMillis }
+            TaskSortField.CREATION_DATE -> filtered.sortedBy { it.createdAtMillis }
+            TaskSortField.TITLE -> filtered.sortedBy { it.title.lowercase() }
+        }
+        return if (sortOrder == TaskSortOrder.NEWEST_FIRST) sorted.reversed() else sorted
     }
 
     class Factory(
         private val observeTasksUseCase: ObserveTasksUseCase,
         private val application: Application,
-        private val completeTaskAndStopRemindersUseCase: CompleteTaskAndStopRemindersUseCase
+        private val completeTaskAndStopRemindersUseCase: CompleteTaskAndStopRemindersUseCase,
+        private val deleteTasksUseCase: DeleteTasksUseCase,
+        private val updateTasksPriorityUseCase: UpdateTasksPriorityUseCase
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             return HomeViewModel(
                 observeTasksUseCase,
                 application,
-                completeTaskAndStopRemindersUseCase
+                completeTaskAndStopRemindersUseCase,
+                deleteTasksUseCase,
+                updateTasksPriorityUseCase
             ) as T
         }
     }

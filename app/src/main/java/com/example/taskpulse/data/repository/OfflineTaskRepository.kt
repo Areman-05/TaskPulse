@@ -7,6 +7,7 @@ import com.example.taskpulse.data.mapper.toEntity
 import com.example.taskpulse.domain.model.DailyProductivityPoint
 import com.example.taskpulse.domain.model.Task
 import com.example.taskpulse.domain.model.TaskDetails
+import com.example.taskpulse.domain.model.TaskPriority
 import com.example.taskpulse.domain.model.TaskStatus
 import com.example.taskpulse.domain.repository.TaskRepository
 import kotlinx.coroutines.flow.Flow
@@ -64,5 +65,19 @@ class OfflineTaskRepository(
             )
         )
         taskDao.updateTaskStatus(taskId, to, nowMillis)
+    }
+
+    override suspend fun deleteTasks(taskIds: List<Long>) {
+        if (taskIds.isEmpty()) return
+        taskDao.deleteTasks(taskIds)
+    }
+
+    override suspend fun updateTasksPriority(
+        taskIds: List<Long>,
+        priority: TaskPriority,
+        updatedAtMillis: Long
+    ) {
+        if (taskIds.isEmpty()) return
+        taskDao.updateTasksPriority(taskIds, priority, updatedAtMillis)
     }
 }

@@ -20,6 +20,7 @@ import com.example.taskpulse.domain.usecase.AppendAutomationSweepRunUseCase
 import com.example.taskpulse.domain.usecase.CancelTaskReminderUseCase
 import com.example.taskpulse.domain.usecase.CompleteTaskAndStopRemindersUseCase
 import com.example.taskpulse.domain.usecase.CreateDefaultTaskUseCase
+import com.example.taskpulse.domain.usecase.DeleteTasksUseCase
 import com.example.taskpulse.domain.usecase.DeleteAutomationRuleUseCase
 import com.example.taskpulse.domain.usecase.EvaluateAutomationRulesUseCase
 import com.example.taskpulse.domain.usecase.EnsureDefaultCategoryUseCase
@@ -47,6 +48,7 @@ import com.example.taskpulse.notification.NotificationCooldownStore
 import com.example.taskpulse.domain.usecase.TriggerAutomationSweepNowUseCase
 import com.example.taskpulse.domain.usecase.UpdateAutomationRuleDefinitionUseCase
 import com.example.taskpulse.domain.usecase.UpsertAutomationRuleUseCase
+import com.example.taskpulse.domain.usecase.UpdateTasksPriorityUseCase
 import com.example.taskpulse.domain.usecase.UpsertTaskUseCase
 
 class AppContainer(context: Context) {
@@ -86,6 +88,8 @@ class AppContainer(context: Context) {
     val upsertTaskUseCase = UpsertTaskUseCase(repository)
     val createDefaultTaskUseCase = CreateDefaultTaskUseCase()
     val cancelTaskReminderUseCase = CancelTaskReminderUseCase(scheduler)
+    val deleteTasksUseCase = DeleteTasksUseCase(repository, cancelTaskReminderUseCase)
+    val updateTasksPriorityUseCase = UpdateTasksPriorityUseCase(repository)
     val scheduleTaskReminderUseCase = ScheduleTaskReminderUseCase(scheduler)
     val scheduleRecurringTaskUseCase = ScheduleRecurringTaskUseCase(scheduler)
     val scheduleDependentRemindersUseCase = ScheduleDependentRemindersUseCase(

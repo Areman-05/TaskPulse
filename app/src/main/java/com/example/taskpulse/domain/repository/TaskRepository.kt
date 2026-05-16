@@ -3,6 +3,7 @@ package com.example.taskpulse.domain.repository
 import com.example.taskpulse.domain.model.Task
 import com.example.taskpulse.domain.model.DailyProductivityPoint
 import com.example.taskpulse.domain.model.TaskDetails
+import com.example.taskpulse.domain.model.TaskPriority
 import com.example.taskpulse.domain.model.TaskStatus
 import kotlinx.coroutines.flow.Flow
 
@@ -21,5 +22,13 @@ interface TaskRepository {
         to: TaskStatus,
         nowMillis: Long,
         reason: String?
+    )
+
+    suspend fun deleteTasks(taskIds: List<Long>)
+
+    suspend fun updateTasksPriority(
+        taskIds: List<Long>,
+        priority: TaskPriority,
+        updatedAtMillis: Long
     )
 }

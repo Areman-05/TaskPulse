@@ -9,6 +9,7 @@ import com.example.taskpulse.data.local.entity.TaskEntity
 import com.example.taskpulse.data.local.entity.TaskHistoryEntity
 import com.example.taskpulse.data.local.model.DailyCompletionCount
 import com.example.taskpulse.data.local.relation.TaskWithDetailsEntity
+import com.example.taskpulse.domain.model.TaskPriority
 import com.example.taskpulse.domain.model.TaskStatus
 import kotlinx.coroutines.flow.Flow
 
@@ -56,4 +57,20 @@ interface TaskDao {
 
     @Query("SELECT COUNT(*) FROM tasks WHERE status != :completed")
     suspend fun countTasksNotCompleted(completed: TaskStatus): Int
+
+    @Query("DELETE FROM tasks WHERE id IN (:taskIds)")
+    suspend fun deleteTasks(taskIds: List<Long>)
+
+    @Query(
+        """
+        UPDATE tasks
+        SET priority = :priority, updatedAtMillis = :updatedAtMillis
+        WHERE id IN (:taskIds)
+        """
+    )
+    suspend fun updateTasksPriority(
+        taskIds: List<Long>,
+        priority: TaskPriority,
+        updatedAtMillis: Long
+    )
 }

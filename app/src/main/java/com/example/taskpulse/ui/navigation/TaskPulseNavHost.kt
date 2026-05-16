@@ -132,7 +132,9 @@ fun TaskPulseNavHost(container: AppContainer) {
                     factory = HomeViewModel.Factory(
                         observeTasksUseCase = container.observeTasksUseCase,
                         application = appContext as android.app.Application,
-                        completeTaskAndStopRemindersUseCase = container.completeTaskAndStopRemindersUseCase
+                        completeTaskAndStopRemindersUseCase = container.completeTaskAndStopRemindersUseCase,
+                        deleteTasksUseCase = container.deleteTasksUseCase,
+                        updateTasksPriorityUseCase = container.updateTasksPriorityUseCase
                     )
                 )
                 HomeScreen(

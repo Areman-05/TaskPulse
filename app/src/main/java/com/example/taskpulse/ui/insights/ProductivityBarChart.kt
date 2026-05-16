@@ -64,7 +64,7 @@ private fun ColumnBar(
                     .fillMaxWidth()
                     .height(barHeight)
                     .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
-                    .background(MaterialTheme.colorScheme.primary)
+                    .background(MaterialTheme.colorScheme.tertiary)
             )
         }
         Text(

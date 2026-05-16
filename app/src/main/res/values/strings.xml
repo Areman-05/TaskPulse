@@ -1,5 +1,9 @@
 <resources>
     <string name="app_name">TaskPulse</string>
+    <string name="splash_brand_name">TASKPULSE</string>
+    <string name="splash_tagline">AUTOMATION</string>
+    <string name="home_screen_subtitle">Tareas</string>
+    <string name="home_stats_title">Resumen</string>
     <string name="notification_channel_automation_title">Automatización TaskPulse</string>
     <string name="notification_automation_title">Regla de automatización</string>
     <string name="insights_automation_sweep_hint">El motor de reglas se evalúa en segundo plano de forma periódica.</string>
@@ -16,6 +20,7 @@
     <string name="notification_toast_snoozed">Pospuesta %2$d min: %1$s</string>
     <string name="notification_toast_opened">En progreso: %1$s</string>
     <string name="insights_screen_title">Insights</string>
+    <string name="insights_screen_heading">Automatización</string>
     <string name="insights_run_sweep_now">Ejecutar barrido ahora</string>
     <string name="insights_run_sweep_running">Ejecutando barrido...</string>
     <string name="insights_enable_rule">Activar regla</string>

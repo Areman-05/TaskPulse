@@ -2,13 +2,17 @@ package com.example.taskpulse.ui.navigation
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Analytics
+import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -33,11 +37,23 @@ fun TaskPulseNavHost(container: AppContainer) {
     val currentRoute = navBackStackEntry?.destination?.route ?: AppDestinations.TASKS_ROUTE
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
-            NavigationBar {
+            NavigationBar(
+                containerColor = MaterialTheme.colorScheme.surface,
+                tonalElevation = 0.dp,
+                windowInsets = NavigationBarDefaults.windowInsets
+            ) {
                 NavigationBarItem(
-                    icon = { Icon(Icons.Filled.Home, contentDescription = null) },
-                    label = { Text("Tareas") },
+                    icon = { Icon(Icons.Outlined.Home, contentDescription = null) },
+                    label = { Text("Tareas", style = MaterialTheme.typography.labelSmall) },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = MaterialTheme.colorScheme.primary,
+                        selectedTextColor = MaterialTheme.colorScheme.primary,
+                        indicatorColor = MaterialTheme.colorScheme.surfaceVariant,
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    ),
                     selected = currentRoute == AppDestinations.TASKS_ROUTE,
                     onClick = {
                         navController.navigate(AppDestinations.TASKS_ROUTE) {
@@ -50,8 +66,15 @@ fun TaskPulseNavHost(container: AppContainer) {
                     }
                 )
                 NavigationBarItem(
-                    icon = { Icon(Icons.Filled.Info, contentDescription = null) },
-                    label = { Text("Insights") },
+                    icon = { Icon(Icons.Outlined.Analytics, contentDescription = null) },
+                    label = { Text("Insights", style = MaterialTheme.typography.labelSmall) },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = MaterialTheme.colorScheme.primary,
+                        selectedTextColor = MaterialTheme.colorScheme.primary,
+                        indicatorColor = MaterialTheme.colorScheme.surfaceVariant,
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    ),
                     selected = currentRoute == AppDestinations.INSIGHTS_ROUTE,
                     onClick = {
                         navController.navigate(AppDestinations.INSIGHTS_ROUTE) {

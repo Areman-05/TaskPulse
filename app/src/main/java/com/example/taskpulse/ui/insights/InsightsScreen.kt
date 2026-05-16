@@ -43,6 +43,9 @@ import com.example.taskpulse.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.taskpulse.domain.model.AutomationAction
 import com.example.taskpulse.domain.model.AutomationTrigger
+import com.example.taskpulse.ui.components.TaskPulsePrimaryButton
+import com.example.taskpulse.ui.components.TaskPulseSecondaryButton
+import com.example.taskpulse.ui.components.TaskPulseSectionCard
 import java.io.File
 import java.time.Instant
 import java.time.ZoneId
@@ -82,12 +85,19 @@ fun InsightsScreen(viewModel: InsightsViewModel) {
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            Text(
-                text = stringResource(R.string.insights_screen_title),
-                style = MaterialTheme.typography.headlineSmall,
-                modifier = Modifier.padding(16.dp)
-            )
+            Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
+                Text(
+                    text = stringResource(R.string.insights_screen_title).uppercase(),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = stringResource(R.string.insights_screen_heading),
+                    style = MaterialTheme.typography.headlineSmall
+                )
+            }
         }
     ) { innerPadding ->
         Column(
@@ -98,7 +108,7 @@ fun InsightsScreen(viewModel: InsightsViewModel) {
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Card(modifier = Modifier.fillMaxWidth()) {
+            TaskPulseSectionCard {
                 Column(
                     modifier = Modifier.padding(12.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -174,7 +184,7 @@ fun InsightsScreen(viewModel: InsightsViewModel) {
             }
 
             if (state.recentSweepRuns.isNotEmpty()) {
-                Card(modifier = Modifier.fillMaxWidth()) {
+                TaskPulseSectionCard {
                     Column(
                         modifier = Modifier.padding(12.dp),
                         verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -194,7 +204,7 @@ fun InsightsScreen(viewModel: InsightsViewModel) {
                 }
             }
 
-            Card(modifier = Modifier.fillMaxWidth()) {
+            TaskPulseSectionCard {
                 Column(
                     modifier = Modifier.padding(12.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -213,7 +223,7 @@ fun InsightsScreen(viewModel: InsightsViewModel) {
                 }
             }
 
-            Card(modifier = Modifier.fillMaxWidth()) {
+            TaskPulseSectionCard {
                 Column(
                     modifier = Modifier.padding(12.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -236,7 +246,7 @@ fun InsightsScreen(viewModel: InsightsViewModel) {
                 }
             }
 
-            Card(modifier = Modifier.fillMaxWidth()) {
+            TaskPulseSectionCard {
                 Column(
                     modifier = Modifier.padding(12.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)

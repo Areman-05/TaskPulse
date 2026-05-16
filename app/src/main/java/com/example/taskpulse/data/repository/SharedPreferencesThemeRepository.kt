@@ -19,18 +19,17 @@ class SharedPreferencesThemeRepository(
         _mode.value = mode
     }
 
-    fun cyclePreferredMode() {
-        val next = when (readMode()) {
-            AppThemeMode.SYSTEM -> AppThemeMode.LIGHT
-            AppThemeMode.LIGHT -> AppThemeMode.DARK
-            AppThemeMode.DARK -> AppThemeMode.SYSTEM
-        }
-        setMode(next)
+    /**
+     * Alterna según cómo se ve la app ahora (no el modo guardado abstracto).
+     * Evita el paso SYSTEM→LIGHT cuando ya estás en claro y parece que "no hace nada".
+     */
+    fun toggleLightDark(isEffectivelyDark: Boolean) {
+        setMode(if (isEffectivelyDark) AppThemeMode.LIGHT else AppThemeMode.DARK)
     }
 
     private fun readMode(): AppThemeMode {
-        val raw = prefs.getString(KEY_MODE, AppThemeMode.SYSTEM.name).orEmpty()
-        return runCatching { AppThemeMode.valueOf(raw) }.getOrElse { AppThemeMode.SYSTEM }
+        val raw = prefs.getString(KEY_MODE, AppThemeMode.LIGHT.name).orEmpty()
+        return runCatching { AppThemeMode.valueOf(raw) }.getOrElse { AppThemeMode.LIGHT }
     }
 
     private companion object {

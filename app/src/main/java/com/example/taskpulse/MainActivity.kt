@@ -8,12 +8,13 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import com.example.taskpulse.core.AppContainer
-import com.example.taskpulse.ui.navigation.TaskPulseNavHost
+import com.example.taskpulse.ui.TaskPulseAppRoot
 import com.example.taskpulse.worker.AutomationInitialWork
 import com.example.taskpulse.worker.AutomationWorkScheduler
 import com.example.taskpulse.ui.theme.TaskPulseThemeRoot
@@ -33,6 +34,9 @@ class MainActivity : ComponentActivity() {
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
+        var keepSystemSplash = true
+        splashScreen.setKeepOnScreenCondition { keepSystemSplash }
         super.onCreate(savedInstanceState)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val granted = ContextCompat.checkSelfPermission(
@@ -57,7 +61,11 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             TaskPulseThemeRoot(container) {
-                TaskPulseNavHost(container)
+                TaskPulseAppRoot(
+                    container = container,
+                    onSplashFirstFrame = { keepSystemSplash = false },
+                    onSplashFinished = { }
+                )
             }
         }
     }

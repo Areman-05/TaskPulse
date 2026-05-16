@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.TaskPulse" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.TaskPulse" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/tp_black</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
+        <item name="windowSplashScreenAnimationDuration">300</item>
+        <item name="postSplashScreenTheme">@style/Theme.TaskPulse.Main</item>
+    </style>
+
+    <style name="Theme.TaskPulse.Main" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+
 </resources>

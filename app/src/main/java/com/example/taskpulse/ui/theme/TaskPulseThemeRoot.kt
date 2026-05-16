@@ -12,7 +12,7 @@ fun TaskPulseThemeRoot(
     container: AppContainer,
     content: @Composable () -> Unit
 ) {
-    val mode by container.themeRepository.mode.collectAsStateWithLifecycle(initialValue = AppThemeMode.SYSTEM)
+    val mode by container.themeRepository.mode.collectAsStateWithLifecycle(initialValue = AppThemeMode.LIGHT)
     val darkTheme = when (mode) {
         AppThemeMode.SYSTEM -> isSystemInDarkTheme()
         AppThemeMode.LIGHT -> false

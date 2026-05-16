@@ -120,8 +120,8 @@ class HomeViewModel(
         }
     }
 
-    fun cycleTheme() {
-        themeRepository.cyclePreferredMode()
+    fun cycleTheme(isEffectivelyDark: Boolean) {
+        themeRepository.toggleLightDark(isEffectivelyDark)
     }
 
     fun selectFilter(filter: HomeTaskFilter) {

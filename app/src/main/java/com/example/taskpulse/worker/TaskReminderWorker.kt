@@ -17,7 +17,18 @@ class TaskReminderWorker(
         if (taskId == 0L || taskTitle.isBlank()) return Result.failure()
 
         val container = AppContainer(applicationContext)
-        val task = container.getTaskUseCase(taskId) ?: return Result.failure()
+        val task = container.getTaskUseCase(taskId) ?: return Result.success()
+
+        when (task.status) {
+            TaskStatus.COMPLETED,
+            TaskStatus.FAILED -> {
+                container.cancelTaskReminderUseCase(taskId)
+                TaskNotificationHelper(applicationContext).cancelReminderNotification(taskId)
+                return Result.success()
+            }
+            else -> Unit
+        }
+
         val blockerId = task.blockedByTaskId
         if (blockerId != null) {
             val blocker = container.getTaskUseCase(blockerId)
@@ -27,8 +38,7 @@ class TaskReminderWorker(
         }
 
         val notifier = TaskNotificationHelper(applicationContext)
-        notifier.ensureChannel()
-        notifier.showReminder(taskId, taskTitle)
+        notifier.showReminderIfAllowed(taskId, task.title.ifBlank { taskTitle })
         return Result.success()
     }
 }

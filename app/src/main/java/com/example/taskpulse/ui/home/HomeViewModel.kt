@@ -11,11 +11,11 @@ import com.example.taskpulse.domain.model.Task
 import com.example.taskpulse.domain.model.TaskPriority
 import com.example.taskpulse.domain.model.TaskStatus
 import com.example.taskpulse.domain.usecase.CreateDefaultTaskUseCase
-import com.example.taskpulse.domain.usecase.MarkTaskCompletedUseCase
+import com.example.taskpulse.domain.usecase.CompleteTaskAndStopRemindersUseCase
 import com.example.taskpulse.domain.usecase.ObserveDailyProductivityUseCase
 import com.example.taskpulse.domain.usecase.ObserveTasksUseCase
-import com.example.taskpulse.domain.usecase.ScheduleDependentRemindersUseCase
 import com.example.taskpulse.domain.usecase.ScheduleTaskReminderUseCase
+import com.example.taskpulse.notification.TaskNotificationHelper
 import com.example.taskpulse.domain.usecase.UpsertTaskUseCase
 import com.example.taskpulse.widget.TaskPulseWidgetProvider
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,9 +30,8 @@ class HomeViewModel(
     private val application: Application,
     private val createDefaultTaskUseCase: CreateDefaultTaskUseCase,
     private val upsertTaskUseCase: UpsertTaskUseCase,
-    private val markTaskCompletedUseCase: MarkTaskCompletedUseCase,
+    private val completeTaskAndStopRemindersUseCase: CompleteTaskAndStopRemindersUseCase,
     private val scheduleTaskReminderUseCase: ScheduleTaskReminderUseCase,
-    private val scheduleDependentRemindersUseCase: ScheduleDependentRemindersUseCase,
     private val themeRepository: SharedPreferencesThemeRepository
 ) : AndroidViewModel(application) {
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -84,7 +83,7 @@ class HomeViewModel(
                 categoryId = 1L,
                 nowMillis = now
             ).copy(
-                dueAtMillis = now + 60_000L
+                dueAtMillis = now + 30L * 60L * 1000L
             )
             val taskId = upsertTaskUseCase(task)
             scheduleTaskReminderUseCase(task.copy(id = taskId))
@@ -163,8 +162,9 @@ class HomeViewModel(
 
     fun markCompleted(taskId: Long) {
         viewModelScope.launch {
-            markTaskCompletedUseCase(taskId, System.currentTimeMillis())
-            scheduleDependentRemindersUseCase(taskId)
+            val now = System.currentTimeMillis()
+            completeTaskAndStopRemindersUseCase(taskId, now)
+            TaskNotificationHelper(application).cancelReminderNotification(taskId)
             TaskPulseWidgetProvider.updatePendingCount(application)
         }
     }
@@ -210,9 +210,8 @@ class HomeViewModel(
         private val application: Application,
         private val createDefaultTaskUseCase: CreateDefaultTaskUseCase,
         private val upsertTaskUseCase: UpsertTaskUseCase,
-        private val markTaskCompletedUseCase: MarkTaskCompletedUseCase,
+        private val completeTaskAndStopRemindersUseCase: CompleteTaskAndStopRemindersUseCase,
         private val scheduleTaskReminderUseCase: ScheduleTaskReminderUseCase,
-        private val scheduleDependentRemindersUseCase: ScheduleDependentRemindersUseCase,
         private val themeRepository: SharedPreferencesThemeRepository
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
@@ -223,9 +222,8 @@ class HomeViewModel(
                 application,
                 createDefaultTaskUseCase,
                 upsertTaskUseCase,
-                markTaskCompletedUseCase,
+                completeTaskAndStopRemindersUseCase,
                 scheduleTaskReminderUseCase,
-                scheduleDependentRemindersUseCase,
                 themeRepository
             ) as T
         }

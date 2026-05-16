@@ -79,9 +79,8 @@ fun TaskPulseNavHost(container: AppContainer) {
                         application = appContext as android.app.Application,
                         createDefaultTaskUseCase = container.createDefaultTaskUseCase,
                         upsertTaskUseCase = container.upsertTaskUseCase,
-                        markTaskCompletedUseCase = container.markTaskCompletedUseCase,
+                        completeTaskAndStopRemindersUseCase = container.completeTaskAndStopRemindersUseCase,
                         scheduleTaskReminderUseCase = container.scheduleTaskReminderUseCase,
-                        scheduleDependentRemindersUseCase = container.scheduleDependentRemindersUseCase,
                         themeRepository = container.themeRepository
                     )
                 )

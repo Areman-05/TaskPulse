@@ -22,7 +22,8 @@ class WorkManagerTaskScheduler(
     private val workManager: WorkManager = WorkManager.getInstance(context)
 
     override fun scheduleReminder(task: Task) {
-        val delay = task.dueAtMillis?.minus(System.currentTimeMillis())?.coerceAtLeast(0L) ?: 0L
+        val rawDelay = task.dueAtMillis?.minus(System.currentTimeMillis()) ?: MIN_REMINDER_DELAY_MS
+        val delay = rawDelay.coerceIn(MIN_REMINDER_DELAY_MS, MAX_REMINDER_DELAY_MS)
         val request = OneTimeWorkRequestBuilder<TaskReminderWorker>()
             .setInitialDelay(delay, TimeUnit.MILLISECONDS)
             .setConstraints(
@@ -30,7 +31,7 @@ class WorkManagerTaskScheduler(
                     .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
                     .build()
             )
-            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 10, TimeUnit.MINUTES)
+            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.MINUTES)
             .setInputData(
                 Data.Builder()
                     .putLong(WorkerKeys.TASK_ID, task.id)
@@ -67,7 +68,7 @@ class WorkManagerTaskScheduler(
                     .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
                     .build()
             )
-            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 10, TimeUnit.MINUTES)
+            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.MINUTES)
             .setInputData(
                 Data.Builder()
                     .putLong(WorkerKeys.TASK_ID, task.id)
@@ -99,4 +100,10 @@ class WorkManagerTaskScheduler(
     private fun recurringName(taskId: Long): String = "task-recurring-$taskId"
     private fun taskTag(taskId: Long): String = "task:$taskId"
     private fun recurringTag(taskId: Long): String = "task:recurring:$taskId"
+
+    private companion object {
+        /** Evita disparos inmediatos en bucle al crear tareas con vencimiento ya pasado. */
+        const val MIN_REMINDER_DELAY_MS = 15L * 60L * 1000L // 15 min
+        const val MAX_REMINDER_DELAY_MS = 30L * 24L * 60L * 60L * 1000L // 30 días
+    }
 }

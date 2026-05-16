@@ -38,9 +38,16 @@ class AutomationSweepWorker(
             val task = tasks.find { it.id == match.taskId } ?: return@forEach
             when (rule.action) {
                 AutomationAction.SEND_NOTIFICATION -> {
-                    notifier.ensureAutomationChannel()
+                    if (task.status == com.example.taskpulse.domain.model.TaskStatus.COMPLETED) return@forEach
                     val notificationId = generateAutomationNotificationId(task.id, rule.id)
-                    notifier.showAutomationAlert(rule.name, task.title, notificationId)
+                    notifier.showAutomationAlertIfAllowed(
+                        ruleName = rule.name,
+                        taskTitle = task.title,
+                        taskId = task.id,
+                        ruleId = rule.id,
+                        notificationId = notificationId,
+                        nowMillis = now
+                    )
                 }
                 AutomationAction.MARK_AS_IN_PROGRESS -> {
                     container.markTaskInProgressUseCase(task.id, now)

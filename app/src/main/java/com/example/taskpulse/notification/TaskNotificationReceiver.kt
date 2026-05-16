@@ -13,9 +13,13 @@ class TaskNotificationReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val pendingResult = goAsync()
         val app = AppContainer(context.applicationContext)
+        val notifier = TaskNotificationHelper(context.applicationContext)
         val taskId = intent.getLongExtra(TaskNotificationActions.EXTRA_TASK_ID, 0L)
         val title = intent.getStringExtra(TaskNotificationActions.EXTRA_TASK_TITLE).orEmpty()
-        val snoozeMinutes = intent.getIntExtra(TaskNotificationActions.EXTRA_SNOOZE_MINUTES, 15)
+        val snoozeMinutes = intent.getIntExtra(
+            TaskNotificationActions.EXTRA_SNOOZE_MINUTES,
+            TaskNotificationHelper.DEFAULT_SNOOZE_MINUTES
+        )
         if (taskId == 0L) {
             pendingResult.finish()
             return
@@ -25,17 +29,19 @@ class TaskNotificationReceiver : BroadcastReceiver() {
             val now = System.currentTimeMillis()
             val message = when (intent.action) {
                 TaskNotificationActions.ACTION_COMPLETE -> {
-                    app.markTaskCompletedUseCase(taskId, now)
-                    app.scheduleDependentRemindersUseCase(taskId)
-                    "Tarea completada: $title"
+                    app.completeTaskAndStopRemindersUseCase(taskId, now)
+                    notifier.cancelReminderNotification(taskId)
+                    context.getString(com.example.taskpulse.R.string.notification_toast_completed, title)
                 }
                 TaskNotificationActions.ACTION_SNOOZE -> {
-                    app.snoozeTaskUseCase(taskId, snoozeMinutes * 60_000L, now)
-                    "Tarea pospuesta: $title"
+                    app.snoozeTaskAndReminderUseCase(taskId, snoozeMinutes * 60_000L, now)
+                    notifier.cancelReminderNotification(taskId)
+                    context.getString(com.example.taskpulse.R.string.notification_toast_snoozed, title, snoozeMinutes)
                 }
                 TaskNotificationActions.ACTION_OPEN -> {
                     app.markTaskInProgressUseCase(taskId, now)
-                    "Abrir tarea: $title"
+                    notifier.cancelReminderNotification(taskId)
+                    context.getString(com.example.taskpulse.R.string.notification_toast_opened, title)
                 }
                 else -> {
                     pendingResult.finish()

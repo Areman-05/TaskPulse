@@ -1,13 +1,20 @@
 <resources>
     <string name="app_name">TaskPulse</string>
     <string name="notification_channel_automation_title">Automatización TaskPulse</string>
-    <string name="notification_channel_automation_description">Avisos generados por reglas de automatización</string>
     <string name="notification_automation_title">Regla de automatización</string>
     <string name="insights_automation_sweep_hint">El motor de reglas se evalúa en segundo plano de forma periódica.</string>
     <string name="post_notifications_rationale">TaskPulse usa notificaciones para recordatorios y reglas de automatización.</string>
     <string name="post_notifications_denied_hint">Si desactivas notificaciones, algunos recordatorios no aparecerán.</string>
     <string name="notification_channel_reminders_title">Recordatorios de tareas</string>
-    <string name="notification_channel_reminders_description">Avisos para tareas pendientes y próximas a vencer</string>
+    <string name="notification_channel_reminders_description">Avisos silenciosos para tareas pendientes (máx. una vez cada 4 h por tarea)</string>
+    <string name="notification_channel_automation_description">Reglas de automatización silenciosas (máx. una vez cada 12 h por regla)</string>
+    <string name="notification_reminder_title">Recordatorio</string>
+    <string name="notification_automation_body">%1$s · %2$s</string>
+    <string name="notification_action_complete">Completar</string>
+    <string name="notification_action_snooze">Posponer 1 h</string>
+    <string name="notification_toast_completed">Completada: %1$s</string>
+    <string name="notification_toast_snoozed">Pospuesta %2$d min: %1$s</string>
+    <string name="notification_toast_opened">En progreso: %1$s</string>
     <string name="insights_screen_title">Insights</string>
     <string name="insights_run_sweep_now">Ejecutar barrido ahora</string>
     <string name="insights_run_sweep_running">Ejecutando barrido...</string>

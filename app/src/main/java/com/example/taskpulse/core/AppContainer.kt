@@ -17,6 +17,8 @@ import com.example.taskpulse.domain.model.Task
 import com.example.taskpulse.domain.repository.AutomationSettingsRepository
 import com.example.taskpulse.domain.scheduler.TaskScheduler
 import com.example.taskpulse.domain.usecase.AppendAutomationSweepRunUseCase
+import com.example.taskpulse.domain.usecase.CancelTaskReminderUseCase
+import com.example.taskpulse.domain.usecase.CompleteTaskAndStopRemindersUseCase
 import com.example.taskpulse.domain.usecase.CreateDefaultTaskUseCase
 import com.example.taskpulse.domain.usecase.DeleteAutomationRuleUseCase
 import com.example.taskpulse.domain.usecase.EvaluateAutomationRulesUseCase
@@ -39,7 +41,9 @@ import com.example.taskpulse.domain.usecase.ScheduleTaskReminderUseCase
 import com.example.taskpulse.domain.usecase.SetAutomationRuleEnabledUseCase
 import com.example.taskpulse.domain.usecase.SetAutomationSweepIntervalUseCase
 import com.example.taskpulse.domain.usecase.RescheduleAutomationSweepUseCase
+import com.example.taskpulse.domain.usecase.SnoozeTaskAndReminderUseCase
 import com.example.taskpulse.domain.usecase.SnoozeTaskUseCase
+import com.example.taskpulse.notification.NotificationCooldownStore
 import com.example.taskpulse.domain.usecase.TriggerAutomationSweepNowUseCase
 import com.example.taskpulse.domain.usecase.UpdateAutomationRuleDefinitionUseCase
 import com.example.taskpulse.domain.usecase.UpsertAutomationRuleUseCase
@@ -61,6 +65,7 @@ class AppContainer(context: Context) {
     val automationSettingsRepository: AutomationSettingsRepository =
         SharedPrefsAutomationSettingsRepository(context.applicationContext)
     private val scheduler: TaskScheduler = WorkManagerTaskScheduler(context.applicationContext)
+    val notificationCooldownStore = NotificationCooldownStore(context.applicationContext)
 
     val observeTasksUseCase = ObserveTasksUseCase(repository)
     val ensureDefaultCategoryUseCase = EnsureDefaultCategoryUseCase(categoryRepository)
@@ -80,6 +85,7 @@ class AppContainer(context: Context) {
     val observeDailyProductivityUseCase = ObserveDailyProductivityUseCase(repository)
     val upsertTaskUseCase = UpsertTaskUseCase(repository)
     val createDefaultTaskUseCase = CreateDefaultTaskUseCase()
+    val cancelTaskReminderUseCase = CancelTaskReminderUseCase(scheduler)
     val scheduleTaskReminderUseCase = ScheduleTaskReminderUseCase(scheduler)
     val scheduleRecurringTaskUseCase = ScheduleRecurringTaskUseCase(scheduler)
     val scheduleDependentRemindersUseCase = ScheduleDependentRemindersUseCase(
@@ -93,6 +99,19 @@ class AppContainer(context: Context) {
     val evaluateAutomationRulesUseCase = EvaluateAutomationRulesUseCase(SimpleRuleEngine())
     val snoozeTaskUseCase = SnoozeTaskUseCase(repository)
     val getTaskUseCase = GetTaskUseCase(repository)
+    val snoozeTaskAndReminderUseCase = SnoozeTaskAndReminderUseCase(
+        snoozeTaskUseCase,
+        getTaskUseCase,
+        cancelTaskReminderUseCase,
+        scheduleTaskReminderUseCase,
+        notificationCooldownStore
+    )
+    val completeTaskAndStopRemindersUseCase = CompleteTaskAndStopRemindersUseCase(
+        markTaskCompletedUseCase,
+        cancelTaskReminderUseCase,
+        scheduleDependentRemindersUseCase,
+        notificationCooldownStore
+    )
     val appendAutomationSweepRunUseCase = AppendAutomationSweepRunUseCase(automationSweepLogRepository)
     val loadAutomationSweepHistoryUseCase = LoadAutomationSweepHistoryUseCase(automationSweepLogRepository)
     val taskSnapshotFileExporter = TaskSnapshotFileExporter(repository, context.applicationContext.filesDir)

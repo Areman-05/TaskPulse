@@ -21,10 +21,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material.icons.outlined.CheckCircleOutline
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.StickyNote2
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -60,7 +58,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-private val NoteDateFormatter =
+private val ListDateFormatter =
     DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm").withZone(ZoneId.systemDefault())
 
 private val SearchShape = RoundedCornerShape(10.dp)
@@ -70,7 +68,8 @@ private val SwipeCompleteGreen = Color(0xFF3D9A5F)
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
-    onNavigateToCreate: () -> Unit
+    onNavigateToCreate: () -> Unit,
+    onOpenEntryDetail: (Long) -> Unit
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -137,7 +136,13 @@ fun HomeScreen(
                                 tasks = state.filteredTasks,
                                 selectionMode = state.selectionMode,
                                 selectedIds = state.selectedTaskIds,
-                                onTaskClick = viewModel::onTaskClick
+                                onTaskClick = { taskId ->
+                                    if (state.selectionMode) {
+                                        viewModel.onTaskClick(taskId)
+                                    } else {
+                                        onOpenEntryDetail(taskId)
+                                    }
+                                }
                             )
                         }
                         else -> {
@@ -147,7 +152,13 @@ fun HomeScreen(
                                         task = task,
                                         selectionMode = state.selectionMode,
                                         selected = task.id in state.selectedTaskIds,
-                                        onClick = { viewModel.onTaskClick(task.id) },
+                                        onClick = {
+                                            if (state.selectionMode) {
+                                                viewModel.onTaskClick(task.id)
+                                            } else {
+                                                onOpenEntryDetail(task.id)
+                                            }
+                                        },
                                         onDelete = { viewModel.deleteTask(task.id) },
                                         onComplete = { viewModel.markTaskCompleted(task.id) }
                                     )
@@ -305,17 +316,17 @@ private fun GalleryTaskCard(
                 modifier = Modifier.align(Alignment.TopStart)
             )
         }
-        EntryTypeIcon(
+        CompletedTaskBadge(
             task = task,
             modifier = Modifier.align(Alignment.TopEnd)
         )
         Column(modifier = Modifier.align(Alignment.BottomStart)) {
             Text(
-                text = task.title,
+                text = entryListTitle(task),
                 style = MaterialTheme.typography.titleSmall,
-                maxLines = 3,
+                maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                color = if (completed) {
+                color = if (completed && task.isTaskItem) {
                     MaterialTheme.colorScheme.onSurfaceVariant
                 } else {
                     MaterialTheme.colorScheme.onSurface
@@ -323,7 +334,7 @@ private fun GalleryTaskCard(
             )
             Spacer(modifier = Modifier.size(4.dp))
             Text(
-                text = NoteDateFormatter.format(Instant.ofEpochMilli(task.updatedAtMillis)),
+                text = formatCreatedAt(task.createdAtMillis),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
@@ -358,41 +369,62 @@ private fun TaskListItem(
         return
     }
 
-    if (completed) {
-        BorderedTaskCard(
-            task = task,
-            completed = true,
-            onClick = onClick,
-            modifier = cardModifier
-        )
-        return
-    }
-
-    if (task.isNote) {
-        val dismissState = rememberSwipeToDismissBoxState(
-            confirmValueChange = { value ->
-                if (value == SwipeToDismissBoxValue.StartToEnd) {
-                    onDelete()
-                    true
-                } else {
-                    false
-                }
-            },
-            positionalThreshold = { totalDistance -> totalDistance * 0.82f }
-        )
-        SwipeToDismissBox(
-            modifier = cardModifier,
-            state = dismissState,
-            enableDismissFromStartToEnd = true,
-            enableDismissFromEndToStart = false,
-            backgroundContent = { SwipeDeleteBackground() }
-        ) {
-            BorderedTaskCard(task = task, completed = false, onClick = onClick)
+    SwipeToDeleteContainer(
+        onDelete = onDelete,
+        modifier = cardModifier
+    ) {
+        if (task.isTaskItem && !completed) {
+            SwipeToCompleteContainer(onComplete = onComplete) {
+                BorderedTaskCard(
+                    task = task,
+                    completed = false,
+                    onClick = onClick
+                )
+            }
+        } else {
+            BorderedTaskCard(
+                task = task,
+                completed = completed,
+                onClick = onClick
+            )
         }
-        return
     }
+}
 
-    val dismissState = rememberSwipeToDismissBoxState(
+@Composable
+private fun SwipeToDeleteContainer(
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    val deleteState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { value ->
+            if (value == SwipeToDismissBoxValue.StartToEnd) {
+                onDelete()
+                true
+            } else {
+                false
+            }
+        },
+        positionalThreshold = { totalDistance -> totalDistance * 0.82f }
+    )
+    SwipeToDismissBox(
+        modifier = modifier,
+        state = deleteState,
+        enableDismissFromStartToEnd = true,
+        enableDismissFromEndToStart = false,
+        backgroundContent = { SwipeDeleteBackground() }
+    ) {
+        content()
+    }
+}
+
+@Composable
+private fun SwipeToCompleteContainer(
+    onComplete: () -> Unit,
+    content: @Composable () -> Unit
+) {
+    val completeState = rememberSwipeToDismissBoxState(
         confirmValueChange = { value ->
             if (value == SwipeToDismissBoxValue.EndToStart) {
                 onComplete()
@@ -404,41 +436,12 @@ private fun TaskListItem(
         positionalThreshold = { totalDistance -> totalDistance * 0.82f }
     )
     SwipeToDismissBox(
-        modifier = cardModifier,
-        state = dismissState,
+        state = completeState,
         enableDismissFromStartToEnd = false,
         enableDismissFromEndToStart = true,
         backgroundContent = { SwipeCompleteBackground() }
     ) {
-        BorderedTaskCard(task = task, completed = false, onClick = onClick)
-    }
-}
-
-@Composable
-private fun SwipeCompleteBackground() {
-    val completeStripShape = RoundedCornerShape(
-        topStart = 4.dp,
-        bottomStart = 4.dp,
-        topEnd = 12.dp,
-        bottomEnd = 12.dp
-    )
-    Box(modifier = Modifier.fillMaxSize()) {
-        Box(
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .width(56.dp)
-                .fillMaxHeight()
-                .clip(completeStripShape)
-                .background(SwipeCompleteGreen),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Check,
-                contentDescription = stringResource(R.string.home_swipe_complete_hint),
-                tint = Color.White,
-                modifier = Modifier.size(24.dp)
-            )
-        }
+        content()
     }
 }
 
@@ -464,6 +467,34 @@ private fun SwipeDeleteBackground() {
                 imageVector = Icons.Outlined.Delete,
                 contentDescription = stringResource(R.string.home_swipe_delete_hint),
                 tint = MaterialTheme.colorScheme.onError,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun SwipeCompleteBackground() {
+    val completeStripShape = RoundedCornerShape(
+        topStart = 4.dp,
+        bottomStart = 4.dp,
+        topEnd = 12.dp,
+        bottomEnd = 12.dp
+    )
+    Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .width(56.dp)
+                .fillMaxHeight()
+                .clip(completeStripShape)
+                .background(SwipeCompleteGreen),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Check,
+                contentDescription = stringResource(R.string.home_swipe_complete_hint),
+                tint = Color.White,
                 modifier = Modifier.size(24.dp)
             )
         }
@@ -541,24 +572,28 @@ private fun cardBorderColor(task: Task, selected: Boolean, completed: Boolean) =
     else -> MaterialTheme.colorScheme.tertiary
 }
 
+private fun entryListTitle(task: Task): String {
+    if (task.isTaskItem) return task.title
+    return task.title.ifBlank {
+        task.description.lineSequence().firstOrNull()?.trim().orEmpty()
+    }.ifBlank {
+        task.description.trim()
+    }
+}
+
+private fun formatCreatedAt(createdAtMillis: Long): String =
+    ListDateFormatter.format(Instant.ofEpochMilli(createdAtMillis))
+
 @Composable
-private fun EntryTypeIcon(
+private fun CompletedTaskBadge(
     task: Task,
     modifier: Modifier = Modifier
 ) {
-    val (icon, label) = if (task.isNote) {
-        Icons.Outlined.StickyNote2 to stringResource(R.string.home_entry_note_cd)
-    } else {
-        Icons.Outlined.CheckCircleOutline to stringResource(R.string.home_entry_task_cd)
-    }
+    if (!task.isTaskItem || task.status != TaskStatus.COMPLETED) return
     Icon(
-        imageVector = icon,
-        contentDescription = label,
-        tint = if (task.isNote) {
-            MaterialTheme.colorScheme.onSurfaceVariant
-        } else {
-            MaterialTheme.colorScheme.tertiary
-        },
+        imageVector = Icons.Outlined.Check,
+        contentDescription = stringResource(R.string.home_entry_task_completed_cd),
+        tint = MaterialTheme.colorScheme.tertiary,
         modifier = modifier.size(22.dp)
     )
 }
@@ -579,9 +614,10 @@ private fun BorderedTaskCard(
         else -> 1.5.dp
     }
 
-    val subtitle = when {
-        task.description.isNotBlank() -> task.description.lineSequence().first()
-        else -> NoteDateFormatter.format(Instant.ofEpochMilli(task.updatedAtMillis))
+    val titleColor = if (completed && task.isTaskItem) {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    } else {
+        MaterialTheme.colorScheme.onSurface
     }
 
     Column(
@@ -599,29 +635,25 @@ private fun BorderedTaskCard(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = task.title,
+                    text = entryListTitle(task),
                     style = MaterialTheme.typography.titleMedium,
-                    color = if (completed && task.isTaskItem) {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    } else {
-                        MaterialTheme.colorScheme.onSurface
-                    },
-                    maxLines = 2,
+                    color = titleColor,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.size(6.dp))
                 Text(
-                    text = subtitle,
+                    text = formatCreatedAt(task.createdAtMillis),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
-                        alpha = if (completed && task.isTaskItem) 0.75f else 0.9f
-                    ),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.9f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
             }
-            Spacer(modifier = Modifier.size(10.dp))
-            EntryTypeIcon(task = task)
+            CompletedTaskBadge(
+                task = task,
+                modifier = Modifier.padding(start = 8.dp)
+            )
         }
     }
 }

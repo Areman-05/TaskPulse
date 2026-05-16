@@ -5,6 +5,7 @@ import com.example.taskpulse.domain.model.TaskPriority
 
 data class CreateTaskUiState(
     val entryType: TaskEntryType = TaskEntryType.TASK,
+    val noteBody: String = "",
     val title: String = "",
     val description: String = "",
     val priority: TaskPriority = TaskPriority.MEDIUM,

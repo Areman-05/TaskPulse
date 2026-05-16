@@ -95,10 +95,27 @@
     <string name="home_swipe_complete_hint">Deslizar para completar</string>
     <string name="home_entry_note_cd">Nota</string>
     <string name="home_entry_task_cd">Tarea</string>
+    <string name="home_entry_task_completed_cd">Tarea completada</string>
     <string name="home_selection_complete">Completar</string>
     <string name="create_entry_type_label">Tipo</string>
     <string name="create_entry_note">Nota</string>
     <string name="create_entry_task">Tarea</string>
+    <string name="create_note_placeholder">Escribe aquí…</string>
+
+    <string name="detail_loading">Cargando…</string>
+    <string name="detail_not_found">No se encontró el contenido.</string>
+    <string name="detail_note_title">Nota</string>
+    <string name="detail_task_title">Tarea</string>
+    <string name="detail_notes_section">Contenido</string>
+    <string name="detail_meta_section">Información</string>
+    <string name="detail_status_line">Estado: %1$s</string>
+    <string name="detail_priority_line">Prioridad: %1$s</string>
+    <string name="detail_created_line">Creado: %1$s</string>
+    <string name="detail_edited_line">Editado: %1$s</string>
+    <string name="detail_edit_cd">Editar</string>
+    <string name="detail_edit_title">Editar</string>
+    <string name="detail_save">Guardar cambios</string>
+    <string name="detail_cancel_edit">Cancelar edición</string>
     <string name="create_screen_title_note">Nueva nota</string>
     <string name="create_screen_title_task">Nueva tarea</string>
     <string name="home_blocked_by">Bloqueada por tarea #%1$d hasta completarse</string>

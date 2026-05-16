@@ -23,6 +23,8 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -30,6 +32,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -53,6 +56,11 @@ fun CreateTaskScreen(
             viewModel.consumeSaved()
             onBack()
         }
+    }
+
+    val canSave = when (state.entryType) {
+        TaskEntryType.NOTE -> state.noteBody.trim().isNotEmpty()
+        TaskEntryType.TASK -> state.title.trim().isNotEmpty()
     }
 
     Scaffold(
@@ -95,11 +103,6 @@ fun CreateTaskScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Text(
-                    text = stringResource(R.string.create_entry_type_label),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FilterChip(
                         selected = state.entryType == TaskEntryType.NOTE,
@@ -113,27 +116,43 @@ fun CreateTaskScreen(
                     )
                 }
 
-                OutlinedTextField(
-                    value = state.title,
-                    onValueChange = viewModel::onTitleChange,
-                    label = { Text(stringResource(R.string.create_task_title_label)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    shape = FieldShape,
-                    colors = fieldColors()
-                )
-                OutlinedTextField(
-                    value = state.description,
-                    onValueChange = viewModel::onDescriptionChange,
-                    label = { Text(stringResource(R.string.create_task_description_label)) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(140.dp),
-                    shape = FieldShape,
-                    colors = fieldColors()
-                )
+                if (state.entryType == TaskEntryType.NOTE) {
+                    TextField(
+                        value = state.noteBody,
+                        onValueChange = viewModel::onNoteBodyChange,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(360.dp),
+                        placeholder = {
+                            Text(
+                                stringResource(R.string.create_note_placeholder),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
+                        textStyle = MaterialTheme.typography.bodyLarge,
+                        colors = noteFieldColors()
+                    )
+                } else {
+                    OutlinedTextField(
+                        value = state.title,
+                        onValueChange = viewModel::onTitleChange,
+                        label = { Text(stringResource(R.string.create_task_title_label)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        shape = FieldShape,
+                        colors = fieldColors()
+                    )
+                    OutlinedTextField(
+                        value = state.description,
+                        onValueChange = viewModel::onDescriptionChange,
+                        label = { Text(stringResource(R.string.create_task_description_label)) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(120.dp),
+                        shape = FieldShape,
+                        colors = fieldColors()
+                    )
 
-                if (state.entryType == TaskEntryType.TASK) {
                     Text(
                         text = stringResource(R.string.create_task_priority_label),
                         style = MaterialTheme.typography.labelLarge,
@@ -192,12 +211,23 @@ fun CreateTaskScreen(
                         stringResource(R.string.create_task_save)
                     },
                     onClick = viewModel::saveTask,
-                    enabled = state.title.isNotBlank() && !state.isSaving
+                    enabled = canSave && !state.isSaving
                 )
             }
         }
     }
 }
+
+@Composable
+private fun noteFieldColors() = TextFieldDefaults.colors(
+    focusedContainerColor = Color.Transparent,
+    unfocusedContainerColor = Color.Transparent,
+    disabledContainerColor = Color.Transparent,
+    focusedIndicatorColor = Color.Transparent,
+    unfocusedIndicatorColor = Color.Transparent,
+    disabledIndicatorColor = Color.Transparent,
+    cursorColor = MaterialTheme.colorScheme.tertiary
+)
 
 @Composable
 private fun fieldColors() = OutlinedTextFieldDefaults.colors(

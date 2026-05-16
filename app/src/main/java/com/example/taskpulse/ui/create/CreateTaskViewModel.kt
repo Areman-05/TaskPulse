@@ -35,6 +35,10 @@ class CreateTaskViewModel(
         }
     }
 
+    fun onNoteBodyChange(value: String) {
+        _uiState.update { it.copy(noteBody = value) }
+    }
+
     fun onTitleChange(value: String) {
         _uiState.update { it.copy(title = value) }
     }
@@ -52,25 +56,36 @@ class CreateTaskViewModel(
     }
 
     fun saveTask() {
-        val title = _uiState.value.title.trim()
-        if (title.isEmpty() || _uiState.value.isSaving) return
+        val state = _uiState.value
+        if (state.isSaving) return
+        val entryType = state.entryType
+        if (entryType == TaskEntryType.NOTE && state.noteBody.trim().isEmpty()) return
+        if (entryType == TaskEntryType.TASK && state.title.trim().isEmpty()) return
+
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true) }
             val now = System.currentTimeMillis()
-            val entryType = _uiState.value.entryType
+            val (title, description) = if (entryType == TaskEntryType.NOTE) {
+                val body = state.noteBody.trim()
+                val firstLine = body.lineSequence().firstOrNull()?.trim().orEmpty()
+                val noteTitle = firstLine.ifBlank { body.take(48).trim() }
+                noteTitle to body
+            } else {
+                state.title.trim() to state.description.trim()
+            }
             val task = createDefaultTaskUseCase(
-                title = title,
+                title = title.ifBlank { " " },
                 categoryId = 1L,
                 nowMillis = now,
                 entryType = entryType
             ).copy(
-                description = _uiState.value.description.trim(),
+                description = description,
                 priority = if (entryType == TaskEntryType.TASK) {
-                    _uiState.value.priority
+                    state.priority
                 } else {
                     TaskPriority.MEDIUM
                 },
-                dueAtMillis = if (entryType == TaskEntryType.TASK && _uiState.value.scheduleReminder) {
+                dueAtMillis = if (entryType == TaskEntryType.TASK && state.scheduleReminder) {
                     now + 30L * 60L * 1000L
                 } else {
                     null

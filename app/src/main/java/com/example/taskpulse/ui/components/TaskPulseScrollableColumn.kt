@@ -36,6 +36,7 @@ fun TaskPulseScrollableColumn(
     scrollState: ScrollState = rememberScrollState(),
     showAmbientGrid: Boolean = true,
     contentPaddingBottom: androidx.compose.ui.unit.Dp = 32.dp,
+    scrollbarCompact: Boolean = false,
     content: @Composable ColumnScope.() -> Unit
 ) {
     val scope = rememberCoroutineScope()
@@ -45,33 +46,68 @@ fun TaskPulseScrollableColumn(
             TaskPulseAmbientGrid(Modifier.fillMaxSize())
         }
 
-        Row(Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            verticalAlignment = Alignment.Top
+        ) {
             Column(
                 modifier = Modifier
                     .weight(1f)
                     .verticalScroll(scrollState)
-                    .padding(end = 6.dp, bottom = contentPaddingBottom),
+                    .padding(
+                        end = if (scrollbarCompact) 4.dp else 6.dp,
+                        bottom = contentPaddingBottom
+                    ),
                 content = content
             )
 
-            TaskPulseScrollbar(
-                scrollState = scrollState,
-                onDragDelta = { delta ->
-                    scope.launch {
-                        scrollState.scroll {
-                            scrollBy(delta)
+            if (scrollbarCompact) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(28.dp)
+                        .padding(end = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    TaskPulseScrollbar(
+                        scrollState = scrollState,
+                        compact = true,
+                        onDragDelta = { delta ->
+                            scope.launch {
+                                scrollState.scroll {
+                                    scrollBy(delta)
+                                }
+                            }
+                        },
+                        onJumpToFraction = { fraction ->
+                            scope.launch {
+                                scrollState.scrollTo((scrollState.maxValue * fraction).toInt())
+                            }
+                        },
+                        modifier = Modifier.fillMaxHeight(0.52f)
+                    )
+                }
+            } else {
+                TaskPulseScrollbar(
+                    scrollState = scrollState,
+                    compact = false,
+                    onDragDelta = { delta ->
+                        scope.launch {
+                            scrollState.scroll {
+                                scrollBy(delta)
+                            }
                         }
-                    }
-                },
-                onJumpToFraction = { fraction ->
-                    scope.launch {
-                        scrollState.scrollTo((scrollState.maxValue * fraction).toInt())
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .padding(top = 8.dp, bottom = 8.dp, end = 2.dp)
-            )
+                    },
+                    onJumpToFraction = { fraction ->
+                        scope.launch {
+                            scrollState.scrollTo((scrollState.maxValue * fraction).toInt())
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .padding(top = 8.dp, bottom = 8.dp, end = 2.dp)
+                )
+            }
         }
     }
 }
@@ -79,6 +115,7 @@ fun TaskPulseScrollableColumn(
 @Composable
 private fun TaskPulseScrollbar(
     scrollState: ScrollState,
+    compact: Boolean,
     onDragDelta: (Float) -> Unit,
     onJumpToFraction: (Float) -> Unit,
     modifier: Modifier = Modifier
@@ -86,25 +123,38 @@ private fun TaskPulseScrollbar(
     val density = LocalDensity.current
     val trackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
     val thumbColor = MaterialTheme.colorScheme.tertiary
+    val barWidth = if (compact) 12.dp else 18.dp
 
     BoxWithConstraints(
-        modifier = modifier.width(18.dp),
+        modifier = modifier.width(barWidth),
         contentAlignment = Alignment.TopCenter
     ) {
-        val trackHeightPx = constraints.maxHeight.toFloat()
-        val thumbHeightPx = with(density) { 56.dp.toPx() }.coerceAtMost(trackHeightPx * 0.45f)
+        val containerHeightPx = constraints.maxHeight.toFloat().coerceAtLeast(1f)
+        val trackHeightPx = if (compact) {
+            containerHeightPx * 0.5f
+        } else {
+            containerHeightPx
+        }
+        val trackTopInsetPx = if (compact) {
+            (containerHeightPx - trackHeightPx) / 2f
+        } else {
+            0f
+        }
+        val thumbHeightPx = with(density) {
+            (if (compact) 44.dp else 56.dp).toPx()
+        }.coerceAtMost(trackHeightPx * 0.45f)
         val maxScroll = scrollState.maxValue.toFloat().coerceAtLeast(1f)
         val scrollFraction = (scrollState.value / maxScroll).coerceIn(0f, 1f)
-        val thumbOffsetPx = ((trackHeightPx - thumbHeightPx) * scrollFraction).coerceAtLeast(0f)
+        val thumbOffsetPx = trackTopInsetPx + ((trackHeightPx - thumbHeightPx) * scrollFraction).coerceAtLeast(0f)
 
         Box(
             modifier = Modifier
-                .fillMaxHeight()
-                .width(5.dp)
-                .align(Alignment.Center)
+                .offset { IntOffset(0, trackTopInsetPx.roundToInt()) }
+                .height(with(density) { trackHeightPx.toDp() })
+                .width(if (compact) 4.dp else 5.dp)
+                .align(Alignment.TopCenter)
                 .clip(RoundedCornerShape(3.dp))
-                .padding(vertical = 4.dp)
-                .pointerInput(scrollState.maxValue, trackHeightPx) {
+                .pointerInput(scrollState.maxValue, trackHeightPx, trackTopInsetPx) {
                     detectTapGestures { offset ->
                         val fraction = (offset.y / trackHeightPx).coerceIn(0f, 1f)
                         onJumpToFraction(fraction)
@@ -122,8 +172,9 @@ private fun TaskPulseScrollbar(
         Box(
             modifier = Modifier
                 .offset { IntOffset(0, thumbOffsetPx.roundToInt()) }
-                .width(10.dp)
+                .width(if (compact) 8.dp else 10.dp)
                 .height(with(density) { thumbHeightPx.toDp() })
+                .align(Alignment.TopCenter)
                 .clip(RoundedCornerShape(5.dp))
                 .pointerInput(Unit) {
                     detectDragGestures { change, dragAmount ->

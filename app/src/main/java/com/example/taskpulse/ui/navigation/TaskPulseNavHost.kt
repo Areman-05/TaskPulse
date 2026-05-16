@@ -21,14 +21,18 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.taskpulse.R
 import com.example.taskpulse.core.AppContainer
 import com.example.taskpulse.ui.create.CreateTaskScreen
 import com.example.taskpulse.ui.create.CreateTaskViewModel
+import com.example.taskpulse.ui.detail.EntryDetailScreen
+import com.example.taskpulse.ui.detail.EntryDetailViewModel
 import com.example.taskpulse.ui.home.HomeScreen
 import com.example.taskpulse.ui.home.HomeViewModel
 import com.example.taskpulse.ui.insights.InsightsScreen
@@ -141,7 +145,29 @@ fun TaskPulseNavHost(container: AppContainer) {
                     viewModel = vm,
                     onNavigateToCreate = {
                         navController.navigate(AppDestinations.CREATE_ROUTE)
+                    },
+                    onOpenEntryDetail = { entryId ->
+                        navController.navigate(AppDestinations.entryDetailRoute(entryId))
                     }
+                )
+            }
+            composable(
+                route = AppDestinations.ENTRY_DETAIL_ROUTE,
+                arguments = listOf(
+                    navArgument("entryId") { type = NavType.LongType }
+                )
+            ) { backStackEntry ->
+                val entryId = backStackEntry.arguments?.getLong("entryId") ?: return@composable
+                val vm: EntryDetailViewModel = viewModel(
+                    factory = EntryDetailViewModel.Factory(
+                        entryId = entryId,
+                        observeTasksUseCase = container.observeTasksUseCase,
+                        upsertTaskUseCase = container.upsertTaskUseCase
+                    )
+                )
+                EntryDetailScreen(
+                    viewModel = vm,
+                    onBack = { navController.popBackStack() }
                 )
             }
             composable(AppDestinations.CREATE_ROUTE) {

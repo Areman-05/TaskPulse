@@ -7,11 +7,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -44,6 +41,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.taskpulse.domain.model.AutomationAction
 import com.example.taskpulse.domain.model.AutomationTrigger
 import com.example.taskpulse.ui.components.TaskPulsePrimaryButton
+import com.example.taskpulse.ui.components.TaskPulseScrollableColumn
 import com.example.taskpulse.ui.components.TaskPulseSecondaryButton
 import com.example.taskpulse.ui.components.TaskPulseSectionCard
 import java.io.File
@@ -100,14 +98,17 @@ fun InsightsScreen(viewModel: InsightsViewModel) {
             }
         }
     ) { innerPadding ->
-        Column(
+        TaskPulseScrollableColumn(
             modifier = Modifier
-                .padding(innerPadding)
-                .padding(horizontal = 16.dp)
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(innerPadding)
+                .padding(start = 16.dp, end = 6.dp),
+            contentPaddingBottom = 32.dp
         ) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
             TaskPulseSectionCard {
                 Column(
                     modifier = Modifier.padding(12.dp),
@@ -328,6 +329,7 @@ fun InsightsScreen(viewModel: InsightsViewModel) {
                         }
                     }
                 }
+            }
             }
         }
     }

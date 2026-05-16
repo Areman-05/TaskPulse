@@ -51,6 +51,8 @@
     <string name="home_pending_count">Pendientes: %1$d</string>
     <string name="home_completed_count">Completadas: %1$d</string>
     <string name="home_streak">Racha (días con cierre UTC): %1$d</string>
+    <string name="home_streak_prefix">Racha (días con cierre UTC):</string>
+    <string name="home_no_tasks_match">Ninguna tarea coincide con los filtros actuales.</string>
     <string name="home_weekly_completions">Completadas (últimos 7 días)</string>
     <string name="home_day_completion_line">%1$s • %2$d completadas</string>
     <string name="home_filters_status">Estado</string>

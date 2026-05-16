@@ -2,14 +2,19 @@
 
 package com.example.taskpulse.ui.home
 
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,8 +22,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -42,6 +45,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -50,7 +54,9 @@ import com.example.taskpulse.R
 import com.example.taskpulse.domain.model.Task
 import com.example.taskpulse.domain.model.TaskPriority
 import com.example.taskpulse.domain.model.TaskStatus
+import com.example.taskpulse.ui.components.TaskPulseAnimatedEntrance
 import com.example.taskpulse.ui.components.TaskPulsePrimaryButton
+import com.example.taskpulse.ui.components.TaskPulseScrollableColumn
 import com.example.taskpulse.ui.components.TaskPulseSecondaryButton
 import com.example.taskpulse.ui.components.TaskPulseSectionCard
 import java.time.Instant
@@ -68,186 +74,180 @@ fun HomeScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val isEffectivelyDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val statusSelectedIndex = when (state.selectedFilter) {
+        HomeTaskFilter.PENDING -> 1
+        HomeTaskFilter.COMPLETED -> 2
+        HomeTaskFilter.ALL -> 0
+    }
+    val prioritySelectedIndex = HomePriorityFilter.entries.indexOf(state.priorityFilter)
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column {
-                    Text(
-                        text = stringResource(R.string.app_name).uppercase(),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = stringResource(R.string.home_screen_subtitle),
-                        style = MaterialTheme.typography.headlineSmall
-                    )
-                }
-                IconButton(onClick = { viewModel.cycleTheme(isEffectivelyDark) }) {
-                    Icon(
-                        Icons.Outlined.Brightness4,
-                        contentDescription = stringResource(R.string.home_theme_toggle_cd),
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
-        }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
-        ) {
-            TaskPulsePrimaryButton(
-                text = if (state.isCreating) {
-                    stringResource(R.string.home_creating_quick)
-                } else {
-                    stringResource(R.string.home_create_quick)
-                },
-                onClick = viewModel::createQuickTask,
-                enabled = !state.isCreating
-            )
-            TaskPulseSecondaryButton(
-                text = if (state.isCreatingDemoChain) {
-                    stringResource(R.string.home_chained_creating)
-                } else {
-                    stringResource(R.string.home_create_chained_demo)
-                },
-                onClick = viewModel::createChainedDemoTasks,
-                enabled = !state.isCreatingDemoChain
-            )
-
-            OutlinedTextField(
-                value = state.searchQuery,
-                onValueChange = viewModel::onSearchQueryChange,
-                label = { Text(stringResource(R.string.home_search_label)) },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                shape = MinimalShape,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                )
-            )
-
-            TaskPulseSectionCard {
-                Text(
-                    stringResource(R.string.home_stats_title),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(stringResource(R.string.home_pending_count, state.pendingCount))
-                Text(stringResource(R.string.home_completed_count, state.completedCount))
-                Text(
-                    stringResource(R.string.home_streak, state.completionStreak),
-                    color = MaterialTheme.colorScheme.tertiary
-                )
-            }
-
-            if (state.productivityWeek.isNotEmpty()) {
-                TaskPulseSectionCard {
-                    Text(
-                        text = stringResource(R.string.home_weekly_completions),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    state.productivityWeek.forEach { point ->
-                        val label = DayLabelFormatter.format(Instant.ofEpochMilli(point.dayStartMillis))
+            TaskPulseAnimatedEntrance(index = 0) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column {
                         Text(
-                            text = stringResource(R.string.home_day_completion_line, label, point.completedCount),
-                            style = MaterialTheme.typography.bodySmall
+                            text = stringResource(R.string.app_name).uppercase(),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = stringResource(R.string.home_screen_subtitle),
+                            style = MaterialTheme.typography.headlineSmall
+                        )
+                    }
+                    IconButton(onClick = { viewModel.cycleTheme(isEffectivelyDark) }) {
+                        Icon(
+                            Icons.Outlined.Brightness4,
+                            contentDescription = stringResource(R.string.home_theme_toggle_cd),
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
             }
+        }
+    ) { innerPadding ->
+        TaskPulseScrollableColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(start = 20.dp, end = 8.dp),
+            contentPaddingBottom = 40.dp
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                TaskPulseAnimatedEntrance(index = 1) {
+                    TaskPulsePrimaryButton(
+                        text = if (state.isCreating) {
+                            stringResource(R.string.home_creating_quick)
+                        } else {
+                            stringResource(R.string.home_create_quick)
+                        },
+                        onClick = viewModel::createQuickTask,
+                        enabled = !state.isCreating
+                    )
+                }
+                TaskPulseAnimatedEntrance(index = 2) {
+                    TaskPulseSecondaryButton(
+                        text = if (state.isCreatingDemoChain) {
+                            stringResource(R.string.home_chained_creating)
+                        } else {
+                            stringResource(R.string.home_create_chained_demo)
+                        },
+                        onClick = viewModel::createChainedDemoTasks,
+                        enabled = !state.isCreatingDemoChain
+                    )
+                }
 
-            FilterChipRow(
-                title = stringResource(R.string.home_filters_status),
-                labels = listOf(
-                    stringResource(R.string.home_filter_all),
-                    stringResource(R.string.home_filter_pending),
-                    stringResource(R.string.home_filter_completed)
-                ),
-                onSelected = { index ->
-                    viewModel.selectFilter(
-                        when (index) {
-                            1 -> HomeTaskFilter.PENDING
-                            2 -> HomeTaskFilter.COMPLETED
-                            else -> HomeTaskFilter.ALL
+                TaskPulseAnimatedEntrance(index = 3) {
+                    OutlinedTextField(
+                        value = state.searchQuery,
+                        onValueChange = viewModel::onSearchQueryChange,
+                        label = { Text(stringResource(R.string.home_search_label)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        shape = MinimalShape,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                        )
+                    )
+                }
+
+                TaskPulseAnimatedEntrance(index = 4) {
+                    HomeStatsCard(
+                        pending = state.pendingCount,
+                        completed = state.completedCount,
+                        streak = state.completionStreak
+                    )
+                }
+
+                if (state.productivityWeek.isNotEmpty()) {
+                    TaskPulseAnimatedEntrance(index = 5) {
+                        TaskPulseSectionCard {
+                            Text(
+                                text = stringResource(R.string.home_weekly_completions),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.height(10.dp))
+                            HomeMiniPulseChart(points = state.productivityWeek)
+                            Spacer(modifier = Modifier.height(10.dp))
+                            state.productivityWeek.forEach { point ->
+                                val label = DayLabelFormatter.format(
+                                    Instant.ofEpochMilli(point.dayStartMillis)
+                                )
+                                Text(
+                                    text = stringResource(
+                                        R.string.home_day_completion_line,
+                                        label,
+                                        point.completedCount
+                                    ),
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                        }
+                    }
+                }
+
+                TaskPulseAnimatedEntrance(index = 6) {
+                    FilterChipRow(
+                        title = stringResource(R.string.home_filters_status),
+                        labels = listOf(
+                            stringResource(R.string.home_filter_all),
+                            stringResource(R.string.home_filter_pending),
+                            stringResource(R.string.home_filter_completed)
+                        ),
+                        selectedIndex = statusSelectedIndex,
+                        onSelected = { index ->
+                            viewModel.selectFilter(
+                                when (index) {
+                                    1 -> HomeTaskFilter.PENDING
+                                    2 -> HomeTaskFilter.COMPLETED
+                                    else -> HomeTaskFilter.ALL
+                                }
+                            )
                         }
                     )
                 }
-            )
 
-            FilterChipRow(
-                title = stringResource(R.string.home_filters_priority),
-                labels = HomePriorityFilter.entries.map { shortPriorityLabel(it) },
-                onSelected = { index ->
-                    viewModel.selectPriorityFilter(HomePriorityFilter.entries[index])
-                }
-            )
-
-            LazyColumn(
-                contentPadding = PaddingValues(bottom = 32.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                items(items = state.filteredTasks, key = { it.id }) { task ->
-                    val animatedAlpha by animateFloatAsState(
-                        targetValue = 1f,
-                        animationSpec = tween(220),
-                        label = "taskAppear"
+                TaskPulseAnimatedEntrance(index = 7) {
+                    FilterChipRow(
+                        title = stringResource(R.string.home_filters_priority),
+                        labels = HomePriorityFilter.entries.map { shortPriorityLabel(it) },
+                        selectedIndex = prioritySelectedIndex,
+                        onSelected = { index ->
+                            viewModel.selectPriorityFilter(HomePriorityFilter.entries[index])
+                        }
                     )
-                    Column(modifier = Modifier.alpha(animatedAlpha)) {
-                        if (task.status != TaskStatus.COMPLETED) {
-                            val dismissState = rememberSwipeToDismissBoxState(
-                                confirmValueChange = { value ->
-                                    if (value == SwipeToDismissBoxValue.StartToEnd ||
-                                        value == SwipeToDismissBoxValue.EndToStart
-                                    ) {
-                                        viewModel.markCompleted(task.id)
-                                        true
-                                    } else {
-                                        false
-                                    }
-                                }
+                }
+
+                if (state.filteredTasks.isEmpty()) {
+                    TaskPulseAnimatedEntrance(index = 8) {
+                        Text(
+                            text = stringResource(R.string.home_no_tasks_match),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(vertical = 24.dp)
+                        )
+                    }
+                } else {
+                    state.filteredTasks.forEachIndexed { index, task ->
+                        TaskPulseAnimatedEntrance(index = 8 + index) {
+                            HomeTaskItem(
+                                task = task,
+                                onComplete = { viewModel.markCompleted(task.id) }
                             )
-                            SwipeToDismissBox(
-                                state = dismissState,
-                                enableDismissFromStartToEnd = true,
-                                enableDismissFromEndToStart = true,
-                                backgroundContent = {
-                                    Box(
-                                        Modifier
-                                            .fillMaxWidth()
-                                            .height(120.dp)
-                                            .background(MaterialTheme.colorScheme.primary),
-                                        contentAlignment = Alignment.CenterStart
-                                    ) {
-                                        Text(
-                                            stringResource(R.string.home_swipe_complete_hint),
-                                            modifier = Modifier.padding(16.dp),
-                                            color = MaterialTheme.colorScheme.onPrimary,
-                                            style = MaterialTheme.typography.labelLarge
-                                        )
-                                    }
-                                }
-                            ) {
-                                TaskRowCard(task = task, onComplete = { viewModel.markCompleted(task.id) })
-                            }
-                        } else {
-                            TaskRowCard(task = task, onComplete = null)
                         }
                     }
                 }
@@ -257,17 +257,201 @@ fun HomeScreen(
 }
 
 @Composable
+private fun HomeStatsCard(
+    pending: Int,
+    completed: Int,
+    streak: Int
+) {
+    val infinite = rememberInfiniteTransition(label = "statsPulse")
+    val ringScale by infinite.animateFloat(
+        initialValue = 0.92f,
+        targetValue = 1.08f,
+        animationSpec = infiniteRepeatable(
+            tween(1200, easing = FastOutSlowInEasing),
+            RepeatMode.Reverse
+        ),
+        label = "ring"
+    )
+
+    Box(modifier = Modifier.fillMaxWidth()) {
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 4.dp, end = 8.dp)
+                .size(72.dp)
+                .scale(ringScale)
+                .alpha(0.12f)
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.tertiary,
+                    shape = CircleShape
+                )
+        )
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 14.dp, end = 18.dp)
+                .size(48.dp)
+                .scale(ringScale * 0.95f)
+                .alpha(0.18f)
+                .background(
+                    color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
+                    shape = CircleShape
+                )
+        )
+        TaskPulseSectionCard {
+            Text(
+                stringResource(R.string.home_stats_title),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            AnimatedStatText(
+                templateRes = R.string.home_pending_count,
+                value = pending
+            )
+            AnimatedStatText(
+                templateRes = R.string.home_completed_count,
+                value = completed
+            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = stringResource(R.string.home_streak_prefix),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(modifier = Modifier.size(4.dp))
+                AnimatedStatValue(
+                    target = streak,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.tertiary
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AnimatedStatText(
+    templateRes: Int,
+    value: Int
+) {
+    val animated by animateIntAsState(
+        targetValue = value,
+        animationSpec = tween(650, easing = FastOutSlowInEasing),
+        label = "statText"
+    )
+    Text(
+        text = stringResource(templateRes, animated),
+        style = MaterialTheme.typography.bodyMedium
+    )
+}
+
+@Composable
+private fun AnimatedStatValue(
+    target: Int,
+    style: androidx.compose.ui.text.TextStyle,
+    color: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurface
+) {
+    val animated by animateIntAsState(
+        targetValue = target,
+        animationSpec = tween(650, easing = FastOutSlowInEasing),
+        label = "stat"
+    )
+    Text(text = animated.toString(), style = style, color = color)
+}
+
+@Composable
+private fun HomeTaskItem(
+    task: Task,
+    onComplete: () -> Unit
+) {
+    if (task.status != TaskStatus.COMPLETED) {
+        val dismissState = rememberSwipeToDismissBoxState(
+            confirmValueChange = { value ->
+                if (value == SwipeToDismissBoxValue.StartToEnd ||
+                    value == SwipeToDismissBoxValue.EndToStart
+                ) {
+                    onComplete()
+                    true
+                } else {
+                    false
+                }
+            }
+        )
+        SwipeToDismissBox(
+            state = dismissState,
+            enableDismissFromStartToEnd = true,
+            enableDismissFromEndToStart = true,
+            backgroundContent = {
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(120.dp)
+                        .background(MaterialTheme.colorScheme.primary),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Text(
+                        stringResource(R.string.home_swipe_complete_hint),
+                        modifier = Modifier.padding(16.dp),
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+            }
+        ) {
+            TaskRowCard(task = task, onComplete = onComplete)
+        }
+    } else {
+        TaskRowCard(task = task, onComplete = null)
+    }
+}
+
+@Composable
 private fun FilterChipRow(
     title: String,
     labels: List<String>,
+    selectedIndex: Int,
     onSelected: (Int) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(title, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+            title,
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             labels.forEachIndexed { index, label ->
-                TextButton(onClick = { onSelected(index) }) {
-                    Text(label, style = MaterialTheme.typography.labelLarge)
+                val selected = index == selectedIndex
+                TextButton(
+                    onClick = { onSelected(index) },
+                    modifier = Modifier
+                        .border(
+                            width = 1.dp,
+                            color = if (selected) {
+                                MaterialTheme.colorScheme.tertiary
+                            } else {
+                                MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                            },
+                            shape = MinimalShape
+                        )
+                        .background(
+                            if (selected) {
+                                MaterialTheme.colorScheme.tertiary.copy(alpha = 0.12f)
+                            } else {
+                                MaterialTheme.colorScheme.surface
+                            },
+                            MinimalShape
+                        )
+                ) {
+                    Text(
+                        label,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = if (selected) {
+                            MaterialTheme.colorScheme.tertiary
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        }
+                    )
                 }
             }
         }

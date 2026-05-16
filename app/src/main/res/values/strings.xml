@@ -91,6 +91,8 @@
     <string name="home_priority_medium_short">Med</string>
     <string name="home_priority_low_short">Baj</string>
     <string name="home_swipe_complete_hint">Desliza para marcar lista</string>
+    <string name="home_swipe_delete">Eliminar</string>
+    <string name="home_swipe_delete_hint">Deslizar para eliminar la tarea</string>
     <string name="home_blocked_by">Bloqueada por tarea #%1$d hasta completarse</string>
     <string name="home_task_status_line">%1$s · prioridad %2$s</string>
     <string name="home_mark_complete">Marcar completada</string>

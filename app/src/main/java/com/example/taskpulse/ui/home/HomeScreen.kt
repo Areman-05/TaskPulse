@@ -11,14 +11,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -35,6 +38,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -132,13 +136,15 @@ fun HomeScreen(
                         }
                         else -> {
                             state.filteredTasks.forEach { task ->
-                                TaskListItem(
-                                    task = task,
-                                    selectionMode = state.selectionMode,
-                                    selected = task.id in state.selectedTaskIds,
-                                    onClick = { viewModel.onTaskClick(task.id) },
-                                    onComplete = { viewModel.markCompleted(task.id) }
-                                )
+                                key(task.id) {
+                                    TaskListItem(
+                                        task = task,
+                                        selectionMode = state.selectionMode,
+                                        selected = task.id in state.selectedTaskIds,
+                                        onClick = { viewModel.onTaskClick(task.id) },
+                                        onDelete = { viewModel.deleteTask(task.id) }
+                                    )
+                                }
                             }
                         }
                     }
@@ -307,7 +313,7 @@ private fun TaskListItem(
     selectionMode: Boolean,
     selected: Boolean,
     onClick: () -> Unit,
-    onComplete: () -> Unit
+    onDelete: () -> Unit
 ) {
     val completed = task.status == TaskStatus.COMPLETED
     val cardModifier = Modifier
@@ -325,54 +331,60 @@ private fun TaskListItem(
         return
     }
 
-    if (!completed) {
-        val dismissState = rememberSwipeToDismissBoxState(
-            confirmValueChange = { value ->
-                if (value == SwipeToDismissBoxValue.StartToEnd ||
-                    value == SwipeToDismissBoxValue.EndToStart
-                ) {
-                    onComplete()
-                    true
-                } else {
-                    false
-                }
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { value ->
+            if (value == SwipeToDismissBoxValue.StartToEnd) {
+                onDelete()
+                true
+            } else {
+                false
             }
-        )
-        val swiping = dismissState.targetValue != SwipeToDismissBoxValue.Settled
+        },
+        positionalThreshold = { totalDistance -> totalDistance * 0.82f }
+    )
 
-        SwipeToDismissBox(
-            modifier = cardModifier,
-            state = dismissState,
-            enableDismissFromStartToEnd = true,
-            enableDismissFromEndToStart = true,
-            backgroundContent = {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(TaskCardShape)
-                        .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.22f)),
-                    contentAlignment = Alignment.CenterEnd
-                ) {
-                    if (swiping) {
-                        Icon(
-                            imageVector = Icons.Outlined.Check,
-                            contentDescription = stringResource(R.string.home_swipe_complete_hint),
-                            tint = MaterialTheme.colorScheme.tertiary,
-                            modifier = Modifier.padding(end = 20.dp)
-                        )
-                    }
-                }
-            }
-        ) {
-            BorderedTaskCard(task = task, completed = false, onClick = onClick)
+    SwipeToDismissBox(
+        modifier = cardModifier,
+        state = dismissState,
+        enableDismissFromStartToEnd = true,
+        enableDismissFromEndToStart = false,
+        backgroundContent = {
+            SwipeDeleteBackground()
         }
-    } else {
+    ) {
         BorderedTaskCard(
             task = task,
-            completed = true,
-            onClick = onClick,
-            modifier = cardModifier
+            completed = completed,
+            onClick = onClick
         )
+    }
+}
+
+@Composable
+private fun SwipeDeleteBackground() {
+    val deleteStripShape = RoundedCornerShape(
+        topStart = 12.dp,
+        bottomStart = 12.dp,
+        topEnd = 4.dp,
+        bottomEnd = 4.dp
+    )
+    Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .width(56.dp)
+                .fillMaxHeight()
+                .clip(deleteStripShape)
+                .background(MaterialTheme.colorScheme.error),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Delete,
+                contentDescription = stringResource(R.string.home_swipe_delete_hint),
+                tint = MaterialTheme.colorScheme.onError,
+                modifier = Modifier.size(24.dp)
+            )
+        }
     }
 }
 

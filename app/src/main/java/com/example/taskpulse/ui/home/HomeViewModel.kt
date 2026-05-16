@@ -7,7 +7,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.taskpulse.domain.model.Task
 import com.example.taskpulse.domain.model.TaskPriority
-import com.example.taskpulse.domain.usecase.CompleteTaskAndStopRemindersUseCase
 import com.example.taskpulse.domain.usecase.DeleteTasksUseCase
 import com.example.taskpulse.domain.usecase.ObserveTasksUseCase
 import com.example.taskpulse.domain.usecase.UpdateTasksPriorityUseCase
@@ -22,7 +21,6 @@ import kotlinx.coroutines.launch
 class HomeViewModel(
     observeTasksUseCase: ObserveTasksUseCase,
     private val application: Application,
-    private val completeTaskAndStopRemindersUseCase: CompleteTaskAndStopRemindersUseCase,
     private val deleteTasksUseCase: DeleteTasksUseCase,
     private val updateTasksPriorityUseCase: UpdateTasksPriorityUseCase
 ) : AndroidViewModel(application) {
@@ -161,12 +159,11 @@ class HomeViewModel(
         }
     }
 
-    fun markCompleted(taskId: Long) {
+    fun deleteTask(taskId: Long) {
         if (_uiState.value.selectionMode) return
         viewModelScope.launch {
-            val now = System.currentTimeMillis()
-            completeTaskAndStopRemindersUseCase(taskId, now)
             TaskNotificationHelper(application).cancelReminderNotification(taskId)
+            deleteTasksUseCase(listOf(taskId))
             TaskPulseWidgetProvider.updatePendingCount(application)
         }
     }
@@ -197,7 +194,6 @@ class HomeViewModel(
     class Factory(
         private val observeTasksUseCase: ObserveTasksUseCase,
         private val application: Application,
-        private val completeTaskAndStopRemindersUseCase: CompleteTaskAndStopRemindersUseCase,
         private val deleteTasksUseCase: DeleteTasksUseCase,
         private val updateTasksPriorityUseCase: UpdateTasksPriorityUseCase
     ) : ViewModelProvider.Factory {
@@ -206,7 +202,6 @@ class HomeViewModel(
             return HomeViewModel(
                 observeTasksUseCase,
                 application,
-                completeTaskAndStopRemindersUseCase,
                 deleteTasksUseCase,
                 updateTasksPriorityUseCase
             ) as T

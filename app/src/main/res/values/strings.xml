@@ -129,6 +129,7 @@
     <string name="create_task_priority_label">Prioridad</string>
     <string name="create_task_reminder_label">Recordatorio</string>
     <string name="create_task_reminder_hint">Aviso en 30 minutos</string>
+    <string name="create_note_save">Guardar nota</string>
     <string name="create_task_save">Guardar tarea</string>
     <string name="create_task_saving">Guardando…</string>
 

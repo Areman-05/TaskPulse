@@ -5,22 +5,22 @@ package com.example.taskpulse.ui.create
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -39,7 +39,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.taskpulse.R
 import com.example.taskpulse.domain.model.TaskEntryType
 import com.example.taskpulse.domain.model.TaskPriority
-import com.example.taskpulse.ui.components.TaskPulsePrimaryButton
+import com.example.taskpulse.ui.components.TaskPulseAccentButton
+import com.example.taskpulse.ui.components.TaskPulseFilterChip
 import com.example.taskpulse.ui.components.TaskPulseScrollableColumn
 
 private val FieldShape = RoundedCornerShape(10.dp)
@@ -61,6 +62,12 @@ fun CreateTaskScreen(
     val canSave = when (state.entryType) {
         TaskEntryType.NOTE -> state.noteBody.trim().isNotEmpty()
         TaskEntryType.TASK -> state.title.trim().isNotEmpty()
+    }
+
+    val saveLabel = when {
+        state.isSaving -> stringResource(R.string.create_task_saving)
+        state.entryType == TaskEntryType.NOTE -> stringResource(R.string.create_note_save)
+        else -> stringResource(R.string.create_task_save)
     }
 
     Scaffold(
@@ -89,6 +96,22 @@ fun CreateTaskScreen(
                     containerColor = MaterialTheme.colorScheme.background
                 )
             )
+        },
+        bottomBar = {
+            Surface(
+                color = MaterialTheme.colorScheme.background,
+                tonalElevation = 0.dp
+            ) {
+                TaskPulseAccentButton(
+                    text = saveLabel,
+                    onClick = viewModel::saveTask,
+                    enabled = canSave && !state.isSaving,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .navigationBarsPadding()
+                        .padding(horizontal = 20.dp, vertical = 12.dp)
+                )
+            }
         }
     ) { innerPadding ->
         TaskPulseScrollableColumn(
@@ -97,19 +120,20 @@ fun CreateTaskScreen(
                 .padding(innerPadding)
                 .padding(horizontal = 20.dp, vertical = 8.dp),
             showAmbientGrid = false,
-            contentPaddingBottom = 32.dp
+            scrollbarCompact = true,
+            contentPaddingBottom = 16.dp
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(
+                    TaskPulseFilterChip(
                         selected = state.entryType == TaskEntryType.NOTE,
                         onClick = { viewModel.onEntryTypeChange(TaskEntryType.NOTE) },
                         label = { Text(stringResource(R.string.create_entry_note)) }
                     )
-                    FilterChip(
+                    TaskPulseFilterChip(
                         selected = state.entryType == TaskEntryType.TASK,
                         onClick = { viewModel.onEntryTypeChange(TaskEntryType.TASK) },
                         label = { Text(stringResource(R.string.create_entry_task)) }
@@ -122,7 +146,7 @@ fun CreateTaskScreen(
                         onValueChange = viewModel::onNoteBodyChange,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(360.dp),
+                            .height(420.dp),
                         placeholder = {
                             Text(
                                 stringResource(R.string.create_note_placeholder),
@@ -161,7 +185,7 @@ fun CreateTaskScreen(
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             listOf(TaskPriority.CRITICAL, TaskPriority.HIGH).forEach { priority ->
-                                FilterChip(
+                                TaskPulseFilterChip(
                                     selected = state.priority == priority,
                                     onClick = { viewModel.onPriorityChange(priority) },
                                     label = { Text(priorityLabel(priority)) }
@@ -170,7 +194,7 @@ fun CreateTaskScreen(
                         }
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             listOf(TaskPriority.MEDIUM, TaskPriority.LOW).forEach { priority ->
-                                FilterChip(
+                                TaskPulseFilterChip(
                                     selected = state.priority == priority,
                                     onClick = { viewModel.onPriorityChange(priority) },
                                     label = { Text(priorityLabel(priority)) }
@@ -201,18 +225,6 @@ fun CreateTaskScreen(
                         )
                     }
                 }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                TaskPulsePrimaryButton(
-                    text = if (state.isSaving) {
-                        stringResource(R.string.create_task_saving)
-                    } else {
-                        stringResource(R.string.create_task_save)
-                    },
-                    onClick = viewModel::saveTask,
-                    enabled = canSave && !state.isSaving
-                )
             }
         }
     }

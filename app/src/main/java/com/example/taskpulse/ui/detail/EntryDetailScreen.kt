@@ -9,19 +9,20 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -37,7 +38,8 @@ import com.example.taskpulse.R
 import com.example.taskpulse.domain.model.TaskPriority
 import com.example.taskpulse.domain.model.isNote
 import com.example.taskpulse.domain.model.isTaskItem
-import com.example.taskpulse.ui.components.TaskPulsePrimaryButton
+import com.example.taskpulse.ui.components.TaskPulseAccentButton
+import com.example.taskpulse.ui.components.TaskPulseFilterChip
 import com.example.taskpulse.ui.components.TaskPulseScrollableColumn
 import java.time.Instant
 import java.time.ZoneId
@@ -94,6 +96,34 @@ fun EntryDetailScreen(
                     containerColor = MaterialTheme.colorScheme.background
                 )
             )
+        },
+        bottomBar = {
+            if (entry != null && state.isEditing) {
+                Surface(color = MaterialTheme.colorScheme.background) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .navigationBarsPadding()
+                            .padding(horizontal = 20.dp, vertical = 12.dp)
+                    ) {
+                        TaskPulseAccentButton(
+                            text = if (state.isSaving) {
+                                stringResource(R.string.create_task_saving)
+                            } else {
+                                stringResource(R.string.detail_save)
+                            },
+                            onClick = viewModel::saveEdits,
+                            enabled = !state.isSaving && canSaveEdits(state, entry)
+                        )
+                        TextButton(
+                            onClick = viewModel::cancelEditing,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(stringResource(R.string.detail_cancel_edit))
+                        }
+                    }
+                }
+            }
         }
     ) { innerPadding ->
         if (entry == null) {
@@ -112,27 +142,11 @@ fun EntryDetailScreen(
                 .padding(start = 20.dp, end = 4.dp),
             showAmbientGrid = false,
             scrollbarCompact = true,
-            contentPaddingBottom = 32.dp
+            contentPaddingBottom = if (state.isEditing) 120.dp else 32.dp
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 if (state.isEditing) {
                     EntryEditContent(state = state, viewModel = viewModel, entry = entry)
-                    Spacer(modifier = Modifier.height(20.dp))
-                    TaskPulsePrimaryButton(
-                        text = if (state.isSaving) {
-                            stringResource(R.string.create_task_saving)
-                        } else {
-                            stringResource(R.string.detail_save)
-                        },
-                        onClick = viewModel::saveEdits,
-                        enabled = !state.isSaving && canSaveEdits(state, entry)
-                    )
-                    TextButton(
-                        onClick = viewModel::cancelEditing,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(stringResource(R.string.detail_cancel_edit))
-                    }
                 } else {
                     EntryViewContent(entry = entry)
                 }
@@ -235,7 +249,7 @@ private fun EntryEditContent(
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf(TaskPriority.CRITICAL, TaskPriority.HIGH).forEach { priority ->
-                    FilterChip(
+                    TaskPulseFilterChip(
                         selected = state.editPriority == priority,
                         onClick = { viewModel.onEditPriorityChange(priority) },
                         label = { Text(priorityLabel(priority)) }
@@ -244,7 +258,7 @@ private fun EntryEditContent(
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf(TaskPriority.MEDIUM, TaskPriority.LOW).forEach { priority ->
-                    FilterChip(
+                    TaskPulseFilterChip(
                         selected = state.editPriority == priority,
                         onClick = { viewModel.onEditPriorityChange(priority) },
                         label = { Text(priorityLabel(priority)) }

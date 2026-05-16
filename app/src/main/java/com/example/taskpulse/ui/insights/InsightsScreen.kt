@@ -103,6 +103,7 @@ fun InsightsScreen(viewModel: InsightsViewModel) {
                 .fillMaxSize()
                 .padding(innerPadding)
                 .padding(start = 16.dp, end = 6.dp),
+            showAmbientGrid = false,
             contentPaddingBottom = 32.dp
         ) {
             Column(

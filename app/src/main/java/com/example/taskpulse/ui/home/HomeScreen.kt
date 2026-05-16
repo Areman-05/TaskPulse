@@ -3,23 +3,22 @@
 package com.example.taskpulse.ui.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -34,6 +33,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -51,6 +51,7 @@ private val NoteDateFormatter =
     DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm").withZone(ZoneId.systemDefault())
 
 private val SearchShape = RoundedCornerShape(10.dp)
+private val TaskCardShape = RoundedCornerShape(12.dp)
 
 @Composable
 fun HomeScreen(
@@ -86,7 +87,7 @@ fun HomeScreen(
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = 8.dp),
+                            .padding(bottom = 12.dp),
                         singleLine = true,
                         shape = SearchShape,
                         colors = OutlinedTextFieldDefaults.colors(
@@ -117,13 +118,9 @@ fun HomeScreen(
                         }
                         else -> {
                             state.filteredTasks.forEach { task ->
-                                NoteStyleTaskRow(
+                                TaskListItem(
                                     task = task,
                                     onComplete = { viewModel.markCompleted(task.id) }
-                                )
-                                HorizontalDivider(
-                                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                                    thickness = 0.5.dp
                                 )
                             }
                         }
@@ -179,11 +176,16 @@ private fun HomeTopBar() {
 }
 
 @Composable
-private fun NoteStyleTaskRow(
+private fun TaskListItem(
     task: Task,
     onComplete: () -> Unit
 ) {
-    if (task.status != TaskStatus.COMPLETED) {
+    val completed = task.status == TaskStatus.COMPLETED
+    val cardModifier = Modifier
+        .fillMaxWidth()
+        .padding(bottom = 10.dp)
+
+    if (!completed) {
         val dismissState = rememberSwipeToDismissBoxState(
             confirmValueChange = { value ->
                 if (value == SwipeToDismissBoxValue.StartToEnd ||
@@ -196,47 +198,68 @@ private fun NoteStyleTaskRow(
                 }
             }
         )
+        val swiping = dismissState.targetValue != SwipeToDismissBoxValue.Settled
+
         SwipeToDismissBox(
+            modifier = cardModifier,
             state = dismissState,
             enableDismissFromStartToEnd = true,
             enableDismissFromEndToStart = true,
             backgroundContent = {
                 Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(72.dp)
-                        .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.85f)),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(TaskCardShape)
+                        .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.22f)),
                     contentAlignment = Alignment.CenterEnd
                 ) {
-                    Text(
-                        stringResource(R.string.home_swipe_complete_hint),
-                        modifier = Modifier.padding(horizontal = 20.dp),
-                        color = MaterialTheme.colorScheme.onTertiary,
-                        style = MaterialTheme.typography.labelLarge
-                    )
+                    if (swiping) {
+                        Icon(
+                            imageVector = Icons.Outlined.Check,
+                            contentDescription = stringResource(R.string.home_swipe_complete_hint),
+                            tint = MaterialTheme.colorScheme.tertiary,
+                            modifier = Modifier.padding(end = 20.dp)
+                        )
+                    }
                 }
             }
         ) {
-            NoteRowContent(task = task)
+            BorderedTaskCard(task = task, completed = false)
         }
     } else {
-        NoteRowContent(task = task, completed = true)
+        BorderedTaskCard(
+            task = task,
+            completed = true,
+            modifier = cardModifier
+        )
     }
 }
 
 @Composable
-private fun NoteRowContent(
+private fun BorderedTaskCard(
     task: Task,
-    completed: Boolean = false
+    completed: Boolean,
+    modifier: Modifier = Modifier
 ) {
+    val borderColor = if (completed) {
+        MaterialTheme.colorScheme.outline.copy(alpha = 0.55f)
+    } else {
+        MaterialTheme.colorScheme.tertiary
+    }
+    val borderWidth = if (completed) 1.dp else 1.5.dp
+
     val subtitle = when {
         task.description.isNotBlank() -> task.description.lineSequence().first()
         else -> NoteDateFormatter.format(Instant.ofEpochMilli(task.updatedAtMillis))
     }
+
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 14.dp, horizontal = 4.dp)
+            .clip(TaskCardShape)
+            .border(borderWidth, borderColor, TaskCardShape)
+            .background(MaterialTheme.colorScheme.surface, TaskCardShape)
+            .padding(horizontal = 16.dp, vertical = 14.dp)
     ) {
         Text(
             text = task.title,
@@ -246,14 +269,16 @@ private fun NoteRowContent(
             } else {
                 MaterialTheme.colorScheme.onSurface
             },
-            maxLines = 1,
+            maxLines = 2,
             overflow = TextOverflow.Ellipsis
         )
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(6.dp))
         Text(
             text = subtitle,
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                alpha = if (completed) 0.75f else 0.9f
+            ),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )

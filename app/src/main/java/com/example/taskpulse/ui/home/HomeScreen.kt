@@ -54,6 +54,7 @@ import com.example.taskpulse.domain.model.TaskStatus
 import com.example.taskpulse.domain.model.isNote
 import com.example.taskpulse.domain.model.isTaskItem
 import com.example.taskpulse.ui.components.TaskPulseScrollableColumn
+import com.example.taskpulse.ui.theme.EntryPriorityDot
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -320,26 +321,33 @@ private fun GalleryTaskCard(
             task = task,
             modifier = Modifier.align(Alignment.TopEnd)
         )
-        Column(modifier = Modifier.align(Alignment.BottomStart)) {
-            Text(
-                text = entryListTitle(task),
-                style = MaterialTheme.typography.titleSmall,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                color = if (completed && task.isTaskItem) {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                } else {
-                    MaterialTheme.colorScheme.onSurface
-                }
-            )
-            Spacer(modifier = Modifier.size(4.dp))
-            Text(
-                text = formatCreatedAt(task.createdAtMillis),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+        Row(
+            modifier = Modifier.align(Alignment.BottomStart),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            EntryPriorityDot(task = task, size = 8.dp)
+            Column {
+                Text(
+                    text = entryListTitle(task),
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    color = if (completed && task.isTaskItem) {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    } else {
+                        MaterialTheme.colorScheme.onSurface
+                    }
+                )
+                Spacer(modifier = Modifier.size(4.dp))
+                Text(
+                    text = formatCreatedAt(task.createdAtMillis),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
     }
 }
@@ -631,8 +639,10 @@ private fun BorderedTaskCard(
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.Top
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            EntryPriorityDot(task = task)
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = entryListTitle(task),
@@ -650,10 +660,7 @@ private fun BorderedTaskCard(
                     overflow = TextOverflow.Ellipsis
                 )
             }
-            CompletedTaskBadge(
-                task = task,
-                modifier = Modifier.padding(start = 8.dp)
-            )
+            CompletedTaskBadge(task = task)
         }
     }
 }

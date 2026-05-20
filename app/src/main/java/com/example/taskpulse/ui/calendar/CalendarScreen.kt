@@ -57,7 +57,7 @@ import com.example.taskpulse.domain.model.TaskStatus
 import com.example.taskpulse.domain.model.isNote
 import com.example.taskpulse.ui.components.TaskPulseAmbientGrid
 import com.example.taskpulse.ui.components.TaskPulseScrollableColumn
-import com.example.taskpulse.ui.theme.TaskPriorityColors
+import com.example.taskpulse.ui.theme.EntryPriorityDot
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.TextStyle
@@ -402,12 +402,7 @@ private fun CalendarEntryCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .size(10.dp)
-                    .clip(CircleShape)
-                    .background(TaskPriorityColors.forEntry(task))
-            )
+            EntryPriorityDot(task = task)
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = if (task.isNote) {

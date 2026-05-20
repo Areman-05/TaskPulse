@@ -55,6 +55,7 @@ import com.example.taskpulse.domain.model.isNote
 import com.example.taskpulse.domain.model.isTaskItem
 import com.example.taskpulse.ui.components.TaskPulseScrollableColumn
 import com.example.taskpulse.ui.theme.EntryPriorityDot
+import com.example.taskpulse.ui.theme.EntryPriorityLabel
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -322,12 +323,14 @@ private fun GalleryTaskCard(
             modifier = Modifier.align(Alignment.TopEnd)
         )
         Row(
-            modifier = Modifier.align(Alignment.BottomStart),
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             EntryPriorityDot(task = task, size = 8.dp)
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = entryListTitle(task),
                     style = MaterialTheme.typography.titleSmall,
@@ -348,6 +351,7 @@ private fun GalleryTaskCard(
                     overflow = TextOverflow.Ellipsis
                 )
             }
+            EntryPriorityLabel(task = task)
         }
     }
 }
@@ -660,7 +664,13 @@ private fun BorderedTaskCard(
                     overflow = TextOverflow.Ellipsis
                 )
             }
-            CompletedTaskBadge(task = task)
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                EntryPriorityLabel(task = task)
+                CompletedTaskBadge(task = task)
+            }
         }
     }
 }

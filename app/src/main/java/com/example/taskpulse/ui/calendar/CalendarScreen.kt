@@ -58,6 +58,7 @@ import com.example.taskpulse.domain.model.isNote
 import com.example.taskpulse.ui.components.TaskPulseAmbientGrid
 import com.example.taskpulse.ui.components.TaskPulseScrollableColumn
 import com.example.taskpulse.ui.theme.EntryPriorityDot
+import com.example.taskpulse.ui.theme.EntryPriorityLabel
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.TextStyle
@@ -420,6 +421,7 @@ private fun CalendarEntryCard(
                     overflow = TextOverflow.Ellipsis
                 )
             }
+            EntryPriorityLabel(task = task)
         }
     }
 }

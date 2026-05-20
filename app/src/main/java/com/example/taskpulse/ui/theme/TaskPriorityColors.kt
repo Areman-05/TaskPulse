@@ -4,12 +4,18 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.example.taskpulse.R
 import com.example.taskpulse.domain.model.Task
 import com.example.taskpulse.domain.model.TaskPriority
 import com.example.taskpulse.domain.model.TaskStatus
@@ -52,5 +58,29 @@ fun EntryPriorityDot(
             .size(size)
             .clip(CircleShape)
             .background(TaskPriorityColors.forEntry(task))
+    )
+}
+
+@Composable
+fun entryPriorityLabelText(task: Task): String = when {
+    task.isNote -> stringResource(R.string.home_entry_note_label)
+    task.priority == TaskPriority.CRITICAL -> stringResource(R.string.home_priority_critical_label)
+    task.priority == TaskPriority.HIGH -> stringResource(R.string.home_priority_high_label)
+    task.priority == TaskPriority.MEDIUM -> stringResource(R.string.home_priority_medium_label)
+    else -> stringResource(R.string.home_priority_low_label)
+}
+
+@Composable
+fun EntryPriorityLabel(
+    task: Task,
+    modifier: Modifier = Modifier
+) {
+    Text(
+        text = entryPriorityLabelText(task),
+        modifier = modifier,
+        style = MaterialTheme.typography.labelMedium,
+        fontWeight = FontWeight.Medium,
+        color = TaskPriorityColors.forEntry(task),
+        textAlign = TextAlign.End
     )
 }

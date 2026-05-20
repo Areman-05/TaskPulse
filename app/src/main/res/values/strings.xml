@@ -91,6 +91,11 @@
     <string name="home_priority_high_short">Alt</string>
     <string name="home_priority_medium_short">Med</string>
     <string name="home_priority_low_short">Baj</string>
+    <string name="home_priority_critical_label">Crítica</string>
+    <string name="home_priority_high_label">Alta</string>
+    <string name="home_priority_medium_label">Media</string>
+    <string name="home_priority_low_label">Baja</string>
+    <string name="home_entry_note_label">Nota</string>
     <string name="home_swipe_delete">Eliminar</string>
     <string name="home_swipe_delete_hint">Deslizar para eliminar</string>
     <string name="home_swipe_complete_hint">Deslizar para completar</string>

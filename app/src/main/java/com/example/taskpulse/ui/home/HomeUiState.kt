@@ -9,7 +9,7 @@ data class HomeUiState(
     val viewMode: TaskViewMode = TaskViewMode.LIST,
     val selectionMode: Boolean = false,
     val selectedTaskIds: Set<Long> = emptySet(),
-    val sortField: TaskSortField = TaskSortField.EDIT_DATE,
+    val sortField: TaskSortField = TaskSortField.PRIORITY,
     val sortOrder: TaskSortOrder = TaskSortOrder.NEWEST_FIRST,
     val showDeleteConfirm: Boolean = false,
     val showPriorityPicker: Boolean = false

@@ -52,6 +52,7 @@
     <string name="home_menu_select_tasks">Seleccionar tareas</string>
     <string name="home_menu_cancel_selection">Cancelar selección</string>
     <string name="home_menu_sort_by">Ordenar por</string>
+    <string name="home_sort_priority">Prioridad</string>
     <string name="home_sort_edit_date">Fecha de edición</string>
     <string name="home_sort_creation_date">Fecha de creación</string>
     <string name="home_sort_title">Título</string>
@@ -156,8 +157,10 @@
     <string name="calendar_prev_month_cd">Mes anterior</string>
     <string name="calendar_next_month_cd">Mes siguiente</string>
     <string name="calendar_day_heading">%1$s</string>
-    <string name="calendar_empty_day">Nada programado este día.</string>
+    <string name="calendar_empty_day">Nada programado este día. Pulsa el lápiz para añadir una nota o tarea.</string>
     <string name="calendar_add_entry">Añadir nota o tarea</string>
+    <string name="calendar_fab_create_cd">Añadir para este día</string>
+    <string name="calendar_day_count">%1$d en este día</string>
     <string name="calendar_pick_month_year">Elegir mes y año</string>
     <string name="detail_reminder_off">Desactivado</string>
     <string name="create_reminder_15min">15 minutos</string>

@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.taskpulse.domain.model.Task
 import com.example.taskpulse.domain.model.TaskPriority
+import com.example.taskpulse.domain.sort.priorityRank
 import com.example.taskpulse.domain.model.TaskStatus
 import com.example.taskpulse.domain.model.isTaskItem
 import com.example.taskpulse.domain.usecase.CompleteTaskAndStopRemindersUseCase
@@ -214,11 +215,21 @@ class HomeViewModel(
             }
         }
         val sorted = when (sortField) {
+            TaskSortField.PRIORITY -> filtered.sortedWith(
+                compareBy<Task> { it.priorityRank() }
+                    .thenBy { it.createdAtMillis }
+                    .thenBy { it.title.lowercase() }
+            )
             TaskSortField.EDIT_DATE -> filtered.sortedBy { it.updatedAtMillis }
             TaskSortField.CREATION_DATE -> filtered.sortedBy { it.createdAtMillis }
             TaskSortField.TITLE -> filtered.sortedBy { it.title.lowercase() }
         }
-        return if (sortOrder == TaskSortOrder.NEWEST_FIRST) sorted.reversed() else sorted
+        return when {
+            sortField == TaskSortField.PRIORITY && sortOrder == TaskSortOrder.NEWEST_FIRST -> sorted
+            sortField == TaskSortField.PRIORITY -> sorted.reversed()
+            sortOrder == TaskSortOrder.NEWEST_FIRST -> sorted.reversed()
+            else -> sorted
+        }
     }
 
     private fun selectedCompletableTaskIds(): List<Long> {

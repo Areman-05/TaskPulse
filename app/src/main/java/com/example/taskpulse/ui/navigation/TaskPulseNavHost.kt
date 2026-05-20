@@ -42,6 +42,7 @@ import com.example.taskpulse.ui.insights.InsightsScreen
 import com.example.taskpulse.ui.insights.InsightsViewModel
 import com.example.taskpulse.ui.settings.SettingsScreen
 import com.example.taskpulse.ui.settings.SettingsViewModel
+import java.time.LocalDate
 
 @Composable
 fun TaskPulseNavHost(container: AppContainer) {
@@ -168,7 +169,7 @@ fun TaskPulseNavHost(container: AppContainer) {
                 HomeScreen(
                     viewModel = vm,
                     onNavigateToCreate = {
-                        navController.navigate(AppDestinations.CREATE_ROUTE)
+                        navController.navigate(AppDestinations.createRoute())
                     },
                     onOpenEntryDetail = { entryId ->
                         navController.navigate(AppDestinations.entryDetailRoute(entryId))
@@ -207,19 +208,30 @@ fun TaskPulseNavHost(container: AppContainer) {
                     viewModel = vm,
                     onOpenEntry = { entryId ->
                         navController.navigate(AppDestinations.entryDetailRoute(entryId))
-                    },
-                    onNavigateToCreate = {
-                        navController.navigate(AppDestinations.CREATE_ROUTE)
                     }
                 )
             }
-            composable(AppDestinations.CREATE_ROUTE) {
+            composable(
+                route = AppDestinations.CREATE_ROUTE,
+                arguments = listOf(
+                    navArgument(AppDestinations.ARG_SCHEDULE_DATE) {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    }
+                )
+            ) { backStackEntry ->
+                val scheduleDateArg = backStackEntry.arguments
+                    ?.getString(AppDestinations.ARG_SCHEDULE_DATE)
+                    ?.takeIf { it.isNotBlank() }
+                val initialScheduleDate = scheduleDateArg?.let(LocalDate::parse)
                 val vm: CreateTaskViewModel = viewModel(
                     factory = CreateTaskViewModel.Factory(
                         application = appContext as android.app.Application,
                         createDefaultTaskUseCase = container.createDefaultTaskUseCase,
                         upsertTaskUseCase = container.upsertTaskUseCase,
-                        scheduleTaskReminderUseCase = container.scheduleTaskReminderUseCase
+                        scheduleTaskReminderUseCase = container.scheduleTaskReminderUseCase,
+                        initialScheduleDate = initialScheduleDate
                     )
                 )
                 CreateTaskScreen(

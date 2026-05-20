@@ -23,9 +23,15 @@ class CreateTaskViewModel(
     private val application: Application,
     private val createDefaultTaskUseCase: CreateDefaultTaskUseCase,
     private val upsertTaskUseCase: UpsertTaskUseCase,
-    private val scheduleTaskReminderUseCase: ScheduleTaskReminderUseCase
+    private val scheduleTaskReminderUseCase: ScheduleTaskReminderUseCase,
+    initialScheduleDate: LocalDate? = null
 ) : AndroidViewModel(application) {
-    private val _uiState = MutableStateFlow(CreateTaskUiState())
+    private val _uiState = MutableStateFlow(
+        CreateTaskUiState(
+            scheduleDateEnabled = initialScheduleDate != null,
+            scheduleDate = initialScheduleDate ?: TaskCalendarDates.today()
+        )
+    )
     val uiState: StateFlow<CreateTaskUiState> = _uiState.asStateFlow()
 
     fun onEntryTypeChange(type: TaskEntryType) {
@@ -148,7 +154,8 @@ class CreateTaskViewModel(
         private val application: Application,
         private val createDefaultTaskUseCase: CreateDefaultTaskUseCase,
         private val upsertTaskUseCase: UpsertTaskUseCase,
-        private val scheduleTaskReminderUseCase: ScheduleTaskReminderUseCase
+        private val scheduleTaskReminderUseCase: ScheduleTaskReminderUseCase,
+        private val initialScheduleDate: LocalDate? = null
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -156,7 +163,8 @@ class CreateTaskViewModel(
                 application,
                 createDefaultTaskUseCase,
                 upsertTaskUseCase,
-                scheduleTaskReminderUseCase
+                scheduleTaskReminderUseCase,
+                initialScheduleDate
             ) as T
         }
     }

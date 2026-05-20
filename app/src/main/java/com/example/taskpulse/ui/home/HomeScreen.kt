@@ -22,9 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -82,7 +80,11 @@ fun HomeScreen(
             modifier = Modifier.fillMaxSize(),
             containerColor = MaterialTheme.colorScheme.background,
             topBar = {
-                HomeTopBar(state = state, viewModel = viewModel)
+                HomeTopBar(
+                    state = state,
+                    viewModel = viewModel,
+                    onNavigateToCreate = onNavigateToCreate
+                )
             }
         ) { innerPadding ->
             TaskPulseScrollableColumn(
@@ -90,7 +92,7 @@ fun HomeScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
                     .padding(start = 20.dp, end = 8.dp),
-                contentPaddingBottom = if (state.selectionMode) 160.dp else 100.dp
+                contentPaddingBottom = if (state.selectionMode) 160.dp else 24.dp
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     OutlinedTextField(
@@ -185,23 +187,8 @@ fun HomeScreen(
                 onPriority = viewModel::showPriorityPicker,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 88.dp)
+                    .padding(bottom = 24.dp)
             )
-        } else {
-            FloatingActionButton(
-                onClick = onNavigateToCreate,
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(end = 24.dp, bottom = 88.dp),
-                containerColor = MaterialTheme.colorScheme.tertiary,
-                contentColor = MaterialTheme.colorScheme.onTertiary,
-                shape = CircleShape
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Edit,
-                    contentDescription = stringResource(R.string.home_fab_create_cd)
-                )
-            }
         }
     }
 }

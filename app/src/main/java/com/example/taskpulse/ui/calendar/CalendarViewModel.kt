@@ -4,12 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.taskpulse.domain.calendar.TaskCalendarDates
-import com.example.taskpulse.domain.model.Task
+import com.example.taskpulse.domain.sort.sortedByDisplayPriority
 import com.example.taskpulse.domain.usecase.ObserveTasksUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import java.time.LocalDate
@@ -34,7 +35,7 @@ class CalendarViewModel(
             .toSet()
         val selectedDayEntries = scheduled
             .filter { TaskCalendarDates.isOnCalendarDay(it, selected) }
-            .sortedBy { it.dueAtMillis }
+            .sortedByDisplayPriority()
         CalendarUiState(
             visibleMonth = month,
             selectedDate = selected,
@@ -42,7 +43,7 @@ class CalendarViewModel(
             selectedDayEntries = selectedDayEntries,
             showMonthYearPicker = pickerVisible
         )
-    }.stateIn(
+    }.distinctUntilChanged().stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = CalendarUiState()
@@ -50,7 +51,10 @@ class CalendarViewModel(
 
     fun selectDate(date: LocalDate) {
         selectedDate.value = date
-        visibleMonth.value = YearMonth.from(date)
+        val month = YearMonth.from(date)
+        if (visibleMonth.value != month) {
+            visibleMonth.value = month
+        }
     }
 
     fun previousMonth() {

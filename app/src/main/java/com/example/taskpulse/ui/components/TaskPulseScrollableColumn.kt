@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -37,6 +36,7 @@ fun TaskPulseScrollableColumn(
     modifier: Modifier = Modifier,
     scrollState: ScrollState = rememberScrollState(),
     showAmbientGrid: Boolean = true,
+    showScrollbar: Boolean = true,
     contentPaddingBottom: androidx.compose.ui.unit.Dp = 32.dp,
     scrollbarCompact: Boolean = false,
     content: @Composable ColumnScope.() -> Unit
@@ -48,50 +48,27 @@ fun TaskPulseScrollableColumn(
             TaskPulseAmbientGrid(Modifier.fillMaxSize())
         }
 
-        Row(
-            modifier = Modifier.fillMaxSize(),
-            verticalAlignment = Alignment.Top
-        ) {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .verticalScroll(scrollState)
-                    .padding(
-                        end = if (scrollbarCompact) 4.dp else 6.dp,
-                        bottom = contentPaddingBottom
-                    ),
-                content = content
-            )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)
+                .padding(bottom = contentPaddingBottom),
+            content = content
+        )
 
-            if (scrollState.maxValue > 0) {
-                if (scrollbarCompact) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .width(32.dp)
-                            .padding(end = 8.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        TaskPulseScrollbar(
-                            scrollState = scrollState,
-                            compact = true,
-                            onDragDelta = { delta ->
-                                scope.launch {
-                                    scrollState.scroll { scrollBy(delta) }
-                                }
-                            },
-                            onJumpToFraction = { fraction ->
-                                scope.launch {
-                                    scrollState.scrollTo((scrollState.maxValue * fraction).toInt())
-                                }
-                            },
-                            modifier = Modifier.fillMaxHeight(0.52f)
-                        )
-                    }
-                } else {
+        if (showScrollbar && scrollState.maxValue > 0) {
+            if (scrollbarCompact) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .fillMaxHeight()
+                        .width(32.dp)
+                        .padding(end = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
                     TaskPulseScrollbar(
                         scrollState = scrollState,
-                        compact = false,
+                        compact = true,
                         onDragDelta = { delta ->
                             scope.launch {
                                 scrollState.scroll { scrollBy(delta) }
@@ -102,11 +79,28 @@ fun TaskPulseScrollableColumn(
                                 scrollState.scrollTo((scrollState.maxValue * fraction).toInt())
                             }
                         },
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .padding(top = 8.dp, bottom = 8.dp, end = 2.dp)
+                        modifier = Modifier.fillMaxHeight(0.52f)
                     )
                 }
+            } else {
+                TaskPulseScrollbar(
+                    scrollState = scrollState,
+                    compact = false,
+                    onDragDelta = { delta ->
+                        scope.launch {
+                            scrollState.scroll { scrollBy(delta) }
+                        }
+                    },
+                    onJumpToFraction = { fraction ->
+                        scope.launch {
+                            scrollState.scrollTo((scrollState.maxValue * fraction).toInt())
+                        }
+                    },
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .fillMaxHeight()
+                        .padding(top = 8.dp, bottom = 8.dp, end = 2.dp)
+                )
             }
         }
     }

@@ -2,8 +2,6 @@
 
 package com.example.taskpulse.ui.calendar
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -43,6 +41,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -55,7 +54,6 @@ import com.example.taskpulse.domain.calendar.TaskCalendarDates
 import com.example.taskpulse.domain.model.Task
 import com.example.taskpulse.domain.model.TaskStatus
 import com.example.taskpulse.domain.model.isNote
-import com.example.taskpulse.ui.components.TaskPulseAmbientGrid
 import com.example.taskpulse.ui.components.TaskPulseScrollableColumn
 import com.example.taskpulse.ui.theme.EntryPriorityDot
 import com.example.taskpulse.ui.theme.EntryPriorityLabel
@@ -70,15 +68,11 @@ private val MonthShape = RoundedCornerShape(16.dp)
 @Composable
 fun CalendarScreen(
     viewModel: CalendarViewModel,
-    onOpenEntry: (Long) -> Unit,
-    onNavigateToCreate: () -> Unit
+    onOpenEntry: (Long) -> Unit
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        TaskPulseAmbientGrid(Modifier.fillMaxSize())
-
-        Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier.fillMaxSize()) {
             TopAppBar(
                 title = {
                     Text(
@@ -104,6 +98,7 @@ fun CalendarScreen(
                     .fillMaxSize()
                     .padding(horizontal = 20.dp),
                 showAmbientGrid = false,
+                showScrollbar = false,
                 contentPaddingBottom = 24.dp
             ) {
                 CalendarMonthHeader(
@@ -130,34 +125,23 @@ fun CalendarScreen(
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 if (state.selectedDayEntries.isEmpty()) {
-                    Surface(
+                    Text(
+                        text = stringResource(R.string.calendar_empty_day),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.fillMaxWidth(),
-                        shape = CardShape,
-                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
-                        border = androidx.compose.foundation.BorderStroke(
-                            1.dp,
-                            MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)
-                        )
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(20.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = stringResource(R.string.calendar_empty_day),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Center
-                            )
-                            Spacer(modifier = Modifier.height(12.dp))
-                            TextButton(onClick = onNavigateToCreate) {
-                                Text(stringResource(R.string.calendar_add_entry))
-                            }
-                        }
-                    }
+                        textAlign = TextAlign.Center
+                    )
                 } else {
+                    Text(
+                        text = stringResource(
+                            R.string.calendar_day_count,
+                            state.selectedDayEntries.size
+                        ),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
                     state.selectedDayEntries.forEach { task ->
                         CalendarEntryCard(
                             task = task,
@@ -167,7 +151,6 @@ fun CalendarScreen(
                     }
                 }
             }
-        }
     }
 
     if (state.showMonthYearPicker) {
@@ -243,6 +226,7 @@ private fun CalendarMonthGrid(
         }
     }
     val cells = remember(month) { buildMonthCells(month) }
+    val today = remember { TaskCalendarDates.today() }
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -273,7 +257,7 @@ private fun CalendarMonthGrid(
                             date = date,
                             isSelected = date == selectedDate,
                             hasEntries = date != null && date in datesWithEntries,
-                            isToday = date == TaskCalendarDates.today(),
+                            isToday = date == today,
                             onClick = { if (date != null) onSelectDate(date) },
                             modifier = Modifier.weight(1f)
                         )
@@ -308,25 +292,17 @@ private fun CalendarDayCell(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val bg by animateColorAsState(
-        targetValue = when {
-            date == null -> MaterialTheme.colorScheme.surface.copy(alpha = 0f)
-            isSelected -> MaterialTheme.colorScheme.tertiary
-            isToday -> MaterialTheme.colorScheme.tertiary.copy(alpha = 0.22f)
-            else -> MaterialTheme.colorScheme.surface.copy(alpha = 0f)
-        },
-        animationSpec = tween(220),
-        label = "dayBg"
-    )
-    val textColor by animateColorAsState(
-        targetValue = when {
-            date == null -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0f)
-            isSelected -> MaterialTheme.colorScheme.onTertiary
-            else -> MaterialTheme.colorScheme.onSurface
-        },
-        animationSpec = tween(220),
-        label = "dayText"
-    )
+    val bg = when {
+        date == null -> Color.Transparent
+        isSelected -> MaterialTheme.colorScheme.tertiary
+        isToday -> MaterialTheme.colorScheme.tertiary.copy(alpha = 0.22f)
+        else -> Color.Transparent
+    }
+    val textColor = when {
+        date == null -> Color.Transparent
+        isSelected -> MaterialTheme.colorScheme.onTertiary
+        else -> MaterialTheme.colorScheme.onSurface
+    }
 
     Box(
         modifier = modifier

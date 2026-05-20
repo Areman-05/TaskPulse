@@ -6,6 +6,7 @@ enum class TaskViewMode {
 }
 
 enum class TaskSortField {
+    PRIORITY,
     EDIT_DATE,
     CREATION_DATE,
     TITLE

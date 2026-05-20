@@ -3,6 +3,7 @@ package com.example.taskpulse.ui.navigation
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Analytics
+import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
@@ -29,6 +30,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.taskpulse.R
 import com.example.taskpulse.core.AppContainer
+import com.example.taskpulse.ui.calendar.CalendarScreen
+import com.example.taskpulse.ui.calendar.CalendarViewModel
 import com.example.taskpulse.ui.create.CreateTaskScreen
 import com.example.taskpulse.ui.create.CreateTaskViewModel
 import com.example.taskpulse.ui.detail.EntryDetailScreen
@@ -49,6 +52,7 @@ fun TaskPulseNavHost(container: AppContainer) {
 
     val showBottomBar = currentRoute in listOf(
         AppDestinations.TASKS_ROUTE,
+        AppDestinations.CALENDAR_ROUTE,
         AppDestinations.INSIGHTS_ROUTE,
         AppDestinations.SETTINGS_ROUTE
     )
@@ -74,6 +78,26 @@ fun TaskPulseNavHost(container: AppContainer) {
                         selected = currentRoute == AppDestinations.TASKS_ROUTE,
                         onClick = {
                             navController.navigate(AppDestinations.TASKS_ROUTE) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    )
+                    NavigationBarItem(
+                        icon = { Icon(Icons.Outlined.CalendarMonth, contentDescription = null) },
+                        label = {
+                            Text(
+                                stringResource(R.string.nav_calendar),
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        },
+                        colors = navItemColors(),
+                        selected = currentRoute == AppDestinations.CALENDAR_ROUTE,
+                        onClick = {
+                            navController.navigate(AppDestinations.CALENDAR_ROUTE) {
                                 popUpTo(navController.graph.findStartDestination().id) {
                                     saveState = true
                                 }
@@ -171,6 +195,22 @@ fun TaskPulseNavHost(container: AppContainer) {
                 EntryDetailScreen(
                     viewModel = vm,
                     onBack = { navController.popBackStack() }
+                )
+            }
+            composable(AppDestinations.CALENDAR_ROUTE) {
+                val vm: CalendarViewModel = viewModel(
+                    factory = CalendarViewModel.Factory(
+                        observeTasksUseCase = container.observeTasksUseCase
+                    )
+                )
+                CalendarScreen(
+                    viewModel = vm,
+                    onOpenEntry = { entryId ->
+                        navController.navigate(AppDestinations.entryDetailRoute(entryId))
+                    },
+                    onNavigateToCreate = {
+                        navController.navigate(AppDestinations.CREATE_ROUTE)
+                    }
                 )
             }
             composable(AppDestinations.CREATE_ROUTE) {

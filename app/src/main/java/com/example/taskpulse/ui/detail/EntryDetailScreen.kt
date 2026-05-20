@@ -52,8 +52,10 @@ import com.example.taskpulse.ui.components.TaskPulseFilterChip
 import com.example.taskpulse.ui.components.TaskPulseScrollableColumn
 import com.example.taskpulse.ui.create.TaskReminderIntervals
 import com.example.taskpulse.ui.create.TaskReminderSelectorRow
+import com.example.taskpulse.ui.create.TaskScheduleDateRow
+import com.example.taskpulse.domain.calendar.TaskCalendarDates
 import com.example.taskpulse.ui.create.closestReminderMinutes
-import com.example.taskpulse.ui.create.taskReminderEnabled
+import com.example.taskpulse.domain.calendar.taskReminderEnabled
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -247,6 +249,13 @@ private fun EntryEditContent(
     if (entry.isNote) {
         EntryCreatedDateLine(createdAtMillis = entry.createdAtMillis)
         Spacer(modifier = Modifier.height(12.dp))
+        TaskScheduleDateRow(
+            enabled = state.editScheduleDateEnabled,
+            onEnabledChange = viewModel::onEditScheduleDateEnabledChange,
+            selectedDate = state.editScheduleDate,
+            onDateSelected = viewModel::onEditScheduleDateChange
+        )
+        Spacer(modifier = Modifier.height(12.dp))
         OutlinedTextField(
             value = state.editNoteBody,
             onValueChange = viewModel::onEditNoteBodyChange,
@@ -282,6 +291,13 @@ private fun EntryEditContent(
             shape = FieldShape,
             colors = fieldColors()
         )
+        Spacer(modifier = Modifier.height(12.dp))
+        TaskScheduleDateRow(
+            enabled = state.editScheduleDateEnabled,
+            onEnabledChange = viewModel::onEditScheduleDateEnabledChange,
+            selectedDate = state.editScheduleDate,
+            onDateSelected = viewModel::onEditScheduleDateChange
+        )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = stringResource(R.string.create_task_priority_label),
@@ -315,13 +331,15 @@ private fun EntryEditContent(
 
 @Composable
 private fun EntryTaskMetaFooter(entry: Task) {
-    val reminderLabel = if (taskReminderEnabled(entry)) {
-        TaskReminderIntervals
-            .find { it.minutes == closestReminderMinutesForDisplay(entry) }
-            ?.let { stringResource(it.labelRes) }
-            ?: stringResource(R.string.create_reminder_30min)
-    } else {
-        stringResource(R.string.detail_reminder_off)
+    val reminderLabel = when {
+        entry.dueAtMillis != null && !taskReminderEnabled(entry) ->
+            TaskCalendarDates.formatDayLabel(TaskCalendarDates.toLocalDate(entry.dueAtMillis!!))
+        taskReminderEnabled(entry) ->
+            TaskReminderIntervals
+                .find { it.minutes == closestReminderMinutesForDisplay(entry) }
+                ?.let { stringResource(it.labelRes) }
+                ?: stringResource(R.string.create_reminder_30min)
+        else -> stringResource(R.string.detail_reminder_off)
     }
 
     Surface(color = MaterialTheme.colorScheme.background) {

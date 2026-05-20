@@ -2,8 +2,6 @@ package com.example.taskpulse.ui.create
 
 import androidx.annotation.StringRes
 import com.example.taskpulse.R
-import com.example.taskpulse.domain.model.Task
-import com.example.taskpulse.domain.model.isTaskItem
 import kotlin.math.abs
 
 data class TaskReminderOption(
@@ -28,5 +26,3 @@ fun closestReminderMinutes(dueAtMillis: Long?, createdAtMillis: Long): Int {
         ?: 30
 }
 
-fun taskReminderEnabled(task: Task): Boolean =
-    task.isTaskItem && task.dueAtMillis != null

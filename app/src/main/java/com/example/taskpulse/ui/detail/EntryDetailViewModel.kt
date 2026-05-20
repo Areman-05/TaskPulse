@@ -9,13 +9,15 @@ import com.example.taskpulse.domain.model.TaskPriority
 import com.example.taskpulse.domain.model.TaskStatus
 import com.example.taskpulse.domain.model.isNote
 import com.example.taskpulse.domain.model.isTaskItem
+import com.example.taskpulse.domain.calendar.TaskCalendarDates
 import com.example.taskpulse.domain.usecase.CancelTaskReminderUseCase
 import com.example.taskpulse.domain.usecase.CompleteTaskAndStopRemindersUseCase
 import com.example.taskpulse.domain.usecase.ObserveTasksUseCase
 import com.example.taskpulse.domain.usecase.ScheduleTaskReminderUseCase
 import com.example.taskpulse.domain.usecase.UpsertTaskUseCase
 import com.example.taskpulse.ui.create.closestReminderMinutes
-import com.example.taskpulse.ui.create.taskReminderEnabled
+import com.example.taskpulse.domain.calendar.taskReminderEnabled
+import java.time.LocalDate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,6 +31,8 @@ data class EntryDetailUiState(
     val editTitle: String = "",
     val editDescription: String = "",
     val editPriority: TaskPriority = TaskPriority.MEDIUM,
+    val editScheduleDateEnabled: Boolean = false,
+    val editScheduleDate: LocalDate = TaskCalendarDates.today(),
     val editReminderEnabled: Boolean = false,
     val editReminderMinutes: Int = 30,
     val isSaving: Boolean = false
@@ -78,6 +82,17 @@ class EntryDetailViewModel(
                             previous.editReminderMinutes
                         } else {
                             entry?.let { closestReminderMinutes(it.dueAtMillis, it.createdAtMillis) } ?: 30
+                        },
+                        editScheduleDateEnabled = if (keepDraft) {
+                            previous.editScheduleDateEnabled
+                        } else {
+                            entry?.dueAtMillis != null
+                        },
+                        editScheduleDate = if (keepDraft) {
+                            previous.editScheduleDate
+                        } else {
+                            entry?.dueAtMillis?.let(TaskCalendarDates::toLocalDate)
+                                ?: TaskCalendarDates.today()
                         }
                     )
                 }
@@ -94,6 +109,9 @@ class EntryDetailViewModel(
                 editTitle = entry.title,
                 editDescription = entry.description,
                 editPriority = entry.priority,
+                editScheduleDateEnabled = entry.dueAtMillis != null,
+                editScheduleDate = entry.dueAtMillis?.let(TaskCalendarDates::toLocalDate)
+                    ?: TaskCalendarDates.today(),
                 editReminderEnabled = taskReminderEnabled(entry),
                 editReminderMinutes = closestReminderMinutes(entry.dueAtMillis, entry.createdAtMillis)
             )
@@ -109,6 +127,9 @@ class EntryDetailViewModel(
                 editTitle = entry.title,
                 editDescription = entry.description,
                 editPriority = entry.priority,
+                editScheduleDateEnabled = entry.dueAtMillis != null,
+                editScheduleDate = entry.dueAtMillis?.let(TaskCalendarDates::toLocalDate)
+                    ?: TaskCalendarDates.today(),
                 editReminderEnabled = taskReminderEnabled(entry),
                 editReminderMinutes = closestReminderMinutes(entry.dueAtMillis, entry.createdAtMillis)
             )
@@ -139,6 +160,14 @@ class EntryDetailViewModel(
         _uiState.update { it.copy(editReminderMinutes = minutes) }
     }
 
+    fun onEditScheduleDateEnabledChange(enabled: Boolean) {
+        _uiState.update { it.copy(editScheduleDateEnabled = enabled) }
+    }
+
+    fun onEditScheduleDateChange(date: LocalDate) {
+        _uiState.update { it.copy(editScheduleDate = date) }
+    }
+
     fun markTaskCompleted() {
         val entry = _uiState.value.entry ?: return
         if (!entry.isTaskItem || entry.status == TaskStatus.COMPLETED) return
@@ -154,8 +183,10 @@ class EntryDetailViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true) }
             val now = System.currentTimeMillis()
+            val state = _uiState.value
+            val hasCalendarDate = state.editScheduleDateEnabled
             val updated = if (entry.isNote) {
-                val body = _uiState.value.editNoteBody.trim()
+                val body = state.editNoteBody.trim()
                 if (body.isEmpty()) {
                     _uiState.update { it.copy(isSaving = false) }
                     return@launch
@@ -165,32 +196,44 @@ class EntryDetailViewModel(
                 entry.copy(
                     title = title.ifBlank { " " },
                     description = body,
+                    dueAtMillis = if (hasCalendarDate) {
+                        TaskCalendarDates.defaultDueMillis(state.editScheduleDate)
+                    } else {
+                        null
+                    },
                     updatedAtMillis = now
                 )
             } else {
-                val title = _uiState.value.editTitle.trim()
+                val title = state.editTitle.trim()
                 if (title.isEmpty()) {
                     _uiState.update { it.copy(isSaving = false) }
                     return@launch
                 }
-                val reminderEnabled = _uiState.value.editReminderEnabled
+                val dueAtMillis = resolveDueAtMillis(
+                    hasCalendarDate = hasCalendarDate,
+                    scheduleDate = state.editScheduleDate,
+                    reminderEnabled = state.editReminderEnabled,
+                    reminderMinutes = state.editReminderMinutes,
+                    now = now
+                )
                 entry.copy(
                     title = title,
-                    description = _uiState.value.editDescription.trim(),
-                    priority = _uiState.value.editPriority,
-                    dueAtMillis = if (reminderEnabled) {
-                        now + _uiState.value.editReminderMinutes * 60L * 1000L
-                    } else {
-                        null
-                    },
+                    description = state.editDescription.trim(),
+                    priority = state.editPriority,
+                    dueAtMillis = dueAtMillis,
                     updatedAtMillis = now
                 )
             }
             val savedId = upsertTaskUseCase(updated)
             val saved = updated.copy(id = savedId)
             if (saved.isTaskItem) {
-                if (_uiState.value.editReminderEnabled) {
-                    scheduleTaskReminderUseCase(saved)
+                if (state.editReminderEnabled && saved.dueAtMillis != null) {
+                    val fireAt = TaskCalendarDates.reminderFireAtMillis(
+                        dueAtMillis = saved.dueAtMillis!!,
+                        offsetMinutes = state.editReminderMinutes,
+                        hasCalendarDate = hasCalendarDate
+                    )
+                    scheduleTaskReminderUseCase(saved, fireAt)
                 } else {
                     cancelTaskReminderUseCase(saved.id)
                 }
@@ -203,11 +246,26 @@ class EntryDetailViewModel(
                     editTitle = saved.title,
                     editDescription = saved.description,
                     editPriority = saved.priority,
+                    editScheduleDateEnabled = saved.dueAtMillis != null,
+                    editScheduleDate = saved.dueAtMillis?.let(TaskCalendarDates::toLocalDate)
+                        ?: TaskCalendarDates.today(),
                     editReminderEnabled = taskReminderEnabled(saved),
                     editReminderMinutes = closestReminderMinutes(saved.dueAtMillis, saved.createdAtMillis)
                 )
             }
         }
+    }
+
+    private fun resolveDueAtMillis(
+        hasCalendarDate: Boolean,
+        scheduleDate: LocalDate,
+        reminderEnabled: Boolean,
+        reminderMinutes: Int,
+        now: Long
+    ): Long? = when {
+        hasCalendarDate -> TaskCalendarDates.defaultDueMillis(scheduleDate)
+        reminderEnabled -> now + reminderMinutes * 60L * 1000L
+        else -> null
     }
 
     private fun noteBodyFromEntry(entry: Task): String {

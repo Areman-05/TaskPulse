@@ -43,6 +43,7 @@
     <string name="insights_interval_saved">Frecuencia guardada.</string>
 
     <string name="nav_tasks">Tareas</string>
+    <string name="nav_calendar">Calendario</string>
     <string name="nav_insights">Insights</string>
     <string name="nav_settings">Ajustes</string>
     <string name="home_menu_cd">Menú</string>
@@ -140,6 +141,19 @@
     <string name="create_task_reminder_hint">Aviso en %1$s</string>
     <string name="create_task_reminder_cd">Elegir cuándo avisar</string>
     <string name="create_reminder_disabled_hint">Recordatorio desactivado</string>
+    <string name="create_schedule_date_label">Fecha</string>
+    <string name="create_schedule_date_cd">Elegir fecha</string>
+    <string name="create_schedule_date_hint">Programado para %1$s</string>
+    <string name="create_schedule_date_disabled_hint">Sin fecha en el calendario</string>
+    <string name="create_schedule_date_confirm">Aceptar</string>
+    <string name="calendar_title">Calendario</string>
+    <string name="calendar_today_cd">Ir a hoy</string>
+    <string name="calendar_prev_month_cd">Mes anterior</string>
+    <string name="calendar_next_month_cd">Mes siguiente</string>
+    <string name="calendar_day_heading">%1$s</string>
+    <string name="calendar_empty_day">Nada programado este día.</string>
+    <string name="calendar_add_entry">Añadir nota o tarea</string>
+    <string name="calendar_pick_month_year">Elegir mes y año</string>
     <string name="detail_reminder_off">Desactivado</string>
     <string name="create_reminder_15min">15 minutos</string>
     <string name="create_reminder_30min">30 minutos</string>

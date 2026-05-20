@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.taskpulse.domain.calendar.TaskCalendarDates
 import com.example.taskpulse.domain.model.TaskEntryType
 import com.example.taskpulse.domain.model.TaskPriority
 import com.example.taskpulse.domain.usecase.CreateDefaultTaskUseCase
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 class CreateTaskViewModel(
     private val application: Application,
@@ -52,6 +54,14 @@ class CreateTaskViewModel(
         _uiState.update { it.copy(priority = priority) }
     }
 
+    fun onScheduleDateEnabledChange(enabled: Boolean) {
+        _uiState.update { it.copy(scheduleDateEnabled = enabled) }
+    }
+
+    fun onScheduleDateChange(date: LocalDate) {
+        _uiState.update { it.copy(scheduleDate = date) }
+    }
+
     fun onReminderEnabledChange(enabled: Boolean) {
         _uiState.update { it.copy(reminderEnabled = enabled) }
     }
@@ -78,6 +88,15 @@ class CreateTaskViewModel(
             } else {
                 state.title.trim() to state.description.trim()
             }
+            val hasCalendarDate = state.scheduleDateEnabled
+            val dueAtMillis = resolveDueAtMillis(
+                hasCalendarDate = hasCalendarDate,
+                scheduleDate = state.scheduleDate,
+                entryType = entryType,
+                reminderEnabled = state.reminderEnabled,
+                reminderMinutes = state.reminderMinutes,
+                now = now
+            )
             val task = createDefaultTaskUseCase(
                 title = title.ifBlank { " " },
                 categoryId = 1L,
@@ -90,20 +109,35 @@ class CreateTaskViewModel(
                 } else {
                     TaskPriority.MEDIUM
                 },
-                dueAtMillis = if (entryType == TaskEntryType.TASK && state.reminderEnabled) {
-                    now + state.reminderMinutes * 60L * 1000L
-                } else {
-                    null
-                }
+                dueAtMillis = dueAtMillis
             )
             val taskId = upsertTaskUseCase(task)
             val savedTask = task.copy(id = taskId)
-            if (entryType == TaskEntryType.TASK && _uiState.value.reminderEnabled) {
-                scheduleTaskReminderUseCase(savedTask)
+            if (entryType == TaskEntryType.TASK && state.reminderEnabled && dueAtMillis != null) {
+                val fireAt = TaskCalendarDates.reminderFireAtMillis(
+                    dueAtMillis = dueAtMillis,
+                    offsetMinutes = state.reminderMinutes,
+                    hasCalendarDate = hasCalendarDate
+                )
+                scheduleTaskReminderUseCase(savedTask, fireAt)
             }
             TaskPulseWidgetProvider.updatePendingCount(application)
             _uiState.update { it.copy(isSaving = false, saved = true) }
         }
+    }
+
+    private fun resolveDueAtMillis(
+        hasCalendarDate: Boolean,
+        scheduleDate: LocalDate,
+        entryType: TaskEntryType,
+        reminderEnabled: Boolean,
+        reminderMinutes: Int,
+        now: Long
+    ): Long? = when {
+        hasCalendarDate -> TaskCalendarDates.defaultDueMillis(scheduleDate)
+        entryType == TaskEntryType.TASK && reminderEnabled ->
+            now + reminderMinutes * 60L * 1000L
+        else -> null
     }
 
     fun consumeSaved() {

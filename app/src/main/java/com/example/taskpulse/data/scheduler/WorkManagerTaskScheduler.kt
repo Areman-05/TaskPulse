@@ -21,8 +21,9 @@ class WorkManagerTaskScheduler(
 ) : TaskScheduler {
     private val workManager: WorkManager = WorkManager.getInstance(context)
 
-    override fun scheduleReminder(task: Task) {
-        val rawDelay = task.dueAtMillis?.minus(System.currentTimeMillis()) ?: MIN_REMINDER_DELAY_MS
+    override fun scheduleReminder(task: Task, fireAtMillis: Long?) {
+        val targetAt = fireAtMillis ?: task.dueAtMillis
+        val rawDelay = targetAt?.minus(System.currentTimeMillis()) ?: MIN_REMINDER_DELAY_MS
         val delay = rawDelay.coerceIn(MIN_REMINDER_DELAY_MS, MAX_REMINDER_DELAY_MS)
         val request = OneTimeWorkRequestBuilder<TaskReminderWorker>()
             .setInitialDelay(delay, TimeUnit.MILLISECONDS)

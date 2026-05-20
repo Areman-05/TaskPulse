@@ -6,7 +6,7 @@ import com.example.taskpulse.domain.scheduler.TaskScheduler
 class ScheduleTaskReminderUseCase(
     private val scheduler: TaskScheduler
 ) {
-    operator fun invoke(task: Task) {
-        scheduler.scheduleReminder(task)
+    operator fun invoke(task: Task, fireAtMillis: Long? = null) {
+        scheduler.scheduleReminder(task, fireAtMillis)
     }
 }

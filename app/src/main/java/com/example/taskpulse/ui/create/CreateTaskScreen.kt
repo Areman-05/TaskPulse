@@ -138,21 +138,35 @@ fun CreateTaskScreen(
 
             when (state.entryType) {
                 TaskEntryType.NOTE -> {
-                    TextField(
-                        value = state.noteBody,
-                        onValueChange = viewModel::onNoteBodyChange,
+                    Column(
                         modifier = Modifier
                             .weight(1f)
-                            .fillMaxWidth(),
-                        placeholder = {
-                            Text(
-                                stringResource(R.string.create_note_placeholder),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        },
-                        textStyle = MaterialTheme.typography.bodyLarge,
-                        colors = noteFieldColors()
-                    )
+                            .fillMaxWidth()
+                            .verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        TextField(
+                            value = state.noteBody,
+                            onValueChange = viewModel::onNoteBodyChange,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(min = 200.dp),
+                            placeholder = {
+                                Text(
+                                    stringResource(R.string.create_note_placeholder),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            },
+                            textStyle = MaterialTheme.typography.bodyLarge,
+                            colors = noteFieldColors()
+                        )
+                        TaskScheduleDateRow(
+                            enabled = state.scheduleDateEnabled,
+                            onEnabledChange = viewModel::onScheduleDateEnabledChange,
+                            selectedDate = state.scheduleDate,
+                            onDateSelected = viewModel::onScheduleDateChange
+                        )
+                    }
                 }
                 TaskEntryType.TASK -> {
                     Column(
@@ -202,6 +216,12 @@ fun CreateTaskScreen(
                             }
                         }
 
+                        TaskScheduleDateRow(
+                            enabled = state.scheduleDateEnabled,
+                            onEnabledChange = viewModel::onScheduleDateEnabledChange,
+                            selectedDate = state.scheduleDate,
+                            onDateSelected = viewModel::onScheduleDateChange
+                        )
                         TaskReminderSelectorRow(
                             enabled = state.reminderEnabled,
                             onEnabledChange = viewModel::onReminderEnabledChange,

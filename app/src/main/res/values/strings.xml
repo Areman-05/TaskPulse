@@ -96,6 +96,8 @@
     <string name="home_priority_high_label">Alta</string>
     <string name="home_priority_medium_label">Media</string>
     <string name="home_priority_low_label">Baja</string>
+    <string name="home_tasks_section">Tareas</string>
+    <string name="home_notes_section">Notas</string>
     <string name="home_entry_note_label">Nota</string>
     <string name="home_swipe_delete">Eliminar</string>
     <string name="home_swipe_delete_hint">Deslizar para eliminar</string>

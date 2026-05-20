@@ -2,6 +2,8 @@ package com.example.taskpulse.domain.sort
 
 import com.example.taskpulse.domain.model.Task
 import com.example.taskpulse.domain.model.TaskPriority
+import com.example.taskpulse.domain.model.isNote
+import com.example.taskpulse.domain.model.isTaskItem
 
 fun Task.priorityRank(): Int = when (priority) {
     TaskPriority.CRITICAL -> 0
@@ -15,3 +17,10 @@ private val priorityThenNewestComparator = compareBy<Task>(Task::priorityRank)
     .thenBy { it.title.lowercase() }
 
 fun List<Task>.sortedByDisplayPriority(): List<Task> = sortedWith(priorityThenNewestComparator)
+
+/** Tareas por prioridad; notas debajo, por fecha de creación (más recientes primero). */
+fun List<Task>.sortedTasksThenNotes(): List<Task> {
+    val tasks = filter { it.isTaskItem }.sortedByDisplayPriority()
+    val notes = filter { it.isNote }.sortedByDescending { it.createdAtMillis }
+    return tasks + notes
+}

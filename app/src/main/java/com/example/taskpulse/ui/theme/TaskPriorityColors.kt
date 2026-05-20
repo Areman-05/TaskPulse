@@ -23,9 +23,9 @@ import com.example.taskpulse.domain.model.isNote
 
 object TaskPriorityColors {
     val Critical = Color(0xFFE57373)
-    val High = Color(0xFFFF5722)
-    val Medium = Color(0xFFFFCA28)
-    val Low = Color(0xFF66BB6A)
+    val High = Color(0xFFFF8A65)
+    val Medium = Color(0xFFFFE082)
+    val Low = Color(0xFFA5D6A7)
     val Note = Color(0xFFB0B0B0)
 
     fun forPriority(priority: TaskPriority): Color = when (priority) {

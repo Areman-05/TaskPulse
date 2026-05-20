@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -22,7 +23,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -80,11 +84,7 @@ fun HomeScreen(
             modifier = Modifier.fillMaxSize(),
             containerColor = MaterialTheme.colorScheme.background,
             topBar = {
-                HomeTopBar(
-                    state = state,
-                    viewModel = viewModel,
-                    onNavigateToCreate = onNavigateToCreate
-                )
+                HomeTopBar(state = state, viewModel = viewModel)
             }
         ) { innerPadding ->
             TaskPulseScrollableColumn(
@@ -92,7 +92,7 @@ fun HomeScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
                     .padding(start = 20.dp, end = 8.dp),
-                contentPaddingBottom = if (state.selectionMode) 160.dp else 24.dp
+                contentPaddingBottom = if (state.selectionMode) 160.dp else 100.dp
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     OutlinedTextField(
@@ -117,8 +117,12 @@ fun HomeScreen(
                         )
                     )
 
+                    val hasFilteredTasks = state.filteredTasks.isNotEmpty()
+                    val hasFilteredNotes = state.filteredNotes.isNotEmpty()
+                    val hasAnyFiltered = hasFilteredTasks || hasFilteredNotes
+
                     when {
-                        state.filteredTasks.isEmpty() && state.searchQuery.isBlank() -> {
+                        !hasAnyFiltered && state.searchQuery.isBlank() -> {
                             Text(
                                 text = stringResource(R.string.home_empty_tasks),
                                 style = MaterialTheme.typography.bodyLarge,
@@ -127,7 +131,7 @@ fun HomeScreen(
                                 textAlign = TextAlign.Center
                             )
                         }
-                        state.filteredTasks.isEmpty() -> {
+                        !hasAnyFiltered -> {
                             Text(
                                 text = stringResource(R.string.home_no_tasks_match),
                                 style = MaterialTheme.typography.bodyMedium,
@@ -137,7 +141,7 @@ fun HomeScreen(
                         }
                         state.viewMode == TaskViewMode.GALLERY -> {
                             TaskGalleryGrid(
-                                tasks = state.filteredTasks,
+                                tasks = state.filteredTasks + state.filteredNotes,
                                 selectionMode = state.selectionMode,
                                 selectedIds = state.selectedTaskIds,
                                 onTaskClick = { taskId ->
@@ -150,6 +154,11 @@ fun HomeScreen(
                             )
                         }
                         else -> {
+                            if (hasFilteredTasks) {
+                                HomeSectionHeader(
+                                    title = stringResource(R.string.home_tasks_section)
+                                )
+                            }
                             state.filteredTasks.forEach { task ->
                                 key(task.id) {
                                     TaskListItem(
@@ -168,6 +177,30 @@ fun HomeScreen(
                                     )
                                 }
                             }
+                            if (hasFilteredNotes) {
+                                HomeSectionHeader(
+                                    title = stringResource(R.string.home_notes_section),
+                                    showDividerAbove = hasFilteredTasks
+                                )
+                                state.filteredNotes.forEach { note ->
+                                    key(note.id) {
+                                        TaskListItem(
+                                            task = note,
+                                            selectionMode = state.selectionMode,
+                                            selected = note.id in state.selectedTaskIds,
+                                            onClick = {
+                                                if (state.selectionMode) {
+                                                    viewModel.onTaskClick(note.id)
+                                                } else {
+                                                    onOpenEntryDetail(note.id)
+                                                }
+                                            },
+                                            onDelete = { viewModel.deleteTask(note.id) },
+                                            onComplete = { viewModel.markTaskCompleted(note.id) }
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -175,7 +208,8 @@ fun HomeScreen(
         }
 
         if (state.selectionMode) {
-            val selectedEntries = state.filteredTasks.filter { it.id in state.selectedTaskIds }
+            val selectedEntries = (state.filteredTasks + state.filteredNotes)
+                .filter { it.id in state.selectedTaskIds }
             val canComplete = selectedEntries.any { it.isTaskItem && it.status != TaskStatus.COMPLETED }
             val canSetPriority = selectedEntries.any { it.isTaskItem }
             SelectionActionBar(
@@ -187,8 +221,23 @@ fun HomeScreen(
                 onPriority = viewModel::showPriorityPicker,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 24.dp)
+                    .padding(bottom = 88.dp)
             )
+        } else {
+            FloatingActionButton(
+                onClick = onNavigateToCreate,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 24.dp, bottom = 88.dp),
+                containerColor = MaterialTheme.colorScheme.tertiary,
+                contentColor = MaterialTheme.colorScheme.onTertiary,
+                shape = CircleShape
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Edit,
+                    contentDescription = stringResource(R.string.home_fab_create_cd)
+                )
+            }
         }
     }
 }
@@ -242,6 +291,32 @@ private fun SelectionActionBar(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun HomeSectionHeader(
+    title: String,
+    showDividerAbove: Boolean = false
+) {
+    Column(
+        modifier = Modifier.padding(
+            top = if (showDividerAbove) 16.dp else 4.dp,
+            bottom = 8.dp
+        )
+    ) {
+        if (showDividerAbove) {
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+        }
+        Text(
+            text = title,
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(4.dp))
     }
 }
 

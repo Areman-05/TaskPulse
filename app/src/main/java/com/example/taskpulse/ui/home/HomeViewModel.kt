@@ -9,6 +9,7 @@ import com.example.taskpulse.domain.model.Task
 import com.example.taskpulse.domain.model.TaskPriority
 import com.example.taskpulse.domain.sort.priorityRank
 import com.example.taskpulse.domain.model.TaskStatus
+import com.example.taskpulse.domain.model.isNote
 import com.example.taskpulse.domain.model.isTaskItem
 import com.example.taskpulse.domain.usecase.CompleteTaskAndStopRemindersUseCase
 import com.example.taskpulse.domain.usecase.DeleteTasksUseCase
@@ -36,14 +37,16 @@ class HomeViewModel(
         viewModelScope.launch {
             observeTasksUseCase().collect { tasks ->
                 _uiState.update { previous ->
+                    val entries = buildDisplayedEntries(
+                        tasks = tasks,
+                        query = previous.searchQuery,
+                        sortField = previous.sortField,
+                        sortOrder = previous.sortOrder
+                    )
                     previous.copy(
                         tasks = tasks,
-                        filteredTasks = buildDisplayedTasks(
-                            tasks = tasks,
-                            query = previous.searchQuery,
-                            sortField = previous.sortField,
-                            sortOrder = previous.sortOrder
-                        )
+                        filteredTasks = entries.tasks,
+                        filteredNotes = entries.notes
                     )
                 }
             }
@@ -52,14 +55,16 @@ class HomeViewModel(
 
     fun onSearchQueryChange(value: String) {
         _uiState.update { previous ->
+            val entries = buildDisplayedEntries(
+                tasks = previous.tasks,
+                query = value,
+                sortField = previous.sortField,
+                sortOrder = previous.sortOrder
+            )
             previous.copy(
                 searchQuery = value,
-                filteredTasks = buildDisplayedTasks(
-                    tasks = previous.tasks,
-                    query = value,
-                    sortField = previous.sortField,
-                    sortOrder = previous.sortOrder
-                )
+                filteredTasks = entries.tasks,
+                filteredNotes = entries.notes
             )
         }
     }
@@ -100,28 +105,32 @@ class HomeViewModel(
 
     fun setSortField(field: TaskSortField) {
         _uiState.update { previous ->
+            val entries = buildDisplayedEntries(
+                tasks = previous.tasks,
+                query = previous.searchQuery,
+                sortField = field,
+                sortOrder = previous.sortOrder
+            )
             previous.copy(
                 sortField = field,
-                filteredTasks = buildDisplayedTasks(
-                    tasks = previous.tasks,
-                    query = previous.searchQuery,
-                    sortField = field,
-                    sortOrder = previous.sortOrder
-                )
+                filteredTasks = entries.tasks,
+                filteredNotes = entries.notes
             )
         }
     }
 
     fun setSortOrder(order: TaskSortOrder) {
         _uiState.update { previous ->
+            val entries = buildDisplayedEntries(
+                tasks = previous.tasks,
+                query = previous.searchQuery,
+                sortField = previous.sortField,
+                sortOrder = order
+            )
             previous.copy(
                 sortOrder = order,
-                filteredTasks = buildDisplayedTasks(
-                    tasks = previous.tasks,
-                    query = previous.searchQuery,
-                    sortField = previous.sortField,
-                    sortOrder = order
-                )
+                filteredTasks = entries.tasks,
+                filteredNotes = entries.notes
             )
         }
     }
@@ -199,12 +208,17 @@ class HomeViewModel(
         }
     }
 
-    private fun buildDisplayedTasks(
+    private data class DisplayedEntries(
+        val tasks: List<Task>,
+        val notes: List<Task>
+    )
+
+    private fun buildDisplayedEntries(
         tasks: List<Task>,
         query: String,
         sortField: TaskSortField,
         sortOrder: TaskSortOrder
-    ): List<Task> {
+    ): DisplayedEntries {
         val q = query.trim().lowercase()
         val filtered = if (q.isBlank()) {
             tasks
@@ -214,19 +228,35 @@ class HomeViewModel(
                     task.description.lowercase().contains(q)
             }
         }
+        return DisplayedEntries(
+            tasks = sortEntries(filtered.filter { it.isTaskItem }, sortField, sortOrder, byPriority = true),
+            notes = sortEntries(filtered.filter { it.isNote }, sortField, sortOrder, byPriority = false)
+        )
+    }
+
+    private fun sortEntries(
+        items: List<Task>,
+        sortField: TaskSortField,
+        sortOrder: TaskSortOrder,
+        byPriority: Boolean
+    ): List<Task> {
         val sorted = when (sortField) {
-            TaskSortField.PRIORITY -> filtered.sortedWith(
-                compareBy<Task> { it.priorityRank() }
-                    .thenBy { it.createdAtMillis }
-                    .thenBy { it.title.lowercase() }
-            )
-            TaskSortField.EDIT_DATE -> filtered.sortedBy { it.updatedAtMillis }
-            TaskSortField.CREATION_DATE -> filtered.sortedBy { it.createdAtMillis }
-            TaskSortField.TITLE -> filtered.sortedBy { it.title.lowercase() }
+            TaskSortField.PRIORITY -> if (byPriority) {
+                items.sortedWith(
+                    compareBy<Task> { it.priorityRank() }
+                        .thenBy { it.createdAtMillis }
+                        .thenBy { it.title.lowercase() }
+                )
+            } else {
+                items.sortedBy { it.createdAtMillis }
+            }
+            TaskSortField.EDIT_DATE -> items.sortedBy { it.updatedAtMillis }
+            TaskSortField.CREATION_DATE -> items.sortedBy { it.createdAtMillis }
+            TaskSortField.TITLE -> items.sortedBy { it.title.lowercase() }
         }
         return when {
-            sortField == TaskSortField.PRIORITY && sortOrder == TaskSortOrder.NEWEST_FIRST -> sorted
-            sortField == TaskSortField.PRIORITY -> sorted.reversed()
+            sortField == TaskSortField.PRIORITY && byPriority && sortOrder == TaskSortOrder.NEWEST_FIRST -> sorted
+            sortField == TaskSortField.PRIORITY && byPriority -> sorted.reversed()
             sortOrder == TaskSortOrder.NEWEST_FIRST -> sorted.reversed()
             else -> sorted
         }

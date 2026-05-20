@@ -5,6 +5,7 @@ import com.example.taskpulse.domain.model.Task
 data class HomeUiState(
     val tasks: List<Task> = emptyList(),
     val filteredTasks: List<Task> = emptyList(),
+    val filteredNotes: List<Task> = emptyList(),
     val searchQuery: String = "",
     val viewMode: TaskViewMode = TaskViewMode.LIST,
     val selectionMode: Boolean = false,

@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.taskpulse.domain.calendar.TaskCalendarDates
-import com.example.taskpulse.domain.sort.sortedByDisplayPriority
+import com.example.taskpulse.domain.sort.sortedTasksThenNotes
 import com.example.taskpulse.domain.usecase.ObserveTasksUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -35,7 +35,7 @@ class CalendarViewModel(
             .toSet()
         val selectedDayEntries = scheduled
             .filter { TaskCalendarDates.isOnCalendarDay(it, selected) }
-            .sortedByDisplayPriority()
+            .sortedTasksThenNotes()
         CalendarUiState(
             visibleMonth = month,
             selectedDate = selected,

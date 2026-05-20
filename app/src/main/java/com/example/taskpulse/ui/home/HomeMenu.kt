@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ViewList
 import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.SelectAll
@@ -40,8 +39,7 @@ import com.example.taskpulse.domain.model.TaskPriority
 @Composable
 fun HomeTopBar(
     state: HomeUiState,
-    viewModel: HomeViewModel,
-    onNavigateToCreate: () -> Unit
+    viewModel: HomeViewModel
 ) {
     if (state.selectionMode) {
         SelectionModeTopBar(
@@ -51,8 +49,7 @@ fun HomeTopBar(
     } else {
         DefaultHomeTopBar(
             state = state,
-            viewModel = viewModel,
-            onNavigateToCreate = onNavigateToCreate
+            viewModel = viewModel
         )
     }
 }
@@ -85,8 +82,7 @@ private fun SelectionModeTopBar(
 @Composable
 private fun DefaultHomeTopBar(
     state: HomeUiState,
-    viewModel: HomeViewModel,
-    onNavigateToCreate: () -> Unit
+    viewModel: HomeViewModel
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
     var sortMenuExpanded by remember { mutableStateOf(false) }
@@ -105,17 +101,7 @@ private fun DefaultHomeTopBar(
                 .padding(horizontal = 48.dp),
             textAlign = TextAlign.Center
         )
-        Row(
-            modifier = Modifier.align(Alignment.CenterEnd),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onNavigateToCreate) {
-                Icon(
-                    imageVector = Icons.Outlined.Edit,
-                    contentDescription = stringResource(R.string.home_fab_create_cd),
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
-            }
+        Box(modifier = Modifier.align(Alignment.CenterEnd)) {
             IconButton(onClick = { menuExpanded = true }) {
                 Icon(
                     imageVector = Icons.Outlined.MoreVert,

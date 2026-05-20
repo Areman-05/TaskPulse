@@ -17,6 +17,7 @@ class AutomationSweepWorker(
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         val container = AppContainer(applicationContext)
         val now = System.currentTimeMillis()
+        container.runEntryLifecycleMaintenanceUseCase(now)
         val tasks = container.loadTaskSnapshot()
         val rules = container.loadAutomationRulesSnapshot().filter { it.enabled }
         if (rules.isEmpty()) {

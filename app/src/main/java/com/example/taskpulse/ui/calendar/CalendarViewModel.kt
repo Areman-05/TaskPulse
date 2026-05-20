@@ -7,7 +7,7 @@ import com.example.taskpulse.domain.calendar.TaskCalendarDates
 import com.example.taskpulse.domain.model.isNote
 import com.example.taskpulse.domain.model.isTaskItem
 import com.example.taskpulse.domain.sort.sortedByDisplayPriority
-import com.example.taskpulse.domain.usecase.ObserveTasksUseCase
+import com.example.taskpulse.domain.usecase.ObserveAllTasksUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -19,14 +19,14 @@ import java.time.LocalDate
 import java.time.YearMonth
 
 class CalendarViewModel(
-    observeTasksUseCase: ObserveTasksUseCase
+    observeAllTasksUseCase: ObserveAllTasksUseCase
 ) : ViewModel() {
     private val visibleMonth = MutableStateFlow(YearMonth.now())
     private val selectedDate = MutableStateFlow(TaskCalendarDates.today())
     private val showMonthYearPicker = MutableStateFlow(false)
 
     val uiState: StateFlow<CalendarUiState> = combine(
-        observeTasksUseCase(),
+        observeAllTasksUseCase(),
         visibleMonth,
         selectedDate,
         showMonthYearPicker
@@ -39,7 +39,7 @@ class CalendarViewModel(
         val selectedDayTasks = onSelectedDay.filter { it.isTaskItem }.sortedByDisplayPriority()
         val selectedDayNotes = onSelectedDay
             .filter { it.isNote }
-            .sortedByDescending { it.createdAtMillis }
+            .sortedByDescending { it.dueAtMillis ?: it.createdAtMillis }
         CalendarUiState(
             visibleMonth = month,
             selectedDate = selected,
@@ -92,11 +92,11 @@ class CalendarViewModel(
     }
 
     class Factory(
-        private val observeTasksUseCase: ObserveTasksUseCase
+        private val observeAllTasksUseCase: ObserveAllTasksUseCase
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return CalendarViewModel(observeTasksUseCase) as T
+            return CalendarViewModel(observeAllTasksUseCase) as T
         }
     }
 }

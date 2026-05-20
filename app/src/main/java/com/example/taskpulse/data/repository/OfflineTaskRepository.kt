@@ -8,6 +8,7 @@ import com.example.taskpulse.domain.model.DailyProductivityPoint
 import com.example.taskpulse.domain.model.Task
 import com.example.taskpulse.domain.model.TaskDetails
 import com.example.taskpulse.domain.model.TaskPriority
+import com.example.taskpulse.domain.lifecycle.EntryLifecyclePolicy
 import com.example.taskpulse.domain.model.TaskStatus
 import com.example.taskpulse.domain.repository.TaskRepository
 import kotlinx.coroutines.flow.Flow
@@ -16,11 +17,19 @@ import kotlinx.coroutines.flow.map
 class OfflineTaskRepository(
     private val taskDao: TaskDao
 ) : TaskRepository {
-    override fun observeTasks(): Flow<List<Task>> = taskDao.observeTasks().map { tasks ->
-        tasks.map { it.toDomain() }
-    }
+    override fun observeTasks(): Flow<List<Task>> =
+        taskDao.observeTasks().map { tasks -> tasks.map { it.toDomain() } }
 
-    override suspend fun listTasks(): List<Task> = taskDao.listTasks().map { it.toDomain() }
+    override fun observeAllTasks(): Flow<List<Task>> =
+        taskDao.observeAllTasks().map { tasks -> tasks.map { it.toDomain() } }
+
+    override fun observeArchivedTasks(): Flow<List<Task>> =
+        taskDao.observeArchivedTasks().map { tasks -> tasks.map { it.toDomain() } }
+
+    override suspend fun listTasks(): List<Task> =
+        taskDao.listTasks().map { it.toDomain() }.filter { it.archivedAtMillis == null }
+
+    override suspend fun listAllTasks(): List<Task> = taskDao.listTasks().map { it.toDomain() }
 
     override suspend fun getTask(taskId: Long): Task? = taskDao.getTask(taskId)?.toDomain()
 
@@ -71,6 +80,24 @@ class OfflineTaskRepository(
         if (taskIds.isEmpty()) return
         taskDao.deleteTasks(taskIds)
     }
+
+    override suspend fun archiveTask(taskId: Long, nowMillis: Long) {
+        val max = EntryLifecyclePolicy.MAX_ARCHIVED_ENTRIES
+        val count = taskDao.countArchived()
+        if (count >= max) {
+            val oldest = taskDao.listArchivedOldest(count - max + 1)
+            if (oldest.isNotEmpty()) {
+                taskDao.deleteTasks(oldest.map { it.id })
+            }
+        }
+        taskDao.archiveTask(taskId, nowMillis, nowMillis)
+    }
+
+    override suspend fun restoreTask(taskId: Long, nowMillis: Long) {
+        taskDao.restoreTask(taskId, nowMillis)
+    }
+
+    override suspend fun countArchived(): Int = taskDao.countArchived()
 
     override suspend fun updateTasksPriority(
         taskIds: List<Long>,

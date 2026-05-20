@@ -51,6 +51,7 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             container.ensureDefaultCategoryUseCase()
             container.ensureStarterAutomationRulesUseCase()
+            container.runEntryLifecycleMaintenanceUseCase()
             AutomationWorkScheduler.enqueue(
                 context = applicationContext,
                 repeatIntervalHours = container.getAutomationSweepIntervalHours(),

@@ -8,6 +8,7 @@ object AppDestinations {
     const val CREATE_ROUTE = "create?scheduleDate={scheduleDate}"
     const val INSIGHTS_ROUTE = "insights"
     const val SETTINGS_ROUTE = "settings"
+    const val ARCHIVE_ROUTE = "archive"
     const val ENTRY_DETAIL_ROUTE = "entry_detail/{entryId}"
 
     const val ARG_SCHEDULE_DATE = "scheduleDate"

@@ -244,11 +244,11 @@ class HomeViewModel(
             TaskSortField.PRIORITY -> if (byPriority) {
                 items.sortedWith(
                     compareBy<Task> { it.priorityRank() }
-                        .thenBy { it.createdAtMillis }
+                        .thenBy { it.dueAtMillis ?: Long.MAX_VALUE }
                         .thenBy { it.title.lowercase() }
                 )
             } else {
-                items.sortedBy { it.createdAtMillis }
+                items.sortedByDescending { it.dueAtMillis ?: it.createdAtMillis }
             }
             TaskSortField.EDIT_DATE -> items.sortedBy { it.updatedAtMillis }
             TaskSortField.CREATION_DATE -> items.sortedBy { it.createdAtMillis }

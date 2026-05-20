@@ -35,7 +35,11 @@ import com.example.taskpulse.domain.usecase.GetTaskUseCase
 import com.example.taskpulse.domain.usecase.ObserveAutomationRulesUseCase
 import com.example.taskpulse.domain.usecase.LoadAutomationSweepHistoryUseCase
 import com.example.taskpulse.domain.usecase.ObserveDailyProductivityUseCase
+import com.example.taskpulse.domain.usecase.ObserveAllTasksUseCase
+import com.example.taskpulse.domain.usecase.ObserveArchivedTasksUseCase
 import com.example.taskpulse.domain.usecase.ObserveTasksUseCase
+import com.example.taskpulse.domain.usecase.RestoreArchivedEntryUseCase
+import com.example.taskpulse.domain.usecase.RunEntryLifecycleMaintenanceUseCase
 import com.example.taskpulse.domain.usecase.ScheduleDependentRemindersUseCase
 import com.example.taskpulse.domain.usecase.ScheduleRecurringTaskUseCase
 import com.example.taskpulse.domain.usecase.ScheduleTaskReminderUseCase
@@ -70,6 +74,8 @@ class AppContainer(context: Context) {
     val notificationCooldownStore = NotificationCooldownStore(context.applicationContext)
 
     val observeTasksUseCase = ObserveTasksUseCase(repository)
+    val observeAllTasksUseCase = ObserveAllTasksUseCase(repository)
+    val observeArchivedTasksUseCase = ObserveArchivedTasksUseCase(repository)
     val ensureDefaultCategoryUseCase = EnsureDefaultCategoryUseCase(categoryRepository)
     val observeAutomationRulesUseCase = ObserveAutomationRulesUseCase(automationRepository)
     val ensureStarterAutomationRulesUseCase = EnsureStarterAutomationRulesUseCase(automationRepository)
@@ -116,12 +122,17 @@ class AppContainer(context: Context) {
         scheduleDependentRemindersUseCase,
         notificationCooldownStore
     )
+    val runEntryLifecycleMaintenanceUseCase = RunEntryLifecycleMaintenanceUseCase(
+        repository,
+        completeTaskAndStopRemindersUseCase
+    )
+    val restoreArchivedEntryUseCase = RestoreArchivedEntryUseCase(repository)
     val appendAutomationSweepRunUseCase = AppendAutomationSweepRunUseCase(automationSweepLogRepository)
     val loadAutomationSweepHistoryUseCase = LoadAutomationSweepHistoryUseCase(automationSweepLogRepository)
     val taskSnapshotFileExporter = TaskSnapshotFileExporter(repository, context.applicationContext.filesDir)
     val themeRepository = SharedPreferencesThemeRepository(context.applicationContext)
 
-    suspend fun loadTaskSnapshot(): List<Task> = repository.listTasks()
+    suspend fun loadTaskSnapshot(): List<Task> = repository.listAllTasks()
 
     suspend fun loadAutomationRulesSnapshot(): List<AutomationRule> = automationRepository.listRules()
 

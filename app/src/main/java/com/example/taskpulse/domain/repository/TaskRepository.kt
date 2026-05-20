@@ -9,7 +9,10 @@ import kotlinx.coroutines.flow.Flow
 
 interface TaskRepository {
     fun observeTasks(): Flow<List<Task>>
+    fun observeAllTasks(): Flow<List<Task>>
+    fun observeArchivedTasks(): Flow<List<Task>>
     suspend fun listTasks(): List<Task>
+    suspend fun listAllTasks(): List<Task>
     suspend fun getTask(taskId: Long): Task?
     suspend fun listTasksBlockedBy(blockerTaskId: Long): List<Task>
     fun observeDailyProductivity(limit: Int): Flow<List<DailyProductivityPoint>>
@@ -25,6 +28,12 @@ interface TaskRepository {
     )
 
     suspend fun deleteTasks(taskIds: List<Long>)
+
+    suspend fun archiveTask(taskId: Long, nowMillis: Long)
+
+    suspend fun restoreTask(taskId: Long, nowMillis: Long)
+
+    suspend fun countArchived(): Int
 
     suspend fun updateTasksPriority(
         taskIds: List<Long>,

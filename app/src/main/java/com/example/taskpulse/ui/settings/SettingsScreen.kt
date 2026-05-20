@@ -25,7 +25,10 @@ import com.example.taskpulse.ui.components.TaskPulseSectionCard
 private val CardShape = RoundedCornerShape(8.dp)
 
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel) {
+fun SettingsScreen(
+    viewModel: SettingsViewModel,
+    onOpenArchive: () -> Unit
+) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,
@@ -80,14 +83,18 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
 
                 TaskPulseSectionCard {
                     Text(
-                        text = stringResource(R.string.settings_more_title),
+                        text = stringResource(R.string.settings_archive_title),
                         style = MaterialTheme.typography.titleMedium
                     )
                     Text(
-                        text = stringResource(R.string.settings_more_subtitle),
-                        style = MaterialTheme.typography.bodyMedium,
+                        text = stringResource(R.string.settings_archive_subtitle),
+                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 8.dp)
+                        modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
+                    )
+                    TaskPulsePrimaryButton(
+                        text = stringResource(R.string.settings_open_archive),
+                        onClick = onOpenArchive
                     )
                 }
 

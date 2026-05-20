@@ -15,11 +15,50 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TaskDao {
-    @Query("SELECT * FROM tasks ORDER BY updatedAtMillis DESC")
+    @Query("SELECT * FROM tasks WHERE archivedAtMillis IS NULL ORDER BY updatedAtMillis DESC")
     fun observeTasks(): Flow<List<TaskEntity>>
+
+    @Query("SELECT * FROM tasks ORDER BY updatedAtMillis DESC")
+    fun observeAllTasks(): Flow<List<TaskEntity>>
+
+    @Query(
+        "SELECT * FROM tasks WHERE archivedAtMillis IS NOT NULL ORDER BY archivedAtMillis DESC"
+    )
+    fun observeArchivedTasks(): Flow<List<TaskEntity>>
 
     @Query("SELECT * FROM tasks")
     suspend fun listTasks(): List<TaskEntity>
+
+    @Query("SELECT COUNT(*) FROM tasks WHERE archivedAtMillis IS NOT NULL")
+    suspend fun countArchived(): Int
+
+    @Query(
+        """
+        SELECT * FROM tasks
+        WHERE archivedAtMillis IS NOT NULL
+        ORDER BY archivedAtMillis ASC
+        LIMIT :limit
+        """
+    )
+    suspend fun listArchivedOldest(limit: Int): List<TaskEntity>
+
+    @Query(
+        """
+        UPDATE tasks
+        SET archivedAtMillis = :archivedAtMillis, updatedAtMillis = :updatedAtMillis
+        WHERE id = :taskId
+        """
+    )
+    suspend fun archiveTask(taskId: Long, archivedAtMillis: Long, updatedAtMillis: Long)
+
+    @Query(
+        """
+        UPDATE tasks
+        SET archivedAtMillis = NULL, updatedAtMillis = :updatedAtMillis
+        WHERE id = :taskId
+        """
+    )
+    suspend fun restoreTask(taskId: Long, updatedAtMillis: Long)
 
     @Query("SELECT * FROM tasks WHERE blockedByTaskId = :blockerTaskId")
     suspend fun listTasksBlockedBy(blockerTaskId: Long): List<TaskEntity>
@@ -55,7 +94,12 @@ interface TaskDao {
     )
     fun observeDailyCompletions(completedStatus: TaskStatus, limit: Int): Flow<List<DailyCompletionCount>>
 
-    @Query("SELECT COUNT(*) FROM tasks WHERE status != :completed")
+    @Query(
+        """
+        SELECT COUNT(*) FROM tasks
+        WHERE status != :completed AND archivedAtMillis IS NULL
+        """
+    )
     suspend fun countTasksNotCompleted(completed: TaskStatus): Int
 
     @Query("DELETE FROM tasks WHERE id IN (:taskIds)")

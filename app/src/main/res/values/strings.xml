@@ -180,8 +180,18 @@
     <string name="settings_appearance_subtitle">Elige cómo quieres ver TaskPulse</string>
     <string name="settings_theme_light">Modo claro</string>
     <string name="settings_theme_dark">Modo oscuro</string>
-    <string name="settings_more_title">Más opciones</string>
-    <string name="settings_more_subtitle">Próximamente podrás ajustar más detalles desde aquí.</string>
+    <string name="settings_archive_title">Archivo</string>
+    <string name="settings_archive_subtitle">Tareas y notas archivadas automáticamente (máx. 50). Restáuralas o bórralas.</string>
+    <string name="settings_open_archive">Ver archivo</string>
+    <string name="archive_screen_title">Archivo</string>
+    <string name="archive_back_cd">Volver</string>
+    <string name="archive_empty">No hay entradas archivadas.</string>
+    <string name="archive_limit_hint">Se guardan hasta 50 entradas; al superar el límite, la más antigua se elimina.</string>
+    <string name="archive_restore">Restaurar</string>
+    <string name="archive_delete">Eliminar</string>
+    <string name="archive_delete_confirm_title">¿Eliminar del archivo?</string>
+    <string name="archive_delete_confirm_body">Se borrará de forma permanente.</string>
+    <string name="archive_delete_confirm_action">Eliminar</string>
     <string name="settings_insights_hint">Automatización, exportaciones e historial siguen en la pestaña Insights.</string>
 
     <string name="insights_automation_active_title">Automatizaciones activas</string>

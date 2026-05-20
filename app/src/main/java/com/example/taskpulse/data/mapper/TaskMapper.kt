@@ -27,7 +27,8 @@ fun TaskEntity.toDomain(): Task {
         blockedByTaskId = blockedByTaskId,
         entryType = entryType,
         createdAtMillis = createdAtMillis,
-        updatedAtMillis = updatedAtMillis
+        updatedAtMillis = updatedAtMillis,
+        archivedAtMillis = archivedAtMillis
     )
 }
 
@@ -44,7 +45,8 @@ fun Task.toEntity(): TaskEntity = TaskEntity(
     blockedByTaskId = blockedByTaskId,
     entryType = entryType,
     createdAtMillis = createdAtMillis,
-    updatedAtMillis = updatedAtMillis
+    updatedAtMillis = updatedAtMillis,
+    archivedAtMillis = archivedAtMillis
 )
 
 fun TaskWithDetailsEntity.toDomain(): TaskDetails = TaskDetails(

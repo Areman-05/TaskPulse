@@ -42,6 +42,8 @@ import com.example.taskpulse.ui.insights.InsightsScreen
 import com.example.taskpulse.ui.insights.InsightsViewModel
 import com.example.taskpulse.ui.settings.SettingsScreen
 import com.example.taskpulse.ui.settings.SettingsViewModel
+import com.example.taskpulse.ui.settings.archive.ArchiveScreen
+import com.example.taskpulse.ui.settings.archive.ArchiveViewModel
 import java.time.LocalDate
 
 @Composable
@@ -201,7 +203,7 @@ fun TaskPulseNavHost(container: AppContainer) {
             composable(AppDestinations.CALENDAR_ROUTE) {
                 val vm: CalendarViewModel = viewModel(
                     factory = CalendarViewModel.Factory(
-                        observeTasksUseCase = container.observeTasksUseCase
+                        observeAllTasksUseCase = container.observeAllTasksUseCase
                     )
                 )
                 CalendarScreen(
@@ -271,7 +273,26 @@ fun TaskPulseNavHost(container: AppContainer) {
                         themeRepository = container.themeRepository
                     )
                 )
-                SettingsScreen(viewModel = vm)
+                SettingsScreen(
+                    viewModel = vm,
+                    onOpenArchive = {
+                        navController.navigate(AppDestinations.ARCHIVE_ROUTE)
+                    }
+                )
+            }
+            composable(AppDestinations.ARCHIVE_ROUTE) {
+                val vm: ArchiveViewModel = viewModel(
+                    factory = ArchiveViewModel.Factory(
+                        observeArchivedTasksUseCase = container.observeArchivedTasksUseCase,
+                        restoreArchivedEntryUseCase = container.restoreArchivedEntryUseCase,
+                        deleteTasksUseCase = container.deleteTasksUseCase,
+                        cancelTaskReminderUseCase = container.cancelTaskReminderUseCase
+                    )
+                )
+                ArchiveScreen(
+                    viewModel = vm,
+                    onBack = { navController.popBackStack() }
+                )
             }
         }
     }

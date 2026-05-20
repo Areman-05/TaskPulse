@@ -15,7 +15,8 @@ data class Task(
     val blockedByTaskId: Long? = null,
     val entryType: TaskEntryType = TaskEntryType.TASK,
     val createdAtMillis: Long,
-    val updatedAtMillis: Long
+    val updatedAtMillis: Long,
+    val archivedAtMillis: Long? = null
 )
 
 val Task.isNote: Boolean get() = entryType == TaskEntryType.NOTE

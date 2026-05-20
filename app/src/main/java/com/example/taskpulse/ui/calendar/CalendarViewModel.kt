@@ -4,7 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.taskpulse.domain.calendar.TaskCalendarDates
-import com.example.taskpulse.domain.sort.sortedTasksThenNotes
+import com.example.taskpulse.domain.model.isNote
+import com.example.taskpulse.domain.model.isTaskItem
+import com.example.taskpulse.domain.sort.sortedByDisplayPriority
 import com.example.taskpulse.domain.usecase.ObserveTasksUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -33,14 +35,17 @@ class CalendarViewModel(
         val datesWithEntries = scheduled
             .map { TaskCalendarDates.toLocalDate(it.dueAtMillis!!) }
             .toSet()
-        val selectedDayEntries = scheduled
-            .filter { TaskCalendarDates.isOnCalendarDay(it, selected) }
-            .sortedTasksThenNotes()
+        val onSelectedDay = scheduled.filter { TaskCalendarDates.isOnCalendarDay(it, selected) }
+        val selectedDayTasks = onSelectedDay.filter { it.isTaskItem }.sortedByDisplayPriority()
+        val selectedDayNotes = onSelectedDay
+            .filter { it.isNote }
+            .sortedByDescending { it.createdAtMillis }
         CalendarUiState(
             visibleMonth = month,
             selectedDate = selected,
             datesWithEntries = datesWithEntries,
-            selectedDayEntries = selectedDayEntries,
+            selectedDayTasks = selectedDayTasks,
+            selectedDayNotes = selectedDayNotes,
             showMonthYearPicker = pickerVisible
         )
     }.distinctUntilChanged().stateIn(

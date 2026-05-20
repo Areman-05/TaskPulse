@@ -208,6 +208,9 @@ fun TaskPulseNavHost(container: AppContainer) {
                     viewModel = vm,
                     onOpenEntry = { entryId ->
                         navController.navigate(AppDestinations.entryDetailRoute(entryId))
+                    },
+                    onNavigateToCreate = { scheduleDate ->
+                        navController.navigate(AppDestinations.createRoute(scheduleDate))
                     }
                 )
             }

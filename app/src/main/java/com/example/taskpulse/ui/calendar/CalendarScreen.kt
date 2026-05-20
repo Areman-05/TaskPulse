@@ -23,8 +23,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.outlined.Today
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -68,7 +69,8 @@ private val MonthShape = RoundedCornerShape(16.dp)
 @Composable
 fun CalendarScreen(
     viewModel: CalendarViewModel,
-    onOpenEntry: (Long) -> Unit
+    onOpenEntry: (Long) -> Unit,
+    onNavigateToCreate: (LocalDate) -> Unit
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -81,10 +83,10 @@ fun CalendarScreen(
                     )
                 },
                 actions = {
-                    IconButton(onClick = viewModel::goToToday) {
+                    IconButton(onClick = { onNavigateToCreate(state.selectedDate) }) {
                         Icon(
-                            Icons.Outlined.Today,
-                            contentDescription = stringResource(R.string.calendar_today_cd)
+                            Icons.Outlined.Edit,
+                            contentDescription = stringResource(R.string.calendar_fab_create_cd)
                         )
                     }
                 },
@@ -124,32 +126,11 @@ fun CalendarScreen(
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(10.dp))
-                if (state.selectedDayEntries.isEmpty()) {
-                    Text(
-                        text = stringResource(R.string.calendar_empty_day),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center
-                    )
-                } else {
-                    Text(
-                        text = stringResource(
-                            R.string.calendar_day_count,
-                            state.selectedDayEntries.size
-                        ),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    state.selectedDayEntries.forEach { task ->
-                        CalendarEntryCard(
-                            task = task,
-                            onClick = { onOpenEntry(task.id) }
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-                }
+                CalendarDayEntriesList(
+                    tasks = state.selectedDayTasks,
+                    notes = state.selectedDayNotes,
+                    onOpenEntry = onOpenEntry
+                )
             }
     }
 
@@ -159,6 +140,79 @@ fun CalendarScreen(
             onDismiss = viewModel::dismissMonthYearPicker,
             onConfirm = { month, year -> viewModel.applyMonthYear(month, year) }
         )
+    }
+}
+
+@Composable
+private fun CalendarDayEntriesList(
+    tasks: List<Task>,
+    notes: List<Task>,
+    onOpenEntry: (Long) -> Unit
+) {
+    val hasTasks = tasks.isNotEmpty()
+    val hasNotes = notes.isNotEmpty()
+    val totalCount = tasks.size + notes.size
+
+    if (totalCount == 0) {
+        Text(
+            text = stringResource(R.string.calendar_empty_day),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center
+        )
+        return
+    }
+
+    Text(
+        text = stringResource(R.string.calendar_day_count, totalCount),
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+    Spacer(modifier = Modifier.height(8.dp))
+
+    if (hasTasks) {
+        CalendarSectionHeader(title = stringResource(R.string.home_tasks_section))
+        tasks.forEach { task ->
+            CalendarEntryCard(task = task, onClick = { onOpenEntry(task.id) })
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+    }
+    if (hasNotes) {
+        CalendarSectionHeader(
+            title = stringResource(R.string.home_notes_section),
+            showDividerAbove = hasTasks
+        )
+        notes.forEach { note ->
+            CalendarEntryCard(task = note, onClick = { onOpenEntry(note.id) })
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+    }
+}
+
+@Composable
+private fun CalendarSectionHeader(
+    title: String,
+    showDividerAbove: Boolean = false
+) {
+    Column(
+        modifier = Modifier.padding(
+            top = if (showDividerAbove) 16.dp else 4.dp,
+            bottom = 8.dp
+        )
+    ) {
+        if (showDividerAbove) {
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+        }
+        Text(
+            text = title,
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(4.dp))
     }
 }
 

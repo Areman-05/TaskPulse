@@ -6,6 +6,7 @@ import com.example.taskpulse.domain.model.Task
 import com.example.taskpulse.domain.model.TaskStatus
 import com.example.taskpulse.domain.model.isTaskItem
 import com.example.taskpulse.domain.repository.TaskRepository
+import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
 data class EntryLifecycleResult(
@@ -18,8 +19,10 @@ class RunEntryLifecycleMaintenanceUseCase(
     private val repository: TaskRepository,
     private val completeTaskAndStopRemindersUseCase: CompleteTaskAndStopRemindersUseCase
 ) {
-    suspend operator fun invoke(nowMillis: Long = System.currentTimeMillis()): EntryLifecycleResult {
-        val today = TaskCalendarDates.today()
+    suspend operator fun invoke(
+        nowMillis: Long = System.currentTimeMillis(),
+        today: LocalDate = TaskCalendarDates.today()
+    ): EntryLifecycleResult {
         var autoCompleted = 0
         var archived = 0
         val all = repository.listAllTasks()

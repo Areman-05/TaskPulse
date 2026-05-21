@@ -2,7 +2,6 @@ package com.example.taskpulse.ui.navigation
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Analytics
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Settings
@@ -38,8 +37,6 @@ import com.example.taskpulse.ui.detail.EntryDetailScreen
 import com.example.taskpulse.ui.detail.EntryDetailViewModel
 import com.example.taskpulse.ui.home.HomeScreen
 import com.example.taskpulse.ui.home.HomeViewModel
-import com.example.taskpulse.ui.insights.InsightsScreen
-import com.example.taskpulse.ui.insights.InsightsViewModel
 import com.example.taskpulse.ui.settings.SettingsScreen
 import com.example.taskpulse.ui.settings.SettingsViewModel
 import com.example.taskpulse.ui.settings.archive.ArchiveScreen
@@ -56,7 +53,6 @@ fun TaskPulseNavHost(container: AppContainer) {
     val showBottomBar = currentRoute in listOf(
         AppDestinations.TASKS_ROUTE,
         AppDestinations.CALENDAR_ROUTE,
-        AppDestinations.INSIGHTS_ROUTE,
         AppDestinations.SETTINGS_ROUTE
     )
 
@@ -101,26 +97,6 @@ fun TaskPulseNavHost(container: AppContainer) {
                         selected = currentRoute == AppDestinations.CALENDAR_ROUTE,
                         onClick = {
                             navController.navigate(AppDestinations.CALENDAR_ROUTE) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        }
-                    )
-                    NavigationBarItem(
-                        icon = { Icon(Icons.Outlined.Analytics, contentDescription = null) },
-                        label = {
-                            Text(
-                                stringResource(R.string.nav_insights),
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                        },
-                        colors = navItemColors(),
-                        selected = currentRoute == AppDestinations.INSIGHTS_ROUTE,
-                        onClick = {
-                            navController.navigate(AppDestinations.INSIGHTS_ROUTE) {
                                 popUpTo(navController.graph.findStartDestination().id) {
                                     saveState = true
                                 }
@@ -244,9 +220,10 @@ fun TaskPulseNavHost(container: AppContainer) {
                     onBack = { navController.popBackStack() }
                 )
             }
-            composable(AppDestinations.INSIGHTS_ROUTE) {
-                val vm: InsightsViewModel = viewModel(
-                    factory = InsightsViewModel.Factory(
+            composable(AppDestinations.SETTINGS_ROUTE) {
+                val vm: SettingsViewModel = viewModel(
+                    factory = SettingsViewModel.Factory(
+                        themeRepository = container.themeRepository,
                         observeDailyProductivityUseCase = container.observeDailyProductivityUseCase,
                         observeAutomationRulesUseCase = container.observeAutomationRulesUseCase,
                         setAutomationRuleEnabledUseCase = container.setAutomationRuleEnabledUseCase,
@@ -263,14 +240,6 @@ fun TaskPulseNavHost(container: AppContainer) {
                         loadAutomationSweepHistoryUseCase = container.loadAutomationSweepHistoryUseCase,
                         taskSnapshotFileExporter = container.taskSnapshotFileExporter,
                         roomDatabaseFile = appContext.getDatabasePath("taskpulse.db")
-                    )
-                )
-                InsightsScreen(viewModel = vm)
-            }
-            composable(AppDestinations.SETTINGS_ROUTE) {
-                val vm: SettingsViewModel = viewModel(
-                    factory = SettingsViewModel.Factory(
-                        themeRepository = container.themeRepository
                     )
                 )
                 SettingsScreen(

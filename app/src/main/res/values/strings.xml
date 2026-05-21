@@ -19,7 +19,6 @@
     <string name="notification_toast_completed">Completada: %1$s</string>
     <string name="notification_toast_snoozed">Pospuesta %2$d min: %1$s</string>
     <string name="notification_toast_opened">En progreso: %1$s</string>
-    <string name="insights_screen_title">Insights</string>
     <string name="insights_screen_heading">Automatización</string>
     <string name="insights_run_sweep_now">Ejecutar barrido ahora</string>
     <string name="insights_run_sweep_running">Ejecutando barrido...</string>
@@ -44,7 +43,6 @@
 
     <string name="nav_tasks">Tareas</string>
     <string name="nav_calendar">Calendario</string>
-    <string name="nav_insights">Insights</string>
     <string name="nav_settings">Ajustes</string>
     <string name="home_menu_cd">Menú</string>
     <string name="home_menu_view_gallery">Ver como galería</string>
@@ -192,7 +190,6 @@
     <string name="archive_delete_confirm_title">¿Eliminar del archivo?</string>
     <string name="archive_delete_confirm_body">Se borrará de forma permanente.</string>
     <string name="archive_delete_confirm_action">Eliminar</string>
-    <string name="settings_insights_hint">Automatización, exportaciones e historial siguen en la pestaña Insights.</string>
 
     <string name="insights_automation_active_title">Automatizaciones activas</string>
     <string name="insights_automation_rule_count">%1$d habilitadas de %2$d</string>

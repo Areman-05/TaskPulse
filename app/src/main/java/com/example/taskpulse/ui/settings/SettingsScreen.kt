@@ -1,34 +1,38 @@
 package com.example.taskpulse.ui.settings
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.taskpulse.R
 import com.example.taskpulse.ui.components.TaskPulsePrimaryButton
 import com.example.taskpulse.ui.components.TaskPulseScrollableColumn
 import com.example.taskpulse.ui.components.TaskPulseSecondaryButton
 import com.example.taskpulse.ui.components.TaskPulseSectionCard
 
-private val CardShape = RoundedCornerShape(8.dp)
-
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel,
     onOpenArchive: () -> Unit
 ) {
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+    SettingsInsightsDialogs(state = state, viewModel = viewModel)
+    SettingsPendingExportEffect(
+        pendingExport = state.pendingExport,
+        onConsumed = viewModel::consumePendingExport
+    )
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,
@@ -54,6 +58,7 @@ fun SettingsScreen(
                 .padding(innerPadding)
                 .padding(start = 20.dp, end = 8.dp),
             showAmbientGrid = false,
+            showScrollbar = false,
             contentPaddingBottom = 32.dp
         ) {
             Column(
@@ -98,21 +103,11 @@ fun SettingsScreen(
                     )
                 }
 
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = CardShape,
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
-                    ),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
-                ) {
-                    Text(
-                        text = stringResource(R.string.settings_insights_hint),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(14.dp)
-                    )
-                }
+                SettingsAutomationSection(state = state, viewModel = viewModel)
+                SettingsSweepHistorySection(state = state, viewModel = viewModel)
+                SettingsProductivitySection(state = state)
+                SettingsExportSection(viewModel = viewModel)
+                SettingsAutomationRulesSection(state = state, viewModel = viewModel)
             }
         }
     }

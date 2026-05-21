@@ -1,4 +1,4 @@
-package com.example.taskpulse.ui.insights
+package com.example.taskpulse.ui.settings
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

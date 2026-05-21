@@ -15,6 +15,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -43,7 +44,7 @@ fun SettingsPendingExportEffect(
     onConsumed: () -> Unit
 ) {
     val context = LocalContext.current
-    androidx.compose.runtime.LaunchedEffect(pendingExport) {
+    LaunchedEffect(pendingExport) {
         val payload = pendingExport ?: return@LaunchedEffect
         shareExport(context, payload.absolutePath, payload.mimeType)
         onConsumed()
@@ -110,17 +111,18 @@ fun SettingsMaintenanceSection(
                 text = stringResource(R.string.settings_save_interval),
                 onClick = viewModel::saveSweepInterval
             )
-            state.saveIntervalMessage?.let { key ->
-                val message = when (key) {
-                    "settings_interval_invalid" -> stringResource(R.string.settings_interval_invalid)
-                    "settings_interval_saved" -> stringResource(R.string.settings_interval_saved)
-                    else -> key
-                }
-                Text(
-                    text = message,
+            when (state.intervalFeedback) {
+                SettingsIntervalFeedback.Invalid -> Text(
+                    text = stringResource(R.string.settings_interval_invalid),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.tertiary
                 )
+                SettingsIntervalFeedback.Saved -> Text(
+                    text = stringResource(R.string.settings_interval_saved),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.tertiary
+                )
+                null -> Unit
             }
         }
     }

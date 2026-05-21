@@ -1,6 +1,8 @@
 package com.example.taskpulse.ui.home
 
 import com.example.taskpulse.domain.model.Task
+import com.example.taskpulse.domain.sort.TaskSortField
+import com.example.taskpulse.domain.sort.TaskSortOrder
 
 data class HomeUiState(
     val tasks: List<Task> = emptyList(),

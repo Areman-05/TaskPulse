@@ -13,14 +13,14 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
-import com.example.taskpulse.core.AppContainer
+import com.example.taskpulse.TaskPulseApp
 import com.example.taskpulse.ui.TaskPulseAppRoot
 import com.example.taskpulse.worker.AutomationInitialWork
 import com.example.taskpulse.worker.AutomationWorkScheduler
 import com.example.taskpulse.ui.theme.TaskPulseThemeRoot
 
 class MainActivity : ComponentActivity() {
-    private lateinit var container: AppContainer
+    private lateinit var container: com.example.taskpulse.core.AppContainer
 
     private val postNotificationsPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -47,7 +47,7 @@ class MainActivity : ComponentActivity() {
                 postNotificationsPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
-        container = AppContainer(applicationContext)
+        container = (application as TaskPulseApp).container
         lifecycleScope.launch {
             container.ensureDefaultCategoryUseCase()
             container.ensureStarterAutomationRulesUseCase()

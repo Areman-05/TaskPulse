@@ -4,10 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.taskpulse.data.export.TaskSnapshotFileExporter
-import com.example.taskpulse.data.repository.SharedPreferencesThemeRepository
 import com.example.taskpulse.domain.model.AppThemeMode
-import com.example.taskpulse.domain.model.AutomationSweepRun
 import com.example.taskpulse.domain.repository.AutomationSettingsRepository
+import com.example.taskpulse.domain.repository.ThemeRepository
 import com.example.taskpulse.domain.usecase.GetAutomationSweepIntervalUseCase
 import com.example.taskpulse.domain.usecase.LoadAutomationSweepHistoryUseCase
 import com.example.taskpulse.domain.usecase.RescheduleAutomationSweepUseCase
@@ -21,23 +20,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-data class PendingTaskExport(
-    val absolutePath: String,
-    val mimeType: String
-)
-
-data class SettingsUiState(
-    val isMaintenanceRunning: Boolean = false,
-    val sweepIntervalHours: String = "1",
-    val saveIntervalMessage: String? = null,
-    val sweepUnmeteredOnly: Boolean = false,
-    val sweepRequiresCharging: Boolean = false,
-    val recentSweepRuns: List<AutomationSweepRun> = emptyList(),
-    val pendingExport: PendingTaskExport? = null
-)
-
 class SettingsViewModel(
-    private val themeRepository: SharedPreferencesThemeRepository,
+    private val themeRepository: ThemeRepository,
     private val triggerAutomationSweepNowUseCase: TriggerAutomationSweepNowUseCase,
     private val runEntryLifecycleMaintenanceUseCase: RunEntryLifecycleMaintenanceUseCase,
     private val getAutomationSweepIntervalUseCase: GetAutomationSweepIntervalUseCase,
@@ -91,12 +75,17 @@ class SettingsViewModel(
     }
 
     fun onSweepIntervalChange(value: String) {
-        _uiState.update { it.copy(sweepIntervalHours = value.filter { ch -> ch.isDigit() }) }
+        _uiState.update {
+            it.copy(
+                sweepIntervalHours = value.filter { ch -> ch.isDigit() },
+                intervalFeedback = null
+            )
+        }
     }
 
     fun saveSweepInterval() {
         val hours = _uiState.value.sweepIntervalHours.toLongOrNull()?.coerceAtLeast(1L) ?: run {
-            _uiState.update { it.copy(saveIntervalMessage = "settings_interval_invalid") }
+            _uiState.update { it.copy(intervalFeedback = SettingsIntervalFeedback.Invalid) }
             return
         }
         setAutomationSweepIntervalUseCase(hours)
@@ -104,7 +93,7 @@ class SettingsViewModel(
         _uiState.update {
             it.copy(
                 sweepIntervalHours = hours.toString(),
-                saveIntervalMessage = "settings_interval_saved"
+                intervalFeedback = SettingsIntervalFeedback.Saved
             )
         }
     }
@@ -143,7 +132,9 @@ class SettingsViewModel(
         viewModelScope.launch {
             val file = taskSnapshotFileExporter.writeDatabaseBackup(roomDatabaseFile)
             _uiState.update {
-                it.copy(pendingExport = PendingTaskExport(file.absolutePath, "application/octet-stream"))
+                it.copy(
+                    pendingExport = PendingTaskExport(file.absolutePath, "application/octet-stream")
+                )
             }
         }
     }
@@ -153,7 +144,7 @@ class SettingsViewModel(
     }
 
     class Factory(
-        private val themeRepository: SharedPreferencesThemeRepository,
+        private val themeRepository: ThemeRepository,
         private val triggerAutomationSweepNowUseCase: TriggerAutomationSweepNowUseCase,
         private val runEntryLifecycleMaintenanceUseCase: RunEntryLifecycleMaintenanceUseCase,
         private val getAutomationSweepIntervalUseCase: GetAutomationSweepIntervalUseCase,

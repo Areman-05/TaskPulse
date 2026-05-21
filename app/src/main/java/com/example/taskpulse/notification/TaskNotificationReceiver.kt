@@ -4,7 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
-import com.example.taskpulse.core.AppContainer
+import com.example.taskpulse.core.requireAppContainer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 class TaskNotificationReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val pendingResult = goAsync()
-        val app = AppContainer(context.applicationContext)
+        val app = context.requireAppContainer()
         val notifier = TaskNotificationHelper(context.applicationContext)
         val taskId = intent.getLongExtra(TaskNotificationActions.EXTRA_TASK_ID, 0L)
         val title = intent.getStringExtra(TaskNotificationActions.EXTRA_TASK_TITLE).orEmpty()

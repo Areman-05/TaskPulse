@@ -3,7 +3,7 @@ package com.example.taskpulse.worker
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.example.taskpulse.core.AppContainer
+import com.example.taskpulse.core.requireAppContainer
 import com.example.taskpulse.domain.model.TaskStatus
 import com.example.taskpulse.notification.TaskNotificationHelper
 
@@ -16,7 +16,7 @@ class TaskReminderWorker(
         val taskTitle = inputData.getString(WorkerKeys.TASK_TITLE).orEmpty()
         if (taskId == 0L || taskTitle.isBlank()) return Result.failure()
 
-        val container = AppContainer(applicationContext)
+        val container = applicationContext.requireAppContainer()
         val task = container.getTaskUseCase(taskId) ?: return Result.success()
 
         when (task.status) {

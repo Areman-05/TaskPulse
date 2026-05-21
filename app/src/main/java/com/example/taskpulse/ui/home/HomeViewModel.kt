@@ -5,12 +5,12 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.taskpulse.domain.model.Task
 import com.example.taskpulse.domain.model.TaskPriority
-import com.example.taskpulse.domain.sort.priorityRank
 import com.example.taskpulse.domain.model.TaskStatus
-import com.example.taskpulse.domain.model.isNote
 import com.example.taskpulse.domain.model.isTaskItem
+import com.example.taskpulse.domain.sort.TaskSortField
+import com.example.taskpulse.domain.sort.TaskSortOrder
+import com.example.taskpulse.domain.sort.filterAndPartitionHomeEntries
 import com.example.taskpulse.domain.usecase.CompleteTaskAndStopRemindersUseCase
 import com.example.taskpulse.domain.usecase.DeleteTasksUseCase
 import com.example.taskpulse.domain.usecase.ObserveTasksUseCase
@@ -37,7 +37,7 @@ class HomeViewModel(
         viewModelScope.launch {
             observeTasksUseCase().collect { tasks ->
                 _uiState.update { previous ->
-                    val entries = buildDisplayedEntries(
+                    val entries = filterAndPartitionHomeEntries(
                         tasks = tasks,
                         query = previous.searchQuery,
                         sortField = previous.sortField,
@@ -55,7 +55,7 @@ class HomeViewModel(
 
     fun onSearchQueryChange(value: String) {
         _uiState.update { previous ->
-            val entries = buildDisplayedEntries(
+            val entries = filterAndPartitionHomeEntries(
                 tasks = previous.tasks,
                 query = value,
                 sortField = previous.sortField,
@@ -105,7 +105,7 @@ class HomeViewModel(
 
     fun setSortField(field: TaskSortField) {
         _uiState.update { previous ->
-            val entries = buildDisplayedEntries(
+            val entries = filterAndPartitionHomeEntries(
                 tasks = previous.tasks,
                 query = previous.searchQuery,
                 sortField = field,
@@ -121,7 +121,7 @@ class HomeViewModel(
 
     fun setSortOrder(order: TaskSortOrder) {
         _uiState.update { previous ->
-            val entries = buildDisplayedEntries(
+            val entries = filterAndPartitionHomeEntries(
                 tasks = previous.tasks,
                 query = previous.searchQuery,
                 sortField = previous.sortField,
@@ -205,60 +205,6 @@ class HomeViewModel(
             TaskNotificationHelper(application).cancelReminderNotification(taskId)
             deleteTasksUseCase(listOf(taskId))
             TaskPulseWidgetProvider.updatePendingCount(application)
-        }
-    }
-
-    private data class DisplayedEntries(
-        val tasks: List<Task>,
-        val notes: List<Task>
-    )
-
-    private fun buildDisplayedEntries(
-        tasks: List<Task>,
-        query: String,
-        sortField: TaskSortField,
-        sortOrder: TaskSortOrder
-    ): DisplayedEntries {
-        val q = query.trim().lowercase()
-        val filtered = if (q.isBlank()) {
-            tasks
-        } else {
-            tasks.filter { task ->
-                task.title.lowercase().contains(q) ||
-                    task.description.lowercase().contains(q)
-            }
-        }
-        return DisplayedEntries(
-            tasks = sortEntries(filtered.filter { it.isTaskItem }, sortField, sortOrder, byPriority = true),
-            notes = sortEntries(filtered.filter { it.isNote }, sortField, sortOrder, byPriority = false)
-        )
-    }
-
-    private fun sortEntries(
-        items: List<Task>,
-        sortField: TaskSortField,
-        sortOrder: TaskSortOrder,
-        byPriority: Boolean
-    ): List<Task> {
-        val sorted = when (sortField) {
-            TaskSortField.PRIORITY -> if (byPriority) {
-                items.sortedWith(
-                    compareBy<Task> { it.priorityRank() }
-                        .thenBy { it.dueAtMillis ?: Long.MAX_VALUE }
-                        .thenBy { it.title.lowercase() }
-                )
-            } else {
-                items.sortedByDescending { it.dueAtMillis ?: it.createdAtMillis }
-            }
-            TaskSortField.EDIT_DATE -> items.sortedBy { it.updatedAtMillis }
-            TaskSortField.CREATION_DATE -> items.sortedBy { it.createdAtMillis }
-            TaskSortField.TITLE -> items.sortedBy { it.title.lowercase() }
-        }
-        return when {
-            sortField == TaskSortField.PRIORITY && byPriority && sortOrder == TaskSortOrder.NEWEST_FIRST -> sorted
-            sortField == TaskSortField.PRIORITY && byPriority -> sorted.reversed()
-            sortOrder == TaskSortOrder.NEWEST_FIRST -> sorted.reversed()
-            else -> sorted
         }
     }
 

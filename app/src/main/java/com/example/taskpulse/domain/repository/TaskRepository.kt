@@ -1,7 +1,6 @@
 package com.example.taskpulse.domain.repository
 
 import com.example.taskpulse.domain.model.Task
-import com.example.taskpulse.domain.model.DailyProductivityPoint
 import com.example.taskpulse.domain.model.TaskDetails
 import com.example.taskpulse.domain.model.TaskPriority
 import com.example.taskpulse.domain.model.TaskStatus
@@ -15,8 +14,8 @@ interface TaskRepository {
     suspend fun listAllTasks(): List<Task>
     suspend fun getTask(taskId: Long): Task?
     suspend fun listTasksBlockedBy(blockerTaskId: Long): List<Task>
-    fun observeDailyProductivity(limit: Int): Flow<List<DailyProductivityPoint>>
     fun observeTaskDetails(taskId: Long): Flow<TaskDetails?>
+    suspend fun countPendingTasks(): Int
     suspend fun upsertTask(task: Task): Long
     suspend fun updateTaskStatus(taskId: Long, status: TaskStatus, updatedAtMillis: Long)
     suspend fun updateTaskDueDate(taskId: Long, dueAtMillis: Long, updatedAtMillis: Long)

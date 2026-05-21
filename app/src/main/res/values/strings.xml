@@ -6,7 +6,6 @@
     <string name="home_stats_title">Resumen</string>
     <string name="notification_channel_automation_title">Automatización TaskPulse</string>
     <string name="notification_automation_title">Regla de automatización</string>
-    <string name="insights_automation_sweep_hint">El motor de reglas se evalúa en segundo plano de forma periódica.</string>
     <string name="post_notifications_rationale">TaskPulse usa notificaciones para recordatorios y reglas de automatización.</string>
     <string name="post_notifications_denied_hint">Si desactivas notificaciones, algunos recordatorios no aparecerán.</string>
     <string name="notification_channel_reminders_title">Recordatorios de tareas</string>
@@ -19,28 +18,6 @@
     <string name="notification_toast_completed">Completada: %1$s</string>
     <string name="notification_toast_snoozed">Pospuesta %2$d min: %1$s</string>
     <string name="notification_toast_opened">En progreso: %1$s</string>
-    <string name="insights_screen_heading">Automatización</string>
-    <string name="insights_run_sweep_now">Ejecutar barrido ahora</string>
-    <string name="insights_run_sweep_running">Ejecutando barrido...</string>
-    <string name="insights_enable_rule">Activar regla</string>
-    <string name="insights_disable_rule">Desactivar regla</string>
-    <string name="insights_rule_name_label">Nombre de regla</string>
-    <string name="insights_rule_threshold_label">Umbral (días)</string>
-    <string name="insights_save_rule">Guardar regla</string>
-    <string name="insights_clear_rule_draft">Limpiar borrador</string>
-    <string name="insights_edit_rule">Editar</string>
-    <string name="insights_delete_rule">Eliminar</string>
-    <string name="insights_sweep_interval_label">Frecuencia barrido (horas)</string>
-    <string name="insights_save_interval">Guardar frecuencia</string>
-    <string name="insights_trigger_label">Trigger: %1$s</string>
-    <string name="insights_action_label">Acción: %1$s</string>
-    <string name="insights_change_trigger">Cambiar trigger</string>
-    <string name="insights_change_action">Cambiar acción</string>
-    <string name="insights_error_name_required">El nombre es obligatorio.</string>
-    <string name="insights_error_stale_needs_threshold">Stale Days requiere umbral.</string>
-    <string name="insights_interval_invalid">Frecuencia inválida.</string>
-    <string name="insights_interval_saved">Frecuencia guardada.</string>
-
     <string name="nav_tasks">Tareas</string>
     <string name="nav_calendar">Calendario</string>
     <string name="nav_settings">Ajustes</string>

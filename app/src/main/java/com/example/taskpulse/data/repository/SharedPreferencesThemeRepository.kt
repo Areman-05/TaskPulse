@@ -2,19 +2,20 @@ package com.example.taskpulse.data.repository
 
 import android.content.Context
 import com.example.taskpulse.domain.model.AppThemeMode
+import com.example.taskpulse.domain.repository.ThemeRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class SharedPreferencesThemeRepository(
     context: Context
-) {
+) : ThemeRepository {
     private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     private val _mode = MutableStateFlow(readMode())
 
-    val mode: StateFlow<AppThemeMode> = _mode.asStateFlow()
+    override val mode: StateFlow<AppThemeMode> = _mode.asStateFlow()
 
-    fun setMode(mode: AppThemeMode) {
+    override fun setMode(mode: AppThemeMode) {
         prefs.edit().putString(KEY_MODE, mode.name).apply()
         _mode.value = mode
     }

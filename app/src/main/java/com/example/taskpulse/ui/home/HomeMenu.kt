@@ -1,5 +1,7 @@
 package com.example.taskpulse.ui.home
 
+import com.example.taskpulse.domain.sort.TaskSortField
+import com.example.taskpulse.domain.sort.TaskSortOrder
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row

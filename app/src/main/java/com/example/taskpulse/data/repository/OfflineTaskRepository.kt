@@ -4,7 +4,6 @@ import com.example.taskpulse.data.local.dao.TaskDao
 import com.example.taskpulse.data.local.entity.TaskHistoryEntity
 import com.example.taskpulse.data.mapper.toDomain
 import com.example.taskpulse.data.mapper.toEntity
-import com.example.taskpulse.domain.model.DailyProductivityPoint
 import com.example.taskpulse.domain.model.Task
 import com.example.taskpulse.domain.model.TaskDetails
 import com.example.taskpulse.domain.model.TaskPriority
@@ -36,10 +35,8 @@ class OfflineTaskRepository(
     override suspend fun listTasksBlockedBy(blockerTaskId: Long): List<Task> =
         taskDao.listTasksBlockedBy(blockerTaskId).map { it.toDomain() }
 
-    override fun observeDailyProductivity(limit: Int): Flow<List<DailyProductivityPoint>> =
-        taskDao.observeDailyCompletions(TaskStatus.COMPLETED, limit).map { rows ->
-            rows.map { DailyProductivityPoint(it.dayStartMillis, it.completedCount) }
-        }
+    override suspend fun countPendingTasks(): Int =
+        taskDao.countTasksNotCompleted(TaskStatus.COMPLETED)
 
     override fun observeTaskDetails(taskId: Long): Flow<TaskDetails?> =
         taskDao.observeTaskDetails(taskId).map { details ->

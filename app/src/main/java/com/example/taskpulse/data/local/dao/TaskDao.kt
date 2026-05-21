@@ -7,7 +7,6 @@ import androidx.room.Query
 import androidx.room.Transaction
 import com.example.taskpulse.data.local.entity.TaskEntity
 import com.example.taskpulse.data.local.entity.TaskHistoryEntity
-import com.example.taskpulse.data.local.model.DailyCompletionCount
 import com.example.taskpulse.data.local.relation.TaskWithDetailsEntity
 import com.example.taskpulse.domain.model.TaskPriority
 import com.example.taskpulse.domain.model.TaskStatus
@@ -81,18 +80,6 @@ interface TaskDao {
 
     @Query("UPDATE tasks SET dueAtMillis = :dueAtMillis, updatedAtMillis = :updatedAtMillis WHERE id = :taskId")
     suspend fun updateDueDate(taskId: Long, dueAtMillis: Long, updatedAtMillis: Long)
-
-    @Query(
-        """
-        SELECT ((updatedAtMillis / 86400000) * 86400000) AS dayStartMillis, COUNT(*) AS completedCount
-        FROM tasks
-        WHERE status = :completedStatus
-        GROUP BY dayStartMillis
-        ORDER BY dayStartMillis DESC
-        LIMIT :limit
-        """
-    )
-    fun observeDailyCompletions(completedStatus: TaskStatus, limit: Int): Flow<List<DailyCompletionCount>>
 
     @Query(
         """

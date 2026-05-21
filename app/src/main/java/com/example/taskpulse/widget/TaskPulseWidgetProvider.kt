@@ -6,11 +6,9 @@ import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
-import androidx.room.Room
 import com.example.taskpulse.MainActivity
 import com.example.taskpulse.R
-import com.example.taskpulse.data.local.TaskPulseDatabase
-import com.example.taskpulse.domain.model.TaskStatus
+import com.example.taskpulse.core.requireAppContainer
 import kotlinx.coroutines.runBlocking
 
 class TaskPulseWidgetProvider : AppWidgetProvider() {
@@ -38,16 +36,7 @@ class TaskPulseWidgetProvider : AppWidgetProvider() {
 
         private fun fetchPendingTaskCount(context: Context): Int = runBlocking {
             runCatching {
-                val db = Room.databaseBuilder(
-                    context.applicationContext,
-                    TaskPulseDatabase::class.java,
-                    "taskpulse.db"
-                ).build()
-                try {
-                    db.taskDao().countTasksNotCompleted(TaskStatus.COMPLETED)
-                } finally {
-                    db.close()
-                }
+                context.requireAppContainer().countPendingTasksUseCase()
             }.getOrDefault(0)
         }
 

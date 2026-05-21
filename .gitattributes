@@ -1,0 +1,6 @@
+* text=auto eol=lf
+*.md text eol=lf encoding=utf-8
+*.kt text eol=lf
+*.xml text eol=lf
+*.gradle text eol=lf
+*.properties text eol=lf

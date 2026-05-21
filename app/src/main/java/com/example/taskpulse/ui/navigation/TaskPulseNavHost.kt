@@ -224,15 +224,8 @@ fun TaskPulseNavHost(container: AppContainer) {
                 val vm: SettingsViewModel = viewModel(
                     factory = SettingsViewModel.Factory(
                         themeRepository = container.themeRepository,
-                        observeDailyProductivityUseCase = container.observeDailyProductivityUseCase,
-                        observeAutomationRulesUseCase = container.observeAutomationRulesUseCase,
-                        setAutomationRuleEnabledUseCase = container.setAutomationRuleEnabledUseCase,
                         triggerAutomationSweepNowUseCase = container.triggerAutomationSweepNowUseCase,
-                        upsertAutomationRuleUseCase = container.upsertAutomationRuleUseCase,
-                        updateAutomationRuleDefinitionUseCase = container.updateAutomationRuleDefinitionUseCase,
-                        deleteAutomationRuleUseCase = container.deleteAutomationRuleUseCase,
-                        getAutomationRuleUseCase = container.getAutomationRuleUseCase,
-                        getEnabledAutomationRuleCountUseCase = container.getEnabledAutomationRuleCountUseCase,
+                        runEntryLifecycleMaintenanceUseCase = container.runEntryLifecycleMaintenanceUseCase,
                         getAutomationSweepIntervalUseCase = container.getAutomationSweepIntervalUseCase,
                         setAutomationSweepIntervalUseCase = container.setAutomationSweepIntervalUseCase,
                         rescheduleAutomationSweepUseCase = container.rescheduleAutomationSweepUseCase,

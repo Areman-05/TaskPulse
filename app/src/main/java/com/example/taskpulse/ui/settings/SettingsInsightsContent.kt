@@ -1,32 +1,20 @@
 package com.example.taskpulse.ui.settings
 
 import android.content.Intent
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -34,40 +22,20 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import com.example.taskpulse.R
-import com.example.taskpulse.domain.model.AutomationAction
-import com.example.taskpulse.domain.model.AutomationTrigger
+import com.example.taskpulse.domain.model.AutomationSweepRun
+import com.example.taskpulse.ui.components.TaskPulseAccentButton
+import com.example.taskpulse.ui.components.TaskPulsePrimaryButton
+import com.example.taskpulse.ui.components.TaskPulseSecondaryButton
 import com.example.taskpulse.ui.components.TaskPulseSectionCard
 import java.io.File
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-private val SettingsDayFormatter =
-    DateTimeFormatter.ofPattern("EEE dd/MM HH:mm").withZone(ZoneId.systemDefault())
+private val MaintenanceHistoryFormatter =
+    DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm").withZone(ZoneId.systemDefault())
 
-@Composable
-fun SettingsInsightsDialogs(
-    state: SettingsUiState,
-    viewModel: SettingsViewModel
-) {
-    if (state.rulePendingDeleteId != null) {
-        AlertDialog(
-            onDismissRequest = viewModel::cancelPendingDeleteRule,
-            title = { Text(stringResource(R.string.insights_delete_dialog_title)) },
-            text = { Text(stringResource(R.string.insights_delete_dialog_body)) },
-            confirmButton = {
-                TextButton(onClick = viewModel::confirmPendingDeleteRule) {
-                    Text(stringResource(R.string.insights_delete_confirm))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = viewModel::cancelPendingDeleteRule) {
-                    Text(stringResource(R.string.insights_delete_cancel))
-                }
-            }
-        )
-    }
-}
+private val HistoryRowShape = RoundedCornerShape(10.dp)
 
 @Composable
 fun SettingsPendingExportEffect(
@@ -90,89 +58,68 @@ private fun shareExport(context: android.content.Context, path: String, mimeType
         putExtra(Intent.EXTRA_STREAM, uri)
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
-    context.startActivity(Intent.createChooser(intent, context.getString(R.string.insights_share_chooser_title)))
+    context.startActivity(
+        Intent.createChooser(intent, context.getString(R.string.settings_export_share_title))
+    )
 }
 
 @Composable
-fun SettingsAutomationSection(
+fun SettingsMaintenanceSection(
     state: SettingsUiState,
     viewModel: SettingsViewModel
 ) {
     TaskPulseSectionCard {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(
-                stringResource(R.string.insights_automation_active_title),
+                text = stringResource(R.string.settings_maintenance_title),
                 style = MaterialTheme.typography.titleMedium
             )
             Text(
-                stringResource(
-                    R.string.insights_automation_rule_count,
-                    state.enabledAutomationCount,
-                    state.automationRules.size
-                )
-            )
-            Text(
-                text = stringResource(R.string.insights_automation_sweep_hint),
+                text = stringResource(R.string.settings_maintenance_subtitle),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Button(
-                onClick = viewModel::runSweepNow,
-                enabled = !state.isSweepRunning
-            ) {
-                Text(
-                    if (state.isSweepRunning) {
-                        stringResource(R.string.insights_run_sweep_running)
-                    } else {
-                        stringResource(R.string.insights_run_sweep_now)
-                    }
-                )
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(stringResource(R.string.insights_sweep_unmetered_label))
-                Switch(
-                    checked = state.sweepUnmeteredOnly,
-                    onCheckedChange = viewModel::onSweepUnmeteredChange
-                )
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(stringResource(R.string.insights_sweep_charging_label))
-                Switch(
-                    checked = state.sweepRequiresCharging,
-                    onCheckedChange = viewModel::onSweepRequiresChargingChange
-                )
-            }
+            TaskPulseAccentButton(
+                text = if (state.isMaintenanceRunning) {
+                    stringResource(R.string.settings_maintenance_running)
+                } else {
+                    stringResource(R.string.settings_maintenance_run_now)
+                },
+                onClick = viewModel::runMaintenanceNow,
+                enabled = !state.isMaintenanceRunning
+            )
+            SettingsToggleRow(
+                label = stringResource(R.string.settings_sweep_unmetered_label),
+                checked = state.sweepUnmeteredOnly,
+                onCheckedChange = viewModel::onSweepUnmeteredChange
+            )
+            SettingsToggleRow(
+                label = stringResource(R.string.settings_sweep_charging_label),
+                checked = state.sweepRequiresCharging,
+                onCheckedChange = viewModel::onSweepRequiresChargingChange
+            )
             OutlinedTextField(
                 value = state.sweepIntervalHours,
                 onValueChange = viewModel::onSweepIntervalChange,
-                label = { Text(stringResource(R.string.insights_sweep_interval_label)) },
+                label = { Text(stringResource(R.string.settings_sweep_interval_label)) },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                singleLine = true,
+                shape = RoundedCornerShape(10.dp)
             )
-            Button(onClick = viewModel::saveSweepInterval) {
-                Text(stringResource(R.string.insights_save_interval))
-            }
+            TaskPulseSecondaryButton(
+                text = stringResource(R.string.settings_save_interval),
+                onClick = viewModel::saveSweepInterval
+            )
             state.saveIntervalMessage?.let { key ->
                 val message = when (key) {
-                    "insights_interval_invalid" -> stringResource(R.string.insights_interval_invalid)
-                    "insights_interval_saved" -> stringResource(R.string.insights_interval_saved)
+                    "settings_interval_invalid" -> stringResource(R.string.settings_interval_invalid)
+                    "settings_interval_saved" -> stringResource(R.string.settings_interval_saved)
                     else -> key
                 }
                 Text(
                     text = message,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.tertiary
                 )
             }
         }
@@ -180,217 +127,129 @@ fun SettingsAutomationSection(
 }
 
 @Composable
-fun SettingsSweepHistorySection(
+private fun SettingsToggleRow(
+    label: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.weight(1f).padding(end = 12.dp)
+        )
+        Switch(checked = checked, onCheckedChange = onCheckedChange)
+    }
+}
+
+@Composable
+fun SettingsMaintenanceHistorySection(
     state: SettingsUiState,
     viewModel: SettingsViewModel
 ) {
-    if (state.recentSweepRuns.isEmpty()) return
     TaskPulseSectionCard {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(
-                stringResource(R.string.insights_sweep_history_title),
+                text = stringResource(R.string.settings_maintenance_history_title),
                 style = MaterialTheme.typography.titleMedium
             )
-            state.recentSweepRuns.forEach { run ->
-                val label = SettingsDayFormatter.format(Instant.ofEpochMilli(run.ranAtMillis))
-                Text(
-                    stringResource(R.string.insights_sweep_history_line, label, run.triggeredMatchCount),
-                    style = MaterialTheme.typography.bodySmall
+            Text(
+                text = stringResource(R.string.settings_maintenance_history_subtitle),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            if (state.recentSweepRuns.isEmpty()) {
+                MaintenanceHistoryRow(
+                    dateLabel = stringResource(R.string.settings_maintenance_history_empty),
+                    detail = stringResource(R.string.settings_maintenance_history_empty_hint)
                 )
+            } else {
+                state.recentSweepRuns.forEach { run ->
+                    MaintenanceHistoryRow(
+                        dateLabel = MaintenanceHistoryFormatter.format(
+                            Instant.ofEpochMilli(run.ranAtMillis)
+                        ),
+                        detail = maintenanceHistoryDetail(run)
+                    )
+                }
             }
             TextButton(onClick = viewModel::refreshSweepHistory) {
-                Text(stringResource(R.string.insights_sweep_history_refresh))
+                Text(stringResource(R.string.settings_maintenance_history_refresh))
             }
         }
     }
 }
 
 @Composable
-fun SettingsProductivitySection(state: SettingsUiState) {
-    TaskPulseSectionCard {
+private fun MaintenanceHistoryRow(
+    dateLabel: String,
+    detail: String
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = HistoryRowShape,
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.28f),
+        border = BorderStroke(
+            1.dp,
+            MaterialTheme.colorScheme.outline.copy(alpha = 0.28f)
+        )
+    ) {
         Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Text(
-                stringResource(R.string.insights_recent_completions_title),
-                style = MaterialTheme.typography.titleMedium
+                text = dateLabel,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurface
             )
-            if (state.productivityTrend.isEmpty()) {
-                Text(stringResource(R.string.insights_no_productivity_yet))
-            } else {
-                ProductivityBarChart(points = state.productivityTrend)
-                state.productivityTrend.forEach { point ->
-                    val label = SettingsDayFormatter.format(Instant.ofEpochMilli(point.dayStartMillis))
-                    Text("$label • ${point.completedCount}")
-                }
-            }
+            Text(
+                text = detail,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
+    }
+}
+
+@Composable
+private fun maintenanceHistoryDetail(run: AutomationSweepRun): String {
+    return if (run.triggeredMatchCount <= 0) {
+        stringResource(R.string.settings_maintenance_history_line_idle)
+    } else {
+        stringResource(R.string.settings_maintenance_history_line_actions, run.triggeredMatchCount)
     }
 }
 
 @Composable
 fun SettingsExportSection(viewModel: SettingsViewModel) {
     TaskPulseSectionCard {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(
-                stringResource(R.string.insights_export_section_title),
+                text = stringResource(R.string.settings_export_section_title),
                 style = MaterialTheme.typography.titleMedium
             )
-            Button(onClick = viewModel::exportJsonSnapshot) {
-                Text(stringResource(R.string.insights_export_json))
-            }
-            Button(onClick = viewModel::exportCsvSnapshot) {
-                Text(stringResource(R.string.insights_export_csv))
-            }
-            Button(onClick = viewModel::exportDatabaseBackup) {
-                Text(stringResource(R.string.insights_export_backup))
-            }
             Text(
-                text = stringResource(R.string.insights_export_hint),
+                text = stringResource(R.string.settings_export_hint),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-        }
-    }
-}
-
-@Composable
-fun SettingsAutomationRulesSection(
-    state: SettingsUiState,
-    viewModel: SettingsViewModel
-) {
-    TaskPulseSectionCard {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(
-                stringResource(R.string.insights_rules_section_title),
-                style = MaterialTheme.typography.titleMedium
+            TaskPulsePrimaryButton(
+                text = stringResource(R.string.settings_export_json),
+                onClick = viewModel::exportJsonSnapshot
             )
-            OutlinedTextField(
-                value = state.draftRuleName,
-                onValueChange = viewModel::onDraftNameChange,
-                label = { Text(stringResource(R.string.insights_rule_name_label)) },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+            TaskPulseSecondaryButton(
+                text = stringResource(R.string.settings_export_csv),
+                onClick = viewModel::exportCsvSnapshot
             )
-            OutlinedTextField(
-                value = state.draftThresholdDays,
-                onValueChange = viewModel::onDraftThresholdChange,
-                label = { Text(stringResource(R.string.insights_rule_threshold_label)) },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+            TaskPulseSecondaryButton(
+                text = stringResource(R.string.settings_export_backup),
+                onClick = viewModel::exportDatabaseBackup
             )
-            SettingsEnumDropdown(
-                label = stringResource(R.string.insights_trigger_pick_label),
-                selected = state.draftTrigger,
-                options = AutomationTrigger.entries,
-                optionLabel = { it.name },
-                onSelected = viewModel::onDraftTriggerChange
-            )
-            SettingsEnumDropdown(
-                label = stringResource(R.string.insights_action_pick_label),
-                selected = state.draftAction,
-                options = AutomationAction.entries,
-                optionLabel = { it.name },
-                onSelected = viewModel::onDraftActionChange
-            )
-            Button(onClick = viewModel::saveDraftRule) {
-                Text(stringResource(R.string.insights_save_rule))
-            }
-            TextButton(onClick = viewModel::clearDraft) {
-                Text(stringResource(R.string.insights_clear_rule_draft))
-            }
-            state.draftValidationError?.let { key ->
-                val message = when (key) {
-                    "insights_error_name_required" ->
-                        stringResource(R.string.insights_error_name_required)
-                    "insights_error_stale_needs_threshold" ->
-                        stringResource(R.string.insights_error_stale_needs_threshold)
-                    else -> key
-                }
-                Text(
-                    text = message,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error
-                )
-            }
-            state.automationRules.forEach { rule ->
-                val statusLabel = if (rule.enabled) "ON" else "OFF"
-                Column {
-                    Text(
-                        "- ${rule.name} [$statusLabel]",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    TextButton(onClick = { viewModel.toggleRule(rule.id, rule.enabled) }) {
-                        Text(
-                            if (rule.enabled) {
-                                stringResource(R.string.insights_disable_rule)
-                            } else {
-                                stringResource(R.string.insights_enable_rule)
-                            }
-                        )
-                    }
-                    TextButton(onClick = { viewModel.beginEdit(rule) }) {
-                        Text(stringResource(R.string.insights_edit_rule))
-                    }
-                    TextButton(onClick = { viewModel.requestDeleteRule(rule.id) }) {
-                        Text(stringResource(R.string.insights_delete_rule))
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun <T : Enum<T>> SettingsEnumDropdown(
-    label: String,
-    selected: T,
-    options: List<T>,
-    optionLabel: (T) -> String,
-    onSelected: (T) -> Unit
-) {
-    var expanded by remember { mutableStateOf(false) }
-    Box(modifier = Modifier.fillMaxWidth()) {
-        OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
-            readOnly = true,
-            value = optionLabel(selected),
-            onValueChange = {},
-            label = { Text(label) },
-            trailingIcon = {
-                IconButton(onClick = { expanded = true }) {
-                    Icon(Icons.Default.ArrowDropDown, contentDescription = null)
-                }
-            }
-        )
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .clickable { expanded = true }
-        )
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            options.forEach { option ->
-                DropdownMenuItem(
-                    text = { Text(optionLabel(option)) },
-                    onClick = {
-                        onSelected(option)
-                        expanded = false
-                    }
-                )
-            }
         }
     }
 }

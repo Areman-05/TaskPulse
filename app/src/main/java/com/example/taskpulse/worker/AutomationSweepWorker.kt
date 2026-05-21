@@ -17,49 +17,50 @@ class AutomationSweepWorker(
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         val container = AppContainer(applicationContext)
         val now = System.currentTimeMillis()
-        container.runEntryLifecycleMaintenanceUseCase(now)
+
+        val lifecycle = container.runEntryLifecycleMaintenanceUseCase(now)
+        var ruleMatchCount = 0
+
         val tasks = container.loadTaskSnapshot()
         val rules = container.loadAutomationRulesSnapshot().filter { it.enabled }
-        if (rules.isEmpty()) {
-            container.appendAutomationSweepRunUseCase(0, now)
-            return@withContext Result.success()
-        }
+        if (rules.isNotEmpty()) {
+            val matches = container.evaluateAutomationRulesUseCase(rules, tasks, now)
+                .distinctBy { "${it.ruleId}:${it.taskId}" }
+            ruleMatchCount = matches.size
 
-        val matches = container.evaluateAutomationRulesUseCase(rules, tasks, now)
-            .distinctBy { "${it.ruleId}:${it.taskId}" }
-        if (matches.isEmpty()) {
-            container.appendAutomationSweepRunUseCase(0, now)
-            return@withContext Result.success()
-        }
-
-        val notifier = TaskNotificationHelper(applicationContext)
-
-        matches.forEach { match ->
-            val rule = rules.find { it.id == match.ruleId } ?: return@forEach
-            val task = tasks.find { it.id == match.taskId } ?: return@forEach
-            when (rule.action) {
-                AutomationAction.SEND_NOTIFICATION -> {
-                    if (task.status == com.example.taskpulse.domain.model.TaskStatus.COMPLETED) return@forEach
-                    val notificationId = generateAutomationNotificationId(task.id, rule.id)
-                    notifier.showAutomationAlertIfAllowed(
-                        ruleName = rule.name,
-                        taskTitle = task.title,
-                        taskId = task.id,
-                        ruleId = rule.id,
-                        notificationId = notificationId,
-                        nowMillis = now
-                    )
-                }
-                AutomationAction.MARK_AS_IN_PROGRESS -> {
-                    container.markTaskInProgressUseCase(task.id, now)
-                }
-                AutomationAction.MARK_AS_FAILED -> {
-                    container.markTaskFailedUseCase(task.id, now, "automation:${rule.id}")
+            if (matches.isNotEmpty()) {
+                val notifier = TaskNotificationHelper(applicationContext)
+                matches.forEach { match ->
+                    val rule = rules.find { it.id == match.ruleId } ?: return@forEach
+                    val task = tasks.find { it.id == match.taskId } ?: return@forEach
+                    when (rule.action) {
+                        AutomationAction.SEND_NOTIFICATION -> {
+                            if (task.status == com.example.taskpulse.domain.model.TaskStatus.COMPLETED) {
+                                return@forEach
+                            }
+                            val notificationId = generateAutomationNotificationId(task.id, rule.id)
+                            notifier.showAutomationAlertIfAllowed(
+                                ruleName = rule.name,
+                                taskTitle = task.title,
+                                taskId = task.id,
+                                ruleId = rule.id,
+                                notificationId = notificationId,
+                                nowMillis = now
+                            )
+                        }
+                        AutomationAction.MARK_AS_IN_PROGRESS -> {
+                            container.markTaskInProgressUseCase(task.id, now)
+                        }
+                        AutomationAction.MARK_AS_FAILED -> {
+                            container.markTaskFailedUseCase(task.id, now, "automation:${rule.id}")
+                        }
+                    }
                 }
             }
         }
 
-        container.appendAutomationSweepRunUseCase(matches.size, now)
+        val loggedActions = lifecycle.autoCompleted + lifecycle.archived + ruleMatchCount
+        container.appendAutomationSweepRunUseCase(loggedActions, now)
 
         return@withContext Result.success()
     }

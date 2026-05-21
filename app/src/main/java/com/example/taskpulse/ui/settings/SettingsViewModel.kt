@@ -6,25 +6,14 @@ import androidx.lifecycle.viewModelScope
 import com.example.taskpulse.data.export.TaskSnapshotFileExporter
 import com.example.taskpulse.data.repository.SharedPreferencesThemeRepository
 import com.example.taskpulse.domain.model.AppThemeMode
-import com.example.taskpulse.domain.model.AutomationAction
-import com.example.taskpulse.domain.model.AutomationRule
 import com.example.taskpulse.domain.model.AutomationSweepRun
-import com.example.taskpulse.domain.model.AutomationTrigger
-import com.example.taskpulse.domain.model.DailyProductivityPoint
 import com.example.taskpulse.domain.repository.AutomationSettingsRepository
-import com.example.taskpulse.domain.usecase.DeleteAutomationRuleUseCase
-import com.example.taskpulse.domain.usecase.GetAutomationRuleUseCase
 import com.example.taskpulse.domain.usecase.GetAutomationSweepIntervalUseCase
-import com.example.taskpulse.domain.usecase.GetEnabledAutomationRuleCountUseCase
 import com.example.taskpulse.domain.usecase.LoadAutomationSweepHistoryUseCase
-import com.example.taskpulse.domain.usecase.ObserveAutomationRulesUseCase
-import com.example.taskpulse.domain.usecase.ObserveDailyProductivityUseCase
 import com.example.taskpulse.domain.usecase.RescheduleAutomationSweepUseCase
-import com.example.taskpulse.domain.usecase.SetAutomationRuleEnabledUseCase
+import com.example.taskpulse.domain.usecase.RunEntryLifecycleMaintenanceUseCase
 import com.example.taskpulse.domain.usecase.SetAutomationSweepIntervalUseCase
 import com.example.taskpulse.domain.usecase.TriggerAutomationSweepNowUseCase
-import com.example.taskpulse.domain.usecase.UpdateAutomationRuleDefinitionUseCase
-import com.example.taskpulse.domain.usecase.UpsertAutomationRuleUseCase
 import java.io.File
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -38,36 +27,19 @@ data class PendingTaskExport(
 )
 
 data class SettingsUiState(
-    val productivityTrend: List<DailyProductivityPoint> = emptyList(),
-    val automationRules: List<AutomationRule> = emptyList(),
-    val enabledAutomationCount: Int = 0,
-    val isSweepRunning: Boolean = false,
-    val draftRuleId: Long? = null,
-    val draftRuleName: String = "",
-    val draftTrigger: AutomationTrigger = AutomationTrigger.TASK_NOT_COMPLETED,
-    val draftAction: AutomationAction = AutomationAction.SEND_NOTIFICATION,
-    val draftThresholdDays: String = "",
+    val isMaintenanceRunning: Boolean = false,
     val sweepIntervalHours: String = "1",
-    val draftValidationError: String? = null,
     val saveIntervalMessage: String? = null,
     val sweepUnmeteredOnly: Boolean = false,
     val sweepRequiresCharging: Boolean = false,
     val recentSweepRuns: List<AutomationSweepRun> = emptyList(),
-    val pendingExport: PendingTaskExport? = null,
-    val rulePendingDeleteId: Long? = null
+    val pendingExport: PendingTaskExport? = null
 )
 
 class SettingsViewModel(
     private val themeRepository: SharedPreferencesThemeRepository,
-    observeDailyProductivityUseCase: ObserveDailyProductivityUseCase,
-    observeAutomationRulesUseCase: ObserveAutomationRulesUseCase,
-    private val setAutomationRuleEnabledUseCase: SetAutomationRuleEnabledUseCase,
     private val triggerAutomationSweepNowUseCase: TriggerAutomationSweepNowUseCase,
-    private val upsertAutomationRuleUseCase: UpsertAutomationRuleUseCase,
-    private val updateAutomationRuleDefinitionUseCase: UpdateAutomationRuleDefinitionUseCase,
-    private val deleteAutomationRuleUseCase: DeleteAutomationRuleUseCase,
-    private val getAutomationRuleUseCase: GetAutomationRuleUseCase,
-    private val getEnabledAutomationRuleCountUseCase: GetEnabledAutomationRuleCountUseCase,
+    private val runEntryLifecycleMaintenanceUseCase: RunEntryLifecycleMaintenanceUseCase,
     private val getAutomationSweepIntervalUseCase: GetAutomationSweepIntervalUseCase,
     private val setAutomationSweepIntervalUseCase: SetAutomationSweepIntervalUseCase,
     private val rescheduleAutomationSweepUseCase: RescheduleAutomationSweepUseCase,
@@ -90,22 +62,6 @@ class SettingsViewModel(
                 sweepRequiresCharging = automationSettingsRepository.isSweepRequiresCharging()
             )
         }
-        viewModelScope.launch {
-            observeDailyProductivityUseCase(limit = 7).collect { points ->
-                _uiState.update { it.copy(productivityTrend = points.asReversed()) }
-            }
-        }
-        viewModelScope.launch {
-            observeAutomationRulesUseCase().collect { rules ->
-                val enabledCount = getEnabledAutomationRuleCountUseCase()
-                _uiState.update {
-                    it.copy(
-                        automationRules = rules,
-                        enabledAutomationCount = enabledCount
-                    )
-                }
-            }
-        }
         refreshSweepHistory()
     }
 
@@ -124,120 +80,13 @@ class SettingsViewModel(
         }
     }
 
-    fun toggleRule(ruleId: Long, currentlyEnabled: Boolean) {
+    fun runMaintenanceNow() {
         viewModelScope.launch {
-            setAutomationRuleEnabledUseCase(ruleId, !currentlyEnabled)
-        }
-    }
-
-    fun runSweepNow() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isSweepRunning = true) }
+            _uiState.update { it.copy(isMaintenanceRunning = true) }
+            runEntryLifecycleMaintenanceUseCase()
             triggerAutomationSweepNowUseCase()
-            _uiState.update { it.copy(isSweepRunning = false) }
+            _uiState.update { it.copy(isMaintenanceRunning = false) }
             refreshSweepHistory()
-        }
-    }
-
-    fun onDraftNameChange(value: String) {
-        _uiState.update { it.copy(draftRuleName = value) }
-    }
-
-    fun onDraftThresholdChange(value: String) {
-        _uiState.update { it.copy(draftThresholdDays = value.filter { ch -> ch.isDigit() }) }
-    }
-
-    fun onDraftTriggerChange(trigger: AutomationTrigger) {
-        _uiState.update { it.copy(draftTrigger = trigger) }
-    }
-
-    fun onDraftActionChange(action: AutomationAction) {
-        _uiState.update { it.copy(draftAction = action) }
-    }
-
-    fun beginEdit(rule: AutomationRule) {
-        viewModelScope.launch {
-            val persisted = getAutomationRuleUseCase(rule.id) ?: return@launch
-            _uiState.update {
-                it.copy(
-                    draftRuleId = persisted.id,
-                    draftRuleName = persisted.name,
-                    draftTrigger = persisted.trigger,
-                    draftAction = persisted.action,
-                    draftThresholdDays = persisted.thresholdDays?.toString().orEmpty(),
-                    draftValidationError = null
-                )
-            }
-        }
-    }
-
-    fun clearDraft() {
-        _uiState.update {
-            it.copy(
-                draftRuleId = null,
-                draftRuleName = "",
-                draftTrigger = AutomationTrigger.TASK_NOT_COMPLETED,
-                draftAction = AutomationAction.SEND_NOTIFICATION,
-                draftThresholdDays = "",
-                draftValidationError = null
-            )
-        }
-    }
-
-    fun saveDraftRule() {
-        viewModelScope.launch {
-            val state = _uiState.value
-            val trimmedName = state.draftRuleName.trim()
-            if (trimmedName.isBlank()) {
-                _uiState.update { it.copy(draftValidationError = "insights_error_name_required") }
-                return@launch
-            }
-
-            val threshold = state.draftThresholdDays.toIntOrNull()
-            if (state.draftTrigger == AutomationTrigger.TASK_STALE_DAYS && threshold == null) {
-                _uiState.update { it.copy(draftValidationError = "insights_error_stale_needs_threshold") }
-                return@launch
-            }
-            if (state.draftRuleId == null) {
-                upsertAutomationRuleUseCase(
-                    AutomationRule(
-                        id = 0,
-                        name = trimmedName,
-                        enabled = true,
-                        trigger = state.draftTrigger,
-                        action = state.draftAction,
-                        thresholdDays = threshold
-                    )
-                )
-            } else {
-                updateAutomationRuleDefinitionUseCase(
-                    AutomationRule(
-                        id = state.draftRuleId,
-                        name = trimmedName,
-                        enabled = true,
-                        trigger = state.draftTrigger,
-                        action = state.draftAction,
-                        thresholdDays = threshold
-                    )
-                )
-            }
-            clearDraft()
-        }
-    }
-
-    fun requestDeleteRule(ruleId: Long) {
-        _uiState.update { it.copy(rulePendingDeleteId = ruleId) }
-    }
-
-    fun cancelPendingDeleteRule() {
-        _uiState.update { it.copy(rulePendingDeleteId = null) }
-    }
-
-    fun confirmPendingDeleteRule() {
-        viewModelScope.launch {
-            val id = _uiState.value.rulePendingDeleteId ?: return@launch
-            deleteAutomationRuleUseCase(id)
-            _uiState.update { it.copy(rulePendingDeleteId = null) }
         }
     }
 
@@ -247,7 +96,7 @@ class SettingsViewModel(
 
     fun saveSweepInterval() {
         val hours = _uiState.value.sweepIntervalHours.toLongOrNull()?.coerceAtLeast(1L) ?: run {
-            _uiState.update { it.copy(saveIntervalMessage = "insights_interval_invalid") }
+            _uiState.update { it.copy(saveIntervalMessage = "settings_interval_invalid") }
             return
         }
         setAutomationSweepIntervalUseCase(hours)
@@ -255,7 +104,7 @@ class SettingsViewModel(
         _uiState.update {
             it.copy(
                 sweepIntervalHours = hours.toString(),
-                saveIntervalMessage = "insights_interval_saved"
+                saveIntervalMessage = "settings_interval_saved"
             )
         }
     }
@@ -305,15 +154,8 @@ class SettingsViewModel(
 
     class Factory(
         private val themeRepository: SharedPreferencesThemeRepository,
-        private val observeDailyProductivityUseCase: ObserveDailyProductivityUseCase,
-        private val observeAutomationRulesUseCase: ObserveAutomationRulesUseCase,
-        private val setAutomationRuleEnabledUseCase: SetAutomationRuleEnabledUseCase,
         private val triggerAutomationSweepNowUseCase: TriggerAutomationSweepNowUseCase,
-        private val upsertAutomationRuleUseCase: UpsertAutomationRuleUseCase,
-        private val updateAutomationRuleDefinitionUseCase: UpdateAutomationRuleDefinitionUseCase,
-        private val deleteAutomationRuleUseCase: DeleteAutomationRuleUseCase,
-        private val getAutomationRuleUseCase: GetAutomationRuleUseCase,
-        private val getEnabledAutomationRuleCountUseCase: GetEnabledAutomationRuleCountUseCase,
+        private val runEntryLifecycleMaintenanceUseCase: RunEntryLifecycleMaintenanceUseCase,
         private val getAutomationSweepIntervalUseCase: GetAutomationSweepIntervalUseCase,
         private val setAutomationSweepIntervalUseCase: SetAutomationSweepIntervalUseCase,
         private val rescheduleAutomationSweepUseCase: RescheduleAutomationSweepUseCase,
@@ -326,15 +168,8 @@ class SettingsViewModel(
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             return SettingsViewModel(
                 themeRepository,
-                observeDailyProductivityUseCase,
-                observeAutomationRulesUseCase,
-                setAutomationRuleEnabledUseCase,
                 triggerAutomationSweepNowUseCase,
-                upsertAutomationRuleUseCase,
-                updateAutomationRuleDefinitionUseCase,
-                deleteAutomationRuleUseCase,
-                getAutomationRuleUseCase,
-                getEnabledAutomationRuleCountUseCase,
+                runEntryLifecycleMaintenanceUseCase,
                 getAutomationSweepIntervalUseCase,
                 setAutomationSweepIntervalUseCase,
                 rescheduleAutomationSweepUseCase,

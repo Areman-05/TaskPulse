@@ -81,7 +81,6 @@ Instala el APK generado en `app/build/outputs/apk/debug/` o ejecuta desde Androi
 
 Los unitarios cubren ordenación, calendario, ciclo de vida, automatización y mappers; los instrumentados, Room, repositorio y navegación principal.
 
-Para comprobar flujos manualmente en el IDE, usa el checklist ordenado en [TESTING_CHECKLIST_ANDROID_STUDIO.md](TESTING_CHECKLIST_ANDROID_STUDIO.md).
 
 ## Detalle técnico (opcional)
 

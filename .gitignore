@@ -13,3 +13,6 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Cursor (config local del IDE; no subir al repo)
+.cursor/

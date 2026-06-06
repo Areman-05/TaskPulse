@@ -3,6 +3,7 @@
 package com.example.taskpulse.ui.home
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -13,15 +14,16 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -62,7 +64,6 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
@@ -95,8 +96,6 @@ import java.time.format.DateTimeFormatter
 
 private val SearchShape = RoundedCornerShape(999.dp)
 private val GlassCardShape = RoundedCornerShape(12.dp)
-private val TaskCardShape = RoundedCornerShape(8.dp)
-private val SwipeCompleteGreen = Color(0xFF188038)
 private val TimeFormatter = DateTimeFormatter.ofPattern("HH:mm").withZone(ZoneId.systemDefault())
 private val FabShadowColor = Color(0x14000000)
 private const val NOTES_CAROUSEL_LIMIT = 2
@@ -359,17 +358,19 @@ private fun StitchTasksSection(
                     textAlign = TextAlign.Center
                 )
             } else {
-                tasks.forEachIndexed { index, task ->
-                    key(task.id) {
-                        TaskListItem(
-                            task = task,
-                            selectionMode = selectionMode,
-                            selected = task.id in selectedIds,
-                            showBottomBorder = index < tasks.lastIndex,
-                            onClick = { onTaskClick(task.id) },
-                            onDelete = { onDelete(task.id) },
-                            onComplete = { onComplete(task.id) }
-                        )
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    tasks.forEachIndexed { index, task ->
+                        key(task.id) {
+                            TaskListItem(
+                                task = task,
+                                selectionMode = selectionMode,
+                                selected = task.id in selectedIds,
+                                showBottomBorder = index < tasks.lastIndex,
+                                onClick = { onTaskClick(task.id) },
+                                onDelete = { onDelete(task.id) },
+                                onComplete = { onComplete(task.id) }
+                            )
+                        }
                     }
                 }
             }
@@ -836,52 +837,45 @@ private fun TaskListItem(
     onComplete: () -> Unit
 ) {
     val completed = task.status == TaskStatus.COMPLETED
-    val rowAlpha = if (completed && task.isTaskItem) 0.6f else 1f
 
-    val rowContent: @Composable () -> Unit = {
-        StitchTaskRow(
-            task = task,
-            completed = completed,
-            onClick = onClick,
-            modifier = Modifier
-                .alpha(rowAlpha)
-                .padding(16.dp)
-                .then(
-                    if (showBottomBorder) {
-                        Modifier.border(
-                            width = 0.dp,
-                            color = Color.Transparent
-                        )
-                    } else Modifier
+    Column(modifier = Modifier.fillMaxWidth()) {
+        if (selectionMode) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                SelectionIndicator(
+                    selected = selected,
+                    modifier = Modifier.padding(start = 12.dp)
                 )
-        )
-        if (showBottomBorder) {
-            HorizontalDivider(color = StitchThemeColors.cardBorder(), thickness = 1.dp)
-        }
-    }
-
-    if (selectionMode) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            SelectionIndicator(
-                selected = selected,
-                modifier = Modifier.padding(start = 12.dp)
-            )
-            Box(modifier = Modifier.weight(1f)) { rowContent() }
-        }
-        return
-    }
-
-    SwipeToDeleteContainer(onDelete = onDelete, modifier = Modifier.fillMaxWidth()) {
-        if (task.isTaskItem && !completed) {
-            SwipeToCompleteContainer(onComplete = onComplete) {
-                rowContent()
+                StitchTaskRow(
+                    task = task,
+                    completed = completed,
+                    onClick = onClick,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(16.dp)
+                )
             }
         } else {
-            rowContent()
+            TaskRowSwipeHost(
+                enableComplete = task.isTaskItem && !completed,
+                onDelete = onDelete,
+                onComplete = onComplete,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                StitchTaskRow(
+                    task = task,
+                    completed = completed,
+                    onClick = onClick,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp)
+                )
+            }
+        }
+
+        if (showBottomBorder) {
+            HorizontalDivider(color = StitchThemeColors.cardBorder(), thickness = 1.dp)
         }
     }
 }
@@ -895,44 +889,48 @@ private fun StitchTaskRow(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
-    val rowBackground = if (pressed) StitchThemeColors.rowHighlight() else Color.Transparent
+    val rowSurface = if (pressed) {
+        StitchThemeColors.rowHighlight()
+    } else {
+        StitchThemeColors.glassSurface()
+    }
 
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(rowBackground)
+            .heightIn(min = 52.dp)
+            .background(rowSurface)
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
                 onClick = onClick
             ),
-        verticalAlignment = Alignment.Top,
+        verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         if (completed && task.isTaskItem) {
             Icon(
                 imageVector = Icons.Outlined.CheckCircle,
                 contentDescription = stringResource(R.string.home_entry_task_completed_cd),
-                tint = MaterialTheme.colorScheme.primaryContainer,
-                modifier = Modifier
-                    .padding(top = 4.dp)
-                    .size(20.dp)
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(20.dp)
             )
         } else {
-            PriorityDot(
-                task = task,
-                modifier = Modifier.padding(top = 4.dp)
-            )
+            PriorityDot(task = task)
         }
 
         Column(
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             Text(
                 text = entryListTitle(task),
                 style = StitchTypography.bodyLg,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = if (completed && task.isTaskItem) {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                } else {
+                    MaterialTheme.colorScheme.onSurface
+                },
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 textDecoration = if (completed && task.isTaskItem) TextDecoration.LineThrough
@@ -947,15 +945,14 @@ private fun StitchTaskRow(
                             text = subtitle,
                             style = StitchTypography.bodyMd,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 2,
+                            maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                     }
                     dueAt != null -> {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.padding(top = 4.dp)
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Outlined.Schedule,
@@ -987,84 +984,107 @@ private fun PriorityDot(task: Task, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun SwipeToDeleteContainer(
+private fun TaskRowSwipeHost(
+    enableComplete: Boolean,
     onDelete: () -> Unit,
-    modifier: Modifier = Modifier,
-    content: @Composable RowScope.() -> Unit
-) {
-    val deleteState = rememberSwipeToDismissBoxState(
-        confirmValueChange = { value ->
-            if (value == SwipeToDismissBoxValue.StartToEnd) {
-                onDelete()
-                true
-            } else false
-        },
-        positionalThreshold = { totalDistance -> totalDistance * 0.82f }
-    )
-    SwipeToDismissBox(
-        modifier = modifier,
-        state = deleteState,
-        enableDismissFromStartToEnd = true,
-        enableDismissFromEndToStart = false,
-        backgroundContent = { SwipeDeleteBackground() },
-        content = content
-    )
-}
-
-@Composable
-private fun SwipeToCompleteContainer(
     onComplete: () -> Unit,
-    content: @Composable RowScope.() -> Unit
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
 ) {
-    val completeState = rememberSwipeToDismissBoxState(
+    val swipeState = rememberSwipeToDismissBoxState(
         confirmValueChange = { value ->
-            if (value == SwipeToDismissBoxValue.EndToStart) {
-                onComplete()
-                true
-            } else false
+            when (value) {
+                SwipeToDismissBoxValue.StartToEnd -> {
+                    onDelete()
+                    true
+                }
+                SwipeToDismissBoxValue.EndToStart -> if (enableComplete) {
+                    onComplete()
+                    true
+                } else {
+                    false
+                }
+                else -> false
+            }
         },
-        positionalThreshold = { totalDistance -> totalDistance * 0.82f }
+        positionalThreshold = { totalDistance -> totalDistance * 0.45f }
     )
+
     SwipeToDismissBox(
-        state = completeState,
-        enableDismissFromStartToEnd = false,
-        enableDismissFromEndToStart = true,
-        backgroundContent = { SwipeCompleteBackground() },
-        content = content
+        modifier = modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .animateContentSize(),
+        state = swipeState,
+        enableDismissFromStartToEnd = true,
+        enableDismissFromEndToStart = enableComplete,
+        backgroundContent = {
+            when (swipeState.dismissDirection) {
+                SwipeToDismissBoxValue.StartToEnd -> HomeSwipeDeleteBackground()
+                SwipeToDismissBoxValue.EndToStart -> HomeSwipeCompleteBackground()
+                else -> Unit
+            }
+        },
+        content = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+            ) {
+                content()
+            }
+        }
     )
 }
 
 @Composable
-private fun SwipeDeleteBackground() {
+private fun HomeSwipeDeleteBackground() {
     Box(
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxSize()
             .background(MaterialTheme.colorScheme.error),
         contentAlignment = Alignment.CenterStart
     ) {
-        Icon(
-            imageVector = Icons.Outlined.Delete,
-            contentDescription = stringResource(R.string.home_swipe_delete_hint),
-            tint = MaterialTheme.colorScheme.onError,
-            modifier = Modifier.padding(start = 20.dp).size(24.dp)
-        )
+        Row(
+            modifier = Modifier.padding(start = 20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Delete,
+                contentDescription = stringResource(R.string.home_swipe_delete_hint),
+                tint = MaterialTheme.colorScheme.onError,
+                modifier = Modifier.size(24.dp)
+            )
+        }
     }
 }
 
 @Composable
-private fun SwipeCompleteBackground() {
+private fun HomeSwipeCompleteBackground() {
     Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .background(SwipeCompleteGreen),
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.primary),
         contentAlignment = Alignment.CenterEnd
     ) {
-        Icon(
-            imageVector = Icons.Outlined.Check,
-            contentDescription = stringResource(R.string.home_swipe_complete_hint),
-            tint = Color.White,
-            modifier = Modifier.padding(end = 20.dp).size(24.dp)
-        )
+        Row(
+            modifier = Modifier.padding(end = 20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.home_swipe_complete_label),
+                style = StitchTypography.labelLg,
+                color = MaterialTheme.colorScheme.onPrimary
+            )
+            Icon(
+                imageVector = Icons.Outlined.Check,
+                contentDescription = stringResource(R.string.home_swipe_complete_hint),
+                tint = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.size(24.dp)
+            )
+        }
     }
 }
 
@@ -1107,7 +1127,10 @@ private fun entryListTitle(task: Task): String {
 
 private fun entrySubtitle(task: Task): String? {
     if (!task.isTaskItem) return null
-    return task.description.lineSequence().firstOrNull()?.trim()?.takeIf { it.isNotBlank() }
+    val line = task.description.lineSequence().firstOrNull()?.trim()?.takeIf { it.isNotBlank() }
+        ?: return null
+    if (line.equals(task.title.trim(), ignoreCase = true)) return null
+    return line
 }
 
 private fun findNextUpcomingTask(tasks: List<Task>): Task? {

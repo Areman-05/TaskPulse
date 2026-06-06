@@ -3,7 +3,8 @@
     <string name="splash_brand_name">TaskPulse</string>
     <string name="splash_tagline">Notas y tareas</string>
     <string name="splash_phase_database">Iniciando…</string>
-    <string name="splash_phase_data">Cargando datos…</string>
+    <string name="splash_phase_data">Cargando tareas y notas…</string>
+    <string name="splash_phase_files">Preparando archivos…</string>
     <string name="splash_phase_services">Preparando avisos…</string>
     <string name="splash_phase_ready">Listo</string>
     <string name="notification_channel_automation_title">Automatización TaskPulse</string>

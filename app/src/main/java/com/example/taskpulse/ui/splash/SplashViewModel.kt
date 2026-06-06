@@ -13,10 +13,13 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /** Tiempo mínimo visible para que la barra se lea con calma. */
-const val SPLASH_MIN_DISPLAY_MS = 1600L
+const val SPLASH_MIN_DISPLAY_MS = 1800L
 
 /** Margen extra para tests instrumentados. */
-const val SPLASH_TEST_ADVANCE_MS = 2800L
+const val SPLASH_TEST_ADVANCE_MS = 3200L
+
+private const val PHASE_HOLD_MS = 240L
+private const val PROGRESS_TICK_MS = 16L
 
 data class SplashUiState(
     val progress: Float = 0f,
@@ -38,15 +41,33 @@ class SplashViewModel(
         started = true
         viewModelScope.launch {
             val startedAt = System.currentTimeMillis()
-            runAppBootstrapUseCase { phase, progress ->
-                _uiState.update { it.copy(phase = phase, progress = progress) }
+            runAppBootstrapUseCase { phase, targetProgress ->
+                _uiState.update { it.copy(phase = phase) }
+                animateProgressTo(targetProgress)
+                if (targetProgress < 1f) {
+                    delay(PHASE_HOLD_MS)
+                }
             }
             val elapsed = System.currentTimeMillis() - startedAt
             if (elapsed < SPLASH_MIN_DISPLAY_MS) {
                 delay(SPLASH_MIN_DISPLAY_MS - elapsed)
             }
-            _uiState.update { it.copy(progress = 1f, phase = SplashBootstrapPhase.Ready, finished = true) }
+            _uiState.update {
+                it.copy(progress = 1f, phase = SplashBootstrapPhase.Ready, finished = true)
+            }
         }
+    }
+
+    private suspend fun animateProgressTo(target: Float) {
+        while (_uiState.value.progress < target - 0.004f) {
+            delay(PROGRESS_TICK_MS)
+            _uiState.update { state ->
+                val gap = target - state.progress
+                val step = (gap * 0.14f).coerceIn(0.003f, 0.055f)
+                state.copy(progress = (state.progress + step).coerceAtMost(target))
+            }
+        }
+        _uiState.update { it.copy(progress = target) }
     }
 
     class Factory(

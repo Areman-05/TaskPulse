@@ -158,7 +158,10 @@ class AppContainer(context: Context) {
         ensureStarterAutomationRulesUseCase = ensureStarterAutomationRulesUseCase,
         runEntryLifecycleMaintenanceUseCase = runEntryLifecycleMaintenanceUseCase,
         getAutomationSweepIntervalUseCase = getAutomationSweepIntervalUseCase,
-        automationSettingsRepository = automationSettingsRepository
+        automationSettingsRepository = automationSettingsRepository,
+        taskRepository = taskRepository,
+        automationRuleRepository = automationRuleRepository,
+        taskSnapshotFileExporter = taskSnapshotFileExporter
     )
 
     fun getAutomationSweepIntervalHours(): Long = getAutomationSweepIntervalUseCase()

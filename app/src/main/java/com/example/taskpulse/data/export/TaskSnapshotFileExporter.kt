@@ -27,4 +27,9 @@ class TaskSnapshotFileExporter(
         TaskPulseTaskExport.copyDatabase(sourceDbFile, target)
         return target
     }
+
+    /** Crea el directorio de exportaciones y toca el filesystem para el arranque. */
+    fun warmUp() {
+        exportDir.listFiles()
+    }
 }

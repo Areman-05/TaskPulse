@@ -1,6 +1,5 @@
 package com.example.taskpulse.ui.components
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,9 +18,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.example.taskpulse.ui.theme.TaskPulseColors
 
-private val MinimalShape = RoundedCornerShape(4.dp)
+private val CardShape = RoundedCornerShape(12.dp)
+private val ButtonShape = RoundedCornerShape(24.dp)
 
 @Composable
 fun TaskPulseSectionCard(
@@ -30,12 +29,11 @@ fun TaskPulseSectionCard(
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = MinimalShape,
+        shape = CardShape,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f),
             contentColor = MaterialTheme.colorScheme.onSurface
         ),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
@@ -56,11 +54,11 @@ fun TaskPulsePrimaryButton(
         onClick = onClick,
         enabled = enabled,
         modifier = modifier.fillMaxWidth(),
-        shape = MinimalShape,
+        shape = ButtonShape,
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary,
-            disabledContainerColor = MaterialTheme.colorScheme.outline,
+            disabledContainerColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f),
             disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
         ),
         elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
@@ -80,12 +78,12 @@ fun TaskPulseAccentButton(
         onClick = onClick,
         enabled = enabled,
         modifier = modifier.fillMaxWidth(),
-        shape = MinimalShape,
+        shape = ButtonShape,
         colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.tertiary,
-            contentColor = MaterialTheme.colorScheme.onTertiary,
-            disabledContainerColor = TaskPulseColors.Celestial.copy(alpha = 0.35f),
-            disabledContentColor = MaterialTheme.colorScheme.onTertiary.copy(alpha = 0.55f)
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.35f),
+            disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.55f)
         ),
         elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
     ) {
@@ -105,22 +103,23 @@ fun TaskPulseFilterChip(
         onClick = onClick,
         label = label,
         modifier = modifier,
+        shape = RoundedCornerShape(20.dp),
         colors = FilterChipDefaults.filterChipColors(
-            containerColor = Color.Transparent,
+            containerColor = MaterialTheme.colorScheme.surface,
             labelColor = MaterialTheme.colorScheme.onSurface,
             iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            selectedContainerColor = MaterialTheme.colorScheme.tertiary,
-            selectedLabelColor = MaterialTheme.colorScheme.onTertiary,
-            selectedLeadingIconColor = MaterialTheme.colorScheme.onTertiary,
-            selectedTrailingIconColor = MaterialTheme.colorScheme.onTertiary
+            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            selectedLeadingIconColor = MaterialTheme.colorScheme.primary,
+            selectedTrailingIconColor = MaterialTheme.colorScheme.primary
         ),
         border = FilterChipDefaults.filterChipBorder(
             enabled = true,
             selected = selected,
-            borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.55f),
-            selectedBorderColor = MaterialTheme.colorScheme.tertiary,
+            borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.6f),
+            selectedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f),
             disabledBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f),
-            disabledSelectedBorderColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.5f)
+            disabledSelectedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)
         )
     )
 }
@@ -136,8 +135,7 @@ fun TaskPulseSecondaryButton(
         onClick = onClick,
         enabled = enabled,
         modifier = modifier.fillMaxWidth(),
-        shape = MinimalShape,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
+        shape = ButtonShape,
         colors = ButtonDefaults.outlinedButtonColors(
             contentColor = MaterialTheme.colorScheme.primary
         )

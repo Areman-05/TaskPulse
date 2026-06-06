@@ -35,7 +35,7 @@ private const val ScrollDragSensitivity = 0.72f
 fun TaskPulseScrollableColumn(
     modifier: Modifier = Modifier,
     scrollState: ScrollState = rememberScrollState(),
-    showAmbientGrid: Boolean = true,
+    showAmbientGrid: Boolean = false,
     showScrollbar: Boolean = true,
     contentPaddingBottom: androidx.compose.ui.unit.Dp = 32.dp,
     scrollbarCompact: Boolean = false,
@@ -116,7 +116,7 @@ private fun TaskPulseScrollbar(
 ) {
     val density = LocalDensity.current
     val trackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
-    val thumbColor = MaterialTheme.colorScheme.tertiary
+    val thumbColor = MaterialTheme.colorScheme.primary
     val touchWidth = if (compact) 32.dp else 28.dp
     val visualThumbWidth = if (compact) 10.dp else 12.dp
     val visualTrackWidth = if (compact) 5.dp else 6.dp

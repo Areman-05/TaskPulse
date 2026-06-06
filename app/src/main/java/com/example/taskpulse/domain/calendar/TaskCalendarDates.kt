@@ -7,6 +7,7 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
 import java.util.Locale
 
 private val zone: ZoneId get() = ZoneId.systemDefault()
@@ -47,6 +48,13 @@ object TaskCalendarDates {
 
     fun formatDayLabel(date: LocalDate): String =
         date.format(DateTimeFormatter.ofPattern("d MMM yyyy", Locale("es", "ES")))
+
+    fun formatDayHeading(date: LocalDate): String {
+        val locale = Locale("es", "ES")
+        val month = date.month.getDisplayName(TextStyle.FULL, locale)
+            .replaceFirstChar { it.titlecase(locale) }
+        return "${date.dayOfMonth} de $month"
+    }
 
     fun isCalendarDueTime(millis: Long): Boolean {
         val zoned = Instant.ofEpochMilli(millis).atZone(zone)

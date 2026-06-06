@@ -2,39 +2,50 @@
 
 package com.example.taskpulse.ui.calendar
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.ChevronLeft
+import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material.icons.outlined.Menu
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -42,29 +53,47 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.taskpulse.R
 import com.example.taskpulse.domain.calendar.TaskCalendarDates
 import com.example.taskpulse.domain.model.Task
+import com.example.taskpulse.domain.model.TaskPriority
 import com.example.taskpulse.domain.model.TaskStatus
 import com.example.taskpulse.domain.model.isNote
-import com.example.taskpulse.ui.components.TaskPulseScrollableColumn
-import com.example.taskpulse.ui.theme.EntryPriorityDot
-import com.example.taskpulse.ui.theme.EntryPriorityLabel
+import com.example.taskpulse.domain.model.isTaskItem
+import com.example.taskpulse.ui.theme.StitchTypography
+import com.example.taskpulse.ui.theme.TaskPriorityColors
+import com.example.taskpulse.ui.theme.TaskPulseColors
+import java.time.Duration
+import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
 
 private val CardShape = RoundedCornerShape(12.dp)
-private val MonthShape = RoundedCornerShape(16.dp)
+private val StitchBorder = Color(0xFFDADCE0)
+private val OnSurface = Color(0xFF191C1D)
+private val FabShadowColor = Color(0x1F000000)
+private val TimeFormatter = DateTimeFormatter.ofPattern("h:mm a", Locale("es", "ES"))
+
+private data class CalendarCell(
+    val date: LocalDate,
+    val inCurrentMonth: Boolean
+)
 
 @Composable
 fun CalendarScreen(
@@ -74,64 +103,71 @@ fun CalendarScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
-    Column(modifier = Modifier.fillMaxSize()) {
-            TopAppBar(
-                title = {
-                    Text(
-                        stringResource(R.string.calendar_title),
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                },
-                actions = {
-                    IconButton(onClick = { onNavigateToCreate(state.selectedDate) }) {
-                        Icon(
-                            Icons.Outlined.Edit,
-                            contentDescription = stringResource(R.string.calendar_fab_create_cd)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background.copy(alpha = 0.92f)
-                )
-            )
+    Box(modifier = Modifier.fillMaxSize()) {
+        StitchCalendarBackground(modifier = Modifier.fillMaxSize())
 
-            TaskPulseScrollableColumn(
+        Scaffold(
+            containerColor = Color.Transparent,
+            topBar = {
+                StitchCalendarTopBar(onAddClick = { onNavigateToCreate(state.selectedDate) })
+            }
+        ) { innerPadding ->
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 20.dp),
-                showAmbientGrid = false,
-                showScrollbar = false,
-                contentPaddingBottom = 24.dp
+                    .padding(innerPadding)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp)
+                    .padding(top = 8.dp, bottom = 112.dp)
             ) {
-                CalendarMonthHeader(
-                    month = state.visibleMonth,
-                    onPrevious = viewModel::previousMonth,
-                    onNext = viewModel::nextMonth,
-                    onTitleClick = viewModel::showMonthYearPicker
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                CalendarMonthGrid(
+                StitchCalendarCard(
                     month = state.visibleMonth,
                     selectedDate = state.selectedDate,
                     datesWithEntries = state.datesWithEntries,
+                    onPreviousMonth = viewModel::previousMonth,
+                    onNextMonth = viewModel::nextMonth,
+                    onMonthTitleClick = viewModel::showMonthYearPicker,
                     onSelectDate = viewModel::selectDate
                 )
-                Spacer(modifier = Modifier.height(20.dp))
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 Text(
-                    text = stringResource(
-                        R.string.calendar_day_heading,
-                        TaskCalendarDates.formatDayLabel(state.selectedDate)
-                    ),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
+                    text = TaskCalendarDates.formatDayHeading(state.selectedDate),
+                    style = StitchTypography.headlineSm,
+                    color = OnSurface,
+                    modifier = Modifier.padding(start = 8.dp, bottom = 8.dp)
                 )
-                Spacer(modifier = Modifier.height(10.dp))
-                CalendarDayEntriesList(
+
+                StitchDayEntriesCard(
                     tasks = state.selectedDayTasks,
                     notes = state.selectedDayNotes,
                     onOpenEntry = onOpenEntry
                 )
             }
+        }
+
+        FloatingActionButton(
+            onClick = { onNavigateToCreate(state.selectedDate) },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 16.dp, bottom = 72.dp)
+                .size(56.dp)
+                .shadow(8.dp, CircleShape, ambientColor = FabShadowColor, spotColor = FabShadowColor),
+            containerColor = TaskPulseColors.Primary,
+            contentColor = TaskPulseColors.White,
+            shape = CircleShape,
+            elevation = FloatingActionButtonDefaults.elevation(
+                defaultElevation = 4.dp,
+                pressedElevation = 6.dp
+            )
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Edit,
+                contentDescription = stringResource(R.string.calendar_fab_create_cd),
+                modifier = Modifier.size(24.dp)
+            )
+        }
     }
 
     if (state.showMonthYearPicker) {
@@ -144,263 +180,222 @@ fun CalendarScreen(
 }
 
 @Composable
-private fun CalendarDayEntriesList(
-    tasks: List<Task>,
-    notes: List<Task>,
-    onOpenEntry: (Long) -> Unit
-) {
-    val hasTasks = tasks.isNotEmpty()
-    val hasNotes = notes.isNotEmpty()
-    val totalCount = tasks.size + notes.size
-
-    if (totalCount == 0) {
-        Text(
-            text = stringResource(R.string.calendar_empty_day),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center
+private fun StitchCalendarBackground(modifier: Modifier = Modifier) {
+    Canvas(modifier = modifier) {
+        drawRect(color = TaskPulseColors.Gray50)
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(TaskPulseColors.Bronze.copy(alpha = 0.05f), Color.Transparent),
+                center = Offset(size.width / 2f, 0f),
+                radius = size.height * 0.7f
+            ),
+            center = Offset(size.width / 2f, 0f),
+            radius = size.height * 0.7f
         )
-        return
-    }
-
-    Text(
-        text = stringResource(R.string.calendar_day_count, totalCount),
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
-    )
-    Spacer(modifier = Modifier.height(8.dp))
-
-    if (hasTasks) {
-        CalendarSectionHeader(title = stringResource(R.string.home_tasks_section))
-        tasks.forEach { task ->
-            CalendarEntryCard(task = task, onClick = { onOpenEntry(task.id) })
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-    }
-    if (hasNotes) {
-        CalendarSectionHeader(
-            title = stringResource(R.string.home_notes_section),
-            showDividerAbove = hasTasks
-        )
-        notes.forEach { note ->
-            CalendarEntryCard(task = note, onClick = { onOpenEntry(note.id) })
-            Spacer(modifier = Modifier.height(8.dp))
-        }
     }
 }
 
 @Composable
-private fun CalendarSectionHeader(
-    title: String,
-    showDividerAbove: Boolean = false
-) {
-    Column(
-        modifier = Modifier.padding(
-            top = if (showDividerAbove) 16.dp else 4.dp,
-            bottom = 8.dp
-        )
-    ) {
-        if (showDividerAbove) {
-            HorizontalDivider(
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-        }
-        Text(
-            text = title,
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-    }
-}
-
-@Composable
-private fun CalendarMonthHeader(
-    month: YearMonth,
-    onPrevious: () -> Unit,
-    onNext: () -> Unit,
-    onTitleClick: () -> Unit
-) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = MonthShape,
-        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.88f),
-        border = androidx.compose.foundation.BorderStroke(
-            1.dp,
-            MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 4.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            IconButton(onClick = onPrevious) {
-                Icon(
-                    Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                    contentDescription = stringResource(R.string.calendar_prev_month_cd)
-                )
-            }
-            Text(
-                text = TaskCalendarDates.formatMonthYear(month),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
+private fun StitchCalendarTopBar(onAddClick: () -> Unit) {
+    Surface(color = TaskPulseColors.Gray50, tonalElevation = 0.dp, shadowElevation = 0.dp) {
+        Column {
+            Row(
                 modifier = Modifier
-                    .clickable(onClick = onTitleClick)
-                    .padding(horizontal = 12.dp, vertical = 8.dp)
-            )
-            IconButton(onClick = onNext) {
-                Icon(
-                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = stringResource(R.string.calendar_next_month_cd)
+                    .fillMaxWidth()
+                    .height(64.dp)
+                    .padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                IconButton(onClick = { }, modifier = Modifier.size(40.dp)) {
+                    Icon(
+                        imageVector = Icons.Outlined.Menu,
+                        contentDescription = stringResource(R.string.home_menu_cd),
+                        tint = TaskPulseColors.OnSurfaceVariant,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+                Text(
+                    text = stringResource(R.string.calendar_title),
+                    style = StitchTypography.headlineMd,
+                    color = TaskPulseColors.Primary
                 )
+                IconButton(onClick = onAddClick, modifier = Modifier.size(40.dp)) {
+                    Icon(
+                        imageVector = Icons.Outlined.Add,
+                        contentDescription = stringResource(R.string.calendar_fab_create_cd),
+                        tint = TaskPulseColors.Primary,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
+            HorizontalDivider(color = TaskPulseColors.OutlineVariant, thickness = 1.dp)
         }
     }
 }
 
 @Composable
-private fun CalendarMonthGrid(
+private fun StitchCalendarCard(
     month: YearMonth,
     selectedDate: LocalDate,
     datesWithEntries: Set<LocalDate>,
+    onPreviousMonth: () -> Unit,
+    onNextMonth: () -> Unit,
+    onMonthTitleClick: () -> Unit,
     onSelectDate: (LocalDate) -> Unit
 ) {
     val locale = Locale("es", "ES")
     val weekdayLabels = remember {
-        (1..7).map { day ->
-            java.time.DayOfWeek.of(day)
-                .getDisplayName(TextStyle.SHORT_STANDALONE, locale)
-                .take(1)
-                .uppercase(locale)
-        }
+        listOf(
+            java.time.DayOfWeek.SUNDAY,
+            java.time.DayOfWeek.MONDAY,
+            java.time.DayOfWeek.TUESDAY,
+            java.time.DayOfWeek.WEDNESDAY,
+            java.time.DayOfWeek.THURSDAY,
+            java.time.DayOfWeek.FRIDAY,
+            java.time.DayOfWeek.SATURDAY
+        ).map { it.getDisplayName(TextStyle.SHORT_STANDALONE, locale).take(1).uppercase(locale) }
     }
-    val cells = remember(month) { buildMonthCells(month) }
+    val cells = remember(month) { buildMonthGrid(month) }
     val today = remember { TaskCalendarDates.today() }
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = MonthShape,
-        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.88f),
-        border = androidx.compose.foundation.BorderStroke(
-            1.dp,
-            MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-        )
+        shape = CardShape,
+        color = TaskPulseColors.Gray100,
+        border = BorderStroke(1.dp, StitchBorder),
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = TaskCalendarDates.formatMonthYear(month),
+                    style = StitchTypography.headlineSm,
+                    color = OnSurface,
+                    modifier = Modifier.clickable(onClick = onMonthTitleClick)
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    IconButton(onClick = onPreviousMonth, modifier = Modifier.size(32.dp)) {
+                        Icon(
+                            Icons.Outlined.ChevronLeft,
+                            stringResource(R.string.calendar_prev_month_cd),
+                            tint = TaskPulseColors.OnSurfaceVariant
+                        )
+                    }
+                    IconButton(onClick = onNextMonth, modifier = Modifier.size(32.dp)) {
+                        Icon(
+                            Icons.Outlined.ChevronRight,
+                            stringResource(R.string.calendar_next_month_cd),
+                            tint = TaskPulseColors.OnSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             Row(modifier = Modifier.fillMaxWidth()) {
                 weekdayLabels.forEach { label ->
                     Text(
                         text = label,
                         modifier = Modifier.weight(1f),
                         textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = StitchTypography.labelLg,
+                        color = TaskPulseColors.OnSurfaceVariant
                     )
                 }
             }
+
             Spacer(modifier = Modifier.height(8.dp))
+
             cells.chunked(7).forEach { week ->
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    week.forEach { date ->
-                        CalendarDayCell(
-                            date = date,
-                            isSelected = date == selectedDate,
-                            hasEntries = date != null && date in datesWithEntries,
-                            isToday = date == today,
-                            onClick = { if (date != null) onSelectDate(date) },
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    week.forEach { cell ->
+                        StitchDayCell(
+                            cell = cell,
+                            isSelected = cell.date == selectedDate,
+                            isToday = cell.date == today,
+                            hasEntries = cell.date in datesWithEntries,
+                            onClick = { onSelectDate(cell.date) },
                             modifier = Modifier.weight(1f)
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(4.dp))
             }
         }
     }
 }
 
-private fun buildMonthCells(month: YearMonth): List<LocalDate?> {
-    val first = month.atDay(1)
-    val offset = first.dayOfWeek.value - 1
-    val cells = mutableListOf<LocalDate?>()
-    repeat(offset) { cells.add(null) }
-    for (day in 1..month.lengthOfMonth()) {
-        cells.add(month.atDay(day))
-    }
-    while (cells.size % 7 != 0) {
-        cells.add(null)
-    }
-    return cells
-}
-
 @Composable
-private fun CalendarDayCell(
-    date: LocalDate?,
+private fun StitchDayCell(
+    cell: CalendarCell,
     isSelected: Boolean,
-    hasEntries: Boolean,
     isToday: Boolean,
+    hasEntries: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val bg = when {
-        date == null -> Color.Transparent
-        isSelected -> MaterialTheme.colorScheme.primary
-        else -> Color.Transparent
-    }
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+
     val textColor = when {
-        date == null -> Color.Transparent
-        isSelected -> MaterialTheme.colorScheme.onPrimary
-        else -> MaterialTheme.colorScheme.onSurface
+        isSelected -> TaskPulseColors.White
+        !cell.inCurrentMonth -> TaskPulseColors.Outline.copy(alpha = 0.55f)
+        isToday -> TaskPulseColors.Primary
+        else -> OnSurface
     }
-    val todayRing = date != null && isToday && !isSelected
 
     Box(
-        modifier = modifier
-            .aspectRatio(1f)
-            .padding(2.dp)
-            .clip(CircleShape)
-            .then(
-                if (todayRing) {
-                    Modifier.border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
-                } else {
-                    Modifier
-                }
-            )
-            .background(bg)
-            .then(
-                if (date != null) {
-                    Modifier.clickable(onClick = onClick)
-                } else {
-                    Modifier
-                }
-            ),
+        modifier = modifier.height(44.dp),
         contentAlignment = Alignment.Center
     ) {
-        if (date != null) {
+        val circleModifier = when {
+            isSelected -> Modifier
+                .size(40.dp)
+                .shadow(2.dp, CircleShape)
+                .clip(CircleShape)
+                .background(TaskPulseColors.Primary)
+            isToday -> Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .border(2.dp, TaskPulseColors.Primary, CircleShape)
+            pressed -> Modifier
+                .size(36.dp)
+                .clip(CircleShape)
+                .background(TaskPulseColors.SurfaceVariant)
+            else -> Modifier.size(36.dp)
+        }
+
+        Box(
+            modifier = circleModifier
+                .clickable(interactionSource = interactionSource, indication = null, onClick = onClick),
+            contentAlignment = Alignment.Center
+        ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = date.dayOfMonth.toString(),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = textColor,
-                    fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal
+                    text = cell.date.dayOfMonth.toString(),
+                    style = StitchTypography.bodyMd.copy(
+                        fontWeight = if (isSelected || isToday) FontWeight.Medium else FontWeight.Normal
+                    ),
+                    color = textColor
                 )
-                if (hasEntries) {
+                if (hasEntries && cell.inCurrentMonth && !isSelected) {
                     Box(
                         modifier = Modifier
                             .padding(top = 2.dp)
-                            .size(5.dp)
+                            .size(4.dp)
                             .clip(CircleShape)
-                            .background(
-                                if (isSelected) {
-                                    MaterialTheme.colorScheme.onPrimary
-                                } else {
-                                    MaterialTheme.colorScheme.primary
-                                }
-                            )
+                            .background(TaskPulseColors.Primary)
                     )
                 }
             }
@@ -409,56 +404,114 @@ private fun CalendarDayCell(
 }
 
 @Composable
-private fun CalendarEntryCard(
-    task: Task,
-    onClick: () -> Unit
+private fun StitchDayEntriesCard(
+    tasks: List<Task>,
+    notes: List<Task>,
+    onOpenEntry: (Long) -> Unit
 ) {
-    val borderColor = when {
-        task.isNote -> MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)
-        task.status == TaskStatus.COMPLETED -> MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
-        else -> MaterialTheme.colorScheme.outline.copy(alpha = 0.45f)
-    }
-    val title = if (task.isNote) {
-        task.title.ifBlank { task.description.lineSequence().firstOrNull().orEmpty() }
-    } else {
-        task.title
+    val entries = tasks + notes
+
+    if (entries.isEmpty()) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = CardShape,
+            color = TaskPulseColors.Gray100,
+            border = BorderStroke(1.dp, StitchBorder)
+        ) {
+            Text(
+                text = stringResource(R.string.calendar_empty_day),
+                style = StitchTypography.bodyMd,
+                color = TaskPulseColors.OnSurfaceVariant,
+                modifier = Modifier.padding(16.dp),
+                textAlign = TextAlign.Center
+            )
+        }
+        return
     }
 
     Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = CardShape,
+        color = TaskPulseColors.Gray100,
+        border = BorderStroke(1.dp, StitchBorder),
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp
+    ) {
+        Column {
+            entries.forEachIndexed { index, entry ->
+                StitchDayEntryRow(task = entry, onClick = { onOpenEntry(entry.id) })
+                if (index < entries.lastIndex) {
+                    HorizontalDivider(color = StitchBorder, thickness = 1.dp)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun StitchDayEntryRow(task: Task, onClick: () -> Unit) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    val completed = task.isTaskItem && task.status == TaskStatus.COMPLETED
+
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(CardShape)
-            .border(1.dp, borderColor, CardShape)
-            .clickable(onClick = onClick),
-        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
-        shape = CardShape
+            .background(if (pressed) TaskPulseColors.SurfaceVariant else Color.Transparent)
+            .clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = Alignment.Top
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            EntryPriorityDot(task = task)
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = if (task.isNote) {
-                        stringResource(R.string.create_entry_note)
-                    } else {
-                        stringResource(R.string.create_entry_task)
-                    },
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleSmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+        if (completed) {
+            Spacer(modifier = Modifier.size(8.dp))
+        } else {
+            Box(
+                modifier = Modifier
+                    .padding(top = 4.dp)
+                    .size(8.dp)
+                    .clip(CircleShape)
+                    .background(entryDotColor(task))
+            )
+        }
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = entryTitle(task),
+                style = StitchTypography.bodyLg,
+                color = if (completed) TaskPulseColors.Outline else OnSurface,
+                textDecoration = if (completed) TextDecoration.LineThrough else TextDecoration.None,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+            formatEntryTime(task)?.let { time ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.padding(top = 4.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Schedule,
+                        contentDescription = null,
+                        tint = TaskPulseColors.OnSurfaceVariant,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Text(
+                        text = time,
+                        style = StitchTypography.bodyMd,
+                        color = TaskPulseColors.OnSurfaceVariant
+                    )
+                }
             }
-            EntryPriorityLabel(task = task)
+        }
+
+        if (completed) {
+            Icon(
+                imageVector = Icons.Outlined.CheckCircle,
+                contentDescription = null,
+                tint = TaskPulseColors.Primary,
+                modifier = Modifier.size(24.dp)
+            )
         }
     }
 }
@@ -492,10 +545,7 @@ private fun MonthYearPickerDialog(
                     IconButton(onClick = { selectedYear -= 1 }) {
                         Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null)
                     }
-                    Text(
-                        text = selectedYear.toString(),
-                        style = MaterialTheme.typography.titleLarge
-                    )
+                    Text(text = selectedYear.toString(), style = StitchTypography.headlineMd)
                     IconButton(onClick = { selectedYear += 1 }) {
                         Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
                     }
@@ -511,15 +561,12 @@ private fun MonthYearPickerDialog(
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(8.dp))
                                 .background(
-                                    if (selected) {
-                                        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.35f)
-                                    } else {
-                                        MaterialTheme.colorScheme.surface
-                                    }
+                                    if (selected) TaskPulseColors.BronzeMuted
+                                    else Color.Transparent
                                 )
                                 .clickable { selectedMonth = month }
                                 .padding(vertical = 10.dp, horizontal = 12.dp),
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = OnSurface
                         )
                     }
                 }
@@ -536,4 +583,59 @@ private fun MonthYearPickerDialog(
             }
         }
     )
+}
+
+private fun buildMonthGrid(month: YearMonth): List<CalendarCell> {
+    val first = month.atDay(1)
+    val startOffset = first.dayOfWeek.value % 7
+    val cells = mutableListOf<CalendarCell>()
+
+    val prevMonth = month.minusMonths(1)
+    for (i in startOffset downTo 1) {
+        cells.add(
+            CalendarCell(
+                date = prevMonth.atDay(prevMonth.lengthOfMonth() - i + 1),
+                inCurrentMonth = false
+            )
+        )
+    }
+    for (day in 1..month.lengthOfMonth()) {
+        cells.add(CalendarCell(date = month.atDay(day), inCurrentMonth = true))
+    }
+    var nextDay = 1
+    val nextMonth = month.plusMonths(1)
+    while (cells.size % 7 != 0) {
+        cells.add(CalendarCell(date = nextMonth.atDay(nextDay++), inCurrentMonth = false))
+    }
+    return cells
+}
+
+private fun entryTitle(task: Task): String {
+    if (!task.isNote) return task.title
+    return task.title.ifBlank {
+        task.description.lineSequence().firstOrNull()?.trim().orEmpty()
+    }.ifBlank { task.description.trim() }
+}
+
+private fun entryDotColor(task: Task): Color = when {
+    task.isNote -> TaskPulseColors.Outline
+    task.priority == TaskPriority.CRITICAL -> TaskPriorityColors.Critical
+    task.priority == TaskPriority.HIGH -> TaskPulseColors.Primary
+    task.priority == TaskPriority.MEDIUM -> TaskPulseColors.Tertiary
+    else -> TaskPulseColors.Secondary
+}
+
+private fun formatEntryTime(task: Task): String? {
+    val due = task.dueAtMillis ?: return null
+    if (TaskCalendarDates.isCalendarDueTime(due)) return null
+    val zone = ZoneId.systemDefault()
+    val start = Instant.ofEpochMilli(due).atZone(zone)
+    val end = start.plus(Duration.ofHours(1))
+    val startText = TimeFormatter.format(start).replace(".", "").trim()
+    val endText = TimeFormatter.format(end).replace(".", "").trim()
+    return if (task.priority == TaskPriority.HIGH || task.priority == TaskPriority.CRITICAL) {
+        "$startText - $endText"
+    } else {
+        startText
+    }
 }

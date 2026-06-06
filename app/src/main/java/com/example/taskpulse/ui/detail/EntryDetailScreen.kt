@@ -104,7 +104,7 @@ fun EntryDetailScreen(
                                 Icon(
                                     imageVector = Icons.Outlined.Check,
                                     contentDescription = stringResource(R.string.detail_complete_cd),
-                                    tint = MaterialTheme.colorScheme.tertiary
+                                    tint = MaterialTheme.colorScheme.primary
                                 )
                             }
                         }
@@ -410,7 +410,7 @@ private fun TaskMetaColumn(
 
 @Composable
 private fun fieldColors() = OutlinedTextFieldDefaults.colors(
-    focusedBorderColor = MaterialTheme.colorScheme.tertiary,
+    focusedBorderColor = MaterialTheme.colorScheme.primary,
     unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
     focusedContainerColor = Color.Transparent,
     unfocusedContainerColor = Color.Transparent

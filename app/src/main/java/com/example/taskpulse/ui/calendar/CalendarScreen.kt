@@ -348,21 +348,28 @@ private fun CalendarDayCell(
 ) {
     val bg = when {
         date == null -> Color.Transparent
-        isSelected -> MaterialTheme.colorScheme.tertiary
-        isToday -> MaterialTheme.colorScheme.tertiary.copy(alpha = 0.22f)
+        isSelected -> MaterialTheme.colorScheme.primary
         else -> Color.Transparent
     }
     val textColor = when {
         date == null -> Color.Transparent
-        isSelected -> MaterialTheme.colorScheme.onTertiary
+        isSelected -> MaterialTheme.colorScheme.onPrimary
         else -> MaterialTheme.colorScheme.onSurface
     }
+    val todayRing = date != null && isToday && !isSelected
 
     Box(
         modifier = modifier
             .aspectRatio(1f)
             .padding(2.dp)
             .clip(CircleShape)
+            .then(
+                if (todayRing) {
+                    Modifier.border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                } else {
+                    Modifier
+                }
+            )
             .background(bg)
             .then(
                 if (date != null) {
@@ -389,9 +396,9 @@ private fun CalendarDayCell(
                             .clip(CircleShape)
                             .background(
                                 if (isSelected) {
-                                    MaterialTheme.colorScheme.onTertiary
+                                    MaterialTheme.colorScheme.onPrimary
                                 } else {
-                                    MaterialTheme.colorScheme.tertiary
+                                    MaterialTheme.colorScheme.primary
                                 }
                             )
                     )
@@ -407,9 +414,9 @@ private fun CalendarEntryCard(
     onClick: () -> Unit
 ) {
     val borderColor = when {
-        task.isNote -> MaterialTheme.colorScheme.outline.copy(alpha = 0.45f)
-        task.status == TaskStatus.COMPLETED -> MaterialTheme.colorScheme.outline.copy(alpha = 0.55f)
-        else -> MaterialTheme.colorScheme.tertiary
+        task.isNote -> MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)
+        task.status == TaskStatus.COMPLETED -> MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
+        else -> MaterialTheme.colorScheme.outline.copy(alpha = 0.45f)
     }
     val title = if (task.isNote) {
         task.title.ifBlank { task.description.lineSequence().firstOrNull().orEmpty() }
@@ -421,7 +428,7 @@ private fun CalendarEntryCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(CardShape)
-            .border(1.5.dp, borderColor, CardShape)
+            .border(1.dp, borderColor, CardShape)
             .clickable(onClick = onClick),
         color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
         shape = CardShape

@@ -45,7 +45,7 @@ import com.example.taskpulse.domain.model.TaskPriority
 import com.example.taskpulse.ui.components.TaskPulseAccentButton
 import com.example.taskpulse.ui.components.TaskPulseFilterChip
 
-private val FieldShape = RoundedCornerShape(10.dp)
+private val FieldShape = RoundedCornerShape(12.dp)
 
 @Composable
 fun CreateTaskScreen(
@@ -244,12 +244,12 @@ private fun noteFieldColors() = TextFieldDefaults.colors(
     focusedIndicatorColor = Color.Transparent,
     unfocusedIndicatorColor = Color.Transparent,
     disabledIndicatorColor = Color.Transparent,
-    cursorColor = MaterialTheme.colorScheme.tertiary
+    cursorColor = MaterialTheme.colorScheme.primary
 )
 
 @Composable
 private fun fieldColors() = OutlinedTextFieldDefaults.colors(
-    focusedBorderColor = MaterialTheme.colorScheme.tertiary,
+    focusedBorderColor = MaterialTheme.colorScheme.primary,
     unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
 )
 

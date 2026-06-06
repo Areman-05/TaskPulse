@@ -53,7 +53,7 @@ fun TaskReminderSelectorRow(
         MaterialTheme.colorScheme.onSurfaceVariant
     }
     val arrowTint = if (enabled) {
-        MaterialTheme.colorScheme.tertiary
+        MaterialTheme.colorScheme.primary
     } else {
         MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)
     }

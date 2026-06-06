@@ -30,7 +30,7 @@ class CreateTaskViewModel(
     private val _uiState = MutableStateFlow(
         CreateTaskUiState(
             entryType = initialEntryType,
-            scheduleDateEnabled = initialScheduleDate != null,
+            scheduleDateEnabled = initialScheduleDate != null || initialEntryType == TaskEntryType.TASK,
             scheduleDate = initialScheduleDate ?: TaskCalendarDates.today()
         )
     )

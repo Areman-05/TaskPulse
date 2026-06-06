@@ -99,8 +99,14 @@
     <string name="detail_edit_title">Editar</string>
     <string name="detail_save">Guardar cambios</string>
     <string name="detail_cancel_edit">Cancelar edición</string>
+    <string name="create_screen_title">Nueva entrada</string>
     <string name="create_screen_title_note">Nueva nota</string>
     <string name="create_screen_title_task">Nueva tarea</string>
+    <string name="create_save">Guardar</string>
+    <string name="create_title_placeholder">Título de la tarea</string>
+    <string name="create_description_placeholder">Añadir descripción…</string>
+    <string name="create_due_date_label">Fecha límite</string>
+    <string name="create_priority_section">Prioridad</string>
     <string name="home_blocked_by">Bloqueada por tarea #%1$d hasta completarse</string>
     <string name="home_task_status_line">%1$s · prioridad %2$s</string>
     <string name="home_mark_complete">Marcar completada</string>

@@ -11,7 +11,7 @@ data class CreateTaskUiState(
     val title: String = "",
     val description: String = "",
     val priority: TaskPriority = TaskPriority.MEDIUM,
-    val scheduleDateEnabled: Boolean = false,
+    val scheduleDateEnabled: Boolean = true,
     val scheduleDate: LocalDate = TaskCalendarDates.today(),
     val reminderEnabled: Boolean = true,
     val reminderMinutes: Int = 30,

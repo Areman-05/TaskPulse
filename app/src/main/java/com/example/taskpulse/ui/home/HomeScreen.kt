@@ -212,14 +212,14 @@ fun HomeScreen(
                 onPriority = viewModel::showPriorityPicker,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 96.dp)
+                    .padding(bottom = 72.dp)
             )
         } else {
             FloatingActionButton(
                 onClick = onNavigateToCreate,
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(end = 16.dp, bottom = 96.dp)
+                    .padding(end = 16.dp, bottom = 72.dp)
                     .size(56.dp)
                     .shadow(
                         elevation = 8.dp,

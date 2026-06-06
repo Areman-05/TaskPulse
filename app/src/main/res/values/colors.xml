@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="tp_black">#FF000000</color>
+    <color name="tp_bronze">#FFC67744</color>
+    <color name="tp_bronze_light">#FFE8A86B</color>
+    <color name="tp_gray_light">#FFF1F3F4</color>
+    <color name="tp_gray_dark">#FF202124</color>
     <color name="tp_white">#FFFFFFFF</color>
-    <color name="tp_celestial">#FF8ECAE6</color>
 </resources>

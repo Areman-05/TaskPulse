@@ -2,7 +2,7 @@
 <resources>
 
     <style name="Theme.TaskPulse" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/tp_black</item>
+        <item name="windowSplashScreenBackground">@color/tp_gray_light</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
         <item name="windowSplashScreenAnimationDuration">300</item>
         <item name="postSplashScreenTheme">@style/Theme.TaskPulse.Main</item>

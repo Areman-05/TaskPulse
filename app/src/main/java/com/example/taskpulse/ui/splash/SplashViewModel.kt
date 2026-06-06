@@ -1,0 +1,60 @@
+package com.example.taskpulse.ui.splash
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import com.example.taskpulse.domain.usecase.RunAppBootstrapUseCase
+import com.example.taskpulse.domain.usecase.SplashBootstrapPhase
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+
+/** Tiempo mínimo visible para que la barra se lea con calma. */
+const val SPLASH_MIN_DISPLAY_MS = 1600L
+
+/** Margen extra para tests instrumentados. */
+const val SPLASH_TEST_ADVANCE_MS = 2800L
+
+data class SplashUiState(
+    val progress: Float = 0f,
+    val phase: SplashBootstrapPhase = SplashBootstrapPhase.Database,
+    val finished: Boolean = false
+)
+
+class SplashViewModel(
+    private val runAppBootstrapUseCase: RunAppBootstrapUseCase
+) : ViewModel() {
+
+    private val _uiState = MutableStateFlow(SplashUiState())
+    val uiState: StateFlow<SplashUiState> = _uiState.asStateFlow()
+
+    private var started = false
+
+    fun start() {
+        if (started) return
+        started = true
+        viewModelScope.launch {
+            val startedAt = System.currentTimeMillis()
+            runAppBootstrapUseCase { phase, progress ->
+                _uiState.update { it.copy(phase = phase, progress = progress) }
+            }
+            val elapsed = System.currentTimeMillis() - startedAt
+            if (elapsed < SPLASH_MIN_DISPLAY_MS) {
+                delay(SPLASH_MIN_DISPLAY_MS - elapsed)
+            }
+            _uiState.update { it.copy(progress = 1f, phase = SplashBootstrapPhase.Ready, finished = true) }
+        }
+    }
+
+    class Factory(
+        private val runAppBootstrapUseCase: RunAppBootstrapUseCase
+    ) : ViewModelProvider.Factory {
+        @Suppress("UNCHECKED_CAST")
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            return SplashViewModel(runAppBootstrapUseCase) as T
+        }
+    }
+}

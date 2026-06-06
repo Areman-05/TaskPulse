@@ -73,6 +73,10 @@ class HomeViewModel(
         _uiState.update { it.copy(viewMode = mode) }
     }
 
+    fun setShowAllNotes(showAll: Boolean) {
+        _uiState.update { it.copy(showAllNotes = showAll) }
+    }
+
     fun toggleSelectionMode() {
         _uiState.update { previous ->
             if (previous.selectionMode) {

@@ -1,23 +1,48 @@
 package com.example.taskpulse.ui.navigation
 
+import android.app.Activity
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.filled.TaskAlt
+import androidx.compose.material.icons.outlined.CalendarToday
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.TaskAlt
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarDefaults
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -41,6 +66,9 @@ import com.example.taskpulse.ui.settings.SettingsScreen
 import com.example.taskpulse.ui.settings.SettingsViewModel
 import com.example.taskpulse.ui.settings.archive.ArchiveScreen
 import com.example.taskpulse.ui.settings.archive.ArchiveViewModel
+import com.example.taskpulse.ui.theme.StitchTypography
+import com.example.taskpulse.ui.theme.TaskPulseColors
+import com.example.taskpulse.domain.model.TaskEntryType
 import java.time.LocalDate
 
 @Composable
@@ -56,76 +84,53 @@ fun TaskPulseNavHost(container: AppContainer) {
         AppDestinations.SETTINGS_ROUTE
     )
 
+    val view = LocalView.current
+    val backgroundColor = MaterialTheme.colorScheme.background
+    SideEffect {
+        if (!view.isInEditMode) {
+            val window = (view.context as Activity).window
+            window.navigationBarColor = if (showBottomBar) {
+                TaskPulseColors.SurfaceContainer.toArgb()
+            } else {
+                backgroundColor.toArgb()
+            }
+        }
+    }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             if (showBottomBar) {
-                NavigationBar(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    tonalElevation = 0.dp,
-                    windowInsets = NavigationBarDefaults.windowInsets
-                ) {
-                    NavigationBarItem(
-                        icon = { Icon(Icons.Outlined.Home, contentDescription = null) },
-                        label = {
-                            Text(
-                                stringResource(R.string.nav_tasks),
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                        },
-                        colors = navItemColors(),
-                        selected = currentRoute == AppDestinations.TASKS_ROUTE,
-                        onClick = {
-                            navController.navigate(AppDestinations.TASKS_ROUTE) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
+                StitchBottomNavBar(
+                    currentRoute = currentRoute,
+                    onTasksClick = {
+                        navController.navigate(AppDestinations.TASKS_ROUTE) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
                             }
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                    )
-                    NavigationBarItem(
-                        icon = { Icon(Icons.Outlined.CalendarMonth, contentDescription = null) },
-                        label = {
-                            Text(
-                                stringResource(R.string.nav_calendar),
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                        },
-                        colors = navItemColors(),
-                        selected = currentRoute == AppDestinations.CALENDAR_ROUTE,
-                        onClick = {
-                            navController.navigate(AppDestinations.CALENDAR_ROUTE) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
+                    },
+                    onCalendarClick = {
+                        navController.navigate(AppDestinations.CALENDAR_ROUTE) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
                             }
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                    )
-                    NavigationBarItem(
-                        icon = { Icon(Icons.Outlined.Settings, contentDescription = null) },
-                        label = {
-                            Text(
-                                stringResource(R.string.nav_settings),
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                        },
-                        colors = navItemColors(),
-                        selected = currentRoute == AppDestinations.SETTINGS_ROUTE,
-                        onClick = {
-                            navController.navigate(AppDestinations.SETTINGS_ROUTE) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
+                    },
+                    onSettingsClick = {
+                        navController.navigate(AppDestinations.SETTINGS_ROUTE) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
                             }
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                    )
-                }
+                    }
+                )
             }
         }
     ) { innerPadding ->
@@ -148,6 +153,11 @@ fun TaskPulseNavHost(container: AppContainer) {
                     viewModel = vm,
                     onNavigateToCreate = {
                         navController.navigate(AppDestinations.createRoute())
+                    },
+                    onNavigateToCreateNote = {
+                        navController.navigate(
+                            AppDestinations.createRoute(entryType = TaskEntryType.NOTE)
+                        )
                     },
                     onOpenEntryDetail = { entryId ->
                         navController.navigate(AppDestinations.entryDetailRoute(entryId))
@@ -199,20 +209,32 @@ fun TaskPulseNavHost(container: AppContainer) {
                         type = NavType.StringType
                         nullable = true
                         defaultValue = null
+                    },
+                    navArgument(AppDestinations.ARG_ENTRY_TYPE) {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
                     }
                 )
             ) { backStackEntry ->
                 val scheduleDateArg = backStackEntry.arguments
                     ?.getString(AppDestinations.ARG_SCHEDULE_DATE)
                     ?.takeIf { it.isNotBlank() }
+                val entryTypeArg = backStackEntry.arguments
+                    ?.getString(AppDestinations.ARG_ENTRY_TYPE)
+                    ?.takeIf { it.isNotBlank() }
                 val initialScheduleDate = scheduleDateArg?.let(LocalDate::parse)
+                val initialEntryType = entryTypeArg?.let { name ->
+                    runCatching { TaskEntryType.valueOf(name) }.getOrNull()
+                } ?: TaskEntryType.TASK
                 val vm: CreateTaskViewModel = viewModel(
                     factory = CreateTaskViewModel.Factory(
                         application = appContext as android.app.Application,
                         createDefaultTaskUseCase = container.createDefaultTaskUseCase,
                         upsertTaskUseCase = container.upsertTaskUseCase,
                         scheduleTaskReminderUseCase = container.scheduleTaskReminderUseCase,
-                        initialScheduleDate = initialScheduleDate
+                        initialScheduleDate = initialScheduleDate,
+                        initialEntryType = initialEntryType
                     )
                 )
                 CreateTaskScreen(
@@ -254,10 +276,121 @@ fun TaskPulseNavHost(container: AppContainer) {
 }
 
 @Composable
-private fun navItemColors() = NavigationBarItemDefaults.colors(
-    selectedIconColor = MaterialTheme.colorScheme.primary,
-    selectedTextColor = MaterialTheme.colorScheme.primary,
-    indicatorColor = MaterialTheme.colorScheme.primaryContainer,
-    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-)
+private fun StitchBottomNavBar(
+    currentRoute: String,
+    onTasksClick: () -> Unit,
+    onCalendarClick: () -> Unit,
+    onSettingsClick: () -> Unit
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp),
+        color = TaskPulseColors.SurfaceContainer,
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(80.dp)
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                StitchNavItem(
+                    selected = currentRoute == AppDestinations.TASKS_ROUTE,
+                    icon = Icons.Outlined.TaskAlt,
+                    selectedIcon = Icons.Filled.TaskAlt,
+                    label = stringResource(R.string.nav_tasks),
+                    onClick = onTasksClick
+                )
+                StitchNavItem(
+                    selected = currentRoute == AppDestinations.CALENDAR_ROUTE,
+                    icon = Icons.Outlined.CalendarToday,
+                    selectedIcon = Icons.Outlined.CalendarToday,
+                    label = stringResource(R.string.nav_calendar),
+                    onClick = onCalendarClick
+                )
+                StitchNavItem(
+                    selected = currentRoute == AppDestinations.SETTINGS_ROUTE,
+                    icon = Icons.Outlined.Settings,
+                    selectedIcon = Icons.Outlined.Settings,
+                    label = stringResource(R.string.nav_settings),
+                    onClick = onSettingsClick
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun StitchNavItem(
+    selected: Boolean,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    selectedIcon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    onClick: () -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    val scale = if (pressed) 0.9f else 1f
+
+    val iconBackground = when {
+        selected -> TaskPulseColors.SecondaryContainer
+        pressed -> TaskPulseColors.BronzeMuted
+        else -> Color.Transparent
+    }
+    val contentColor = when {
+        selected -> TaskPulseColors.Primary
+        pressed -> TaskPulseColors.Bronze
+        else -> TaskPulseColors.OnSurfaceVariant
+    }
+
+    Column(
+        modifier = Modifier
+            .scale(scale)
+            .semantics {
+                role = Role.Tab
+                this.selected = selected
+                contentDescription = label
+            }
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            )
+            .padding(horizontal = 4.dp, vertical = 4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Pill solo detrás del icono (M3 / captura Stitch), no alrededor del label
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(50))
+                .background(iconBackground)
+                .padding(horizontal = 20.dp, vertical = 4.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = if (selected) selectedIcon else icon,
+                contentDescription = null,
+                tint = contentColor,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+        Text(
+            text = label,
+            style = StitchTypography.labelLg,
+            color = when {
+                selected -> TaskPulseColors.OnSecondaryContainer
+                pressed -> TaskPulseColors.Bronze
+                else -> TaskPulseColors.OnSurfaceVariant
+            },
+            modifier = Modifier.padding(top = 4.dp)
+        )
+    }
+}

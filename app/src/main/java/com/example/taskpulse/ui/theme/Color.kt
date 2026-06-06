@@ -2,12 +2,24 @@ package com.example.taskpulse.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-/** Paleta gris + naranja bronceado, inspirada en Google Tasks / Calendar. */
+/** Paleta Stitch / M3: gris neutro + bronce + primario tierra. */
 object TaskPulseColors {
+    /** FAB y acentos fuertes (Stitch). */
     val Bronze = Color(0xFFC67744)
     val BronzeDark = Color(0xFFA86532)
     val BronzeLight = Color(0xFFE8A86B)
     val BronzeMuted = Color(0xFFF4E4D9)
+    val OnSurfaceVariant = Color(0xFF54433B)
+
+    /** Primary M3 Stitch (#8d4a1b). */
+    val Primary = Color(0xFF8D4A1B)
+    val PrimaryContainer = Color(0xFFAB6231)
+    val SecondaryContainer = Color(0xFFEDDDD2)
+    val OnSecondaryContainer = Color(0xFF6C6058)
+    val OutlineVariant = Color(0xFFD9C2B6)
+    val SurfaceContainer = Color(0xFFEDEEEF)
+    val SurfaceContainerLow = Color(0xFFF3F4F5)
+    val GlassSurface = Color(0xCCF1F3F4)
 
     val Gray50 = Color(0xFFF8F9FA)
     val Gray100 = Color(0xFFF1F3F4)

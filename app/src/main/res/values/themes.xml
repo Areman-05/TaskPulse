@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- Solo fondo nebula; sin icono animado del sistema (evita doble splash). -->
     <style name="Theme.TaskPulse" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/tp_gray_light</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
-        <item name="windowSplashScreenAnimationDuration">300</item>
+        <item name="windowSplashScreenBackground">@drawable/splash_nebula_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_transparent</item>
+        <item name="windowSplashScreenIconBackgroundColor">@android:color/transparent</item>
+        <item name="windowSplashScreenAnimationDuration">0</item>
         <item name="postSplashScreenTheme">@style/Theme.TaskPulse.Main</item>
     </style>
 

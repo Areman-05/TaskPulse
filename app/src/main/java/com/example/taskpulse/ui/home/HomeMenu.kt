@@ -2,17 +2,20 @@ package com.example.taskpulse.ui.home
 
 import com.example.taskpulse.domain.sort.TaskSortField
 import com.example.taskpulse.domain.sort.TaskSortOrder
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ViewList
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.GridView
-import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.Menu
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.SelectAll
 import androidx.compose.material.icons.outlined.Sort
 import androidx.compose.material3.AlertDialog
@@ -22,6 +25,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -37,11 +41,14 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import com.example.taskpulse.R
 import com.example.taskpulse.domain.model.TaskPriority
+import com.example.taskpulse.ui.theme.StitchTypography
+import com.example.taskpulse.ui.theme.TaskPulseColors
 
 @Composable
 fun HomeTopBar(
     state: HomeUiState,
-    viewModel: HomeViewModel
+    viewModel: HomeViewModel,
+    onSearchClick: () -> Unit = {}
 ) {
     if (state.selectionMode) {
         SelectionModeTopBar(
@@ -51,7 +58,8 @@ fun HomeTopBar(
     } else {
         DefaultHomeTopBar(
             state = state,
-            viewModel = viewModel
+            viewModel = viewModel,
+            onSearchClick = onSearchClick
         )
     }
 }
@@ -61,74 +69,97 @@ private fun SelectionModeTopBar(
     selectedCount: Int,
     onCancel: () -> Unit
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 4.dp, vertical = 8.dp)
-    ) {
-        TextButton(
-            onClick = onCancel,
-            modifier = Modifier.align(Alignment.CenterStart)
+    Surface(color = TaskPulseColors.Gray50, tonalElevation = 0.dp) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(64.dp)
+                .padding(horizontal = 4.dp)
         ) {
-            Text(stringResource(R.string.home_selection_cancel))
+            TextButton(
+                onClick = onCancel,
+                modifier = Modifier.align(Alignment.CenterStart)
+            ) {
+                Text(stringResource(R.string.home_selection_cancel))
+            }
+            Text(
+                text = stringResource(R.string.home_selection_count, selectedCount),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.align(Alignment.Center),
+                textAlign = TextAlign.Center
+            )
         }
-        Text(
-            text = stringResource(R.string.home_selection_count, selectedCount),
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.align(Alignment.Center),
-            textAlign = TextAlign.Center
-        )
+        HorizontalDivider(color = TaskPulseColors.OutlineVariant, thickness = 1.dp)
     }
 }
 
 @Composable
 private fun DefaultHomeTopBar(
     state: HomeUiState,
-    viewModel: HomeViewModel
+    viewModel: HomeViewModel,
+    onSearchClick: () -> Unit
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
     var sortMenuExpanded by remember { mutableStateOf(false) }
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = stringResource(R.string.app_name),
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.weight(1f)
-        )
-        Box {
-            IconButton(onClick = { menuExpanded = true }) {
-                Icon(
-                    imageVector = Icons.Outlined.MoreVert,
-                    contentDescription = stringResource(R.string.home_menu_cd),
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
+    Surface(color = TaskPulseColors.Gray50, tonalElevation = 0.dp) {
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(64.dp)
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box {
+                        IconButton(onClick = { menuExpanded = true }) {
+                            Icon(
+                                imageVector = Icons.Outlined.Menu,
+                                contentDescription = stringResource(R.string.home_menu_cd),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        HomeOverflowMenu(
+                            expanded = menuExpanded,
+                            sortMenuExpanded = sortMenuExpanded,
+                            state = state,
+                            onDismiss = {
+                                menuExpanded = false
+                                sortMenuExpanded = false
+                            },
+                            onOpenSortMenu = {
+                                menuExpanded = false
+                                sortMenuExpanded = true
+                            },
+                            viewModel = viewModel
+                        )
+                        HomeSortSubmenu(
+                            expanded = sortMenuExpanded,
+                            state = state,
+                            onDismiss = { sortMenuExpanded = false },
+                            viewModel = viewModel
+                        )
+                    }
+                    Text(
+                        text = stringResource(R.string.app_name),
+                        style = StitchTypography.headlineMd,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+                IconButton(onClick = onSearchClick) {
+                    Icon(
+                        imageVector = Icons.Outlined.Search,
+                        contentDescription = stringResource(R.string.home_search_cd),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
-            HomeOverflowMenu(
-                expanded = menuExpanded,
-                sortMenuExpanded = sortMenuExpanded,
-                state = state,
-                onDismiss = {
-                    menuExpanded = false
-                    sortMenuExpanded = false
-                },
-                onOpenSortMenu = {
-                    menuExpanded = false
-                    sortMenuExpanded = true
-                },
-                viewModel = viewModel
-            )
-            HomeSortSubmenu(
-                expanded = sortMenuExpanded,
-                state = state,
-                onDismiss = { sortMenuExpanded = false },
-                viewModel = viewModel
-            )
+            HorizontalDivider(color = TaskPulseColors.OutlineVariant, thickness = 1.dp)
         }
     }
 }
@@ -152,6 +183,7 @@ private fun HomeOverflowMenu(
                 text = { Text(stringResource(R.string.home_menu_view_gallery)) },
                 leadingIcon = { Icon(Icons.Outlined.GridView, contentDescription = null) },
                 onClick = {
+                    viewModel.setShowAllNotes(true)
                     viewModel.setViewMode(TaskViewMode.GALLERY)
                     onDismiss()
                 }

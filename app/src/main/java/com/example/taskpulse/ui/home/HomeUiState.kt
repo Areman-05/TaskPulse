@@ -15,5 +15,6 @@ data class HomeUiState(
     val sortField: TaskSortField = TaskSortField.PRIORITY,
     val sortOrder: TaskSortOrder = TaskSortOrder.NEWEST_FIRST,
     val showDeleteConfirm: Boolean = false,
-    val showPriorityPicker: Boolean = false
+    val showPriorityPicker: Boolean = false,
+    val showAllNotes: Boolean = false
 )

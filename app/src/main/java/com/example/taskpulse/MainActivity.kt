@@ -11,12 +11,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.launch
 import com.example.taskpulse.TaskPulseApp
 import com.example.taskpulse.ui.TaskPulseAppRoot
-import com.example.taskpulse.worker.AutomationInitialWork
-import com.example.taskpulse.worker.AutomationWorkScheduler
 import com.example.taskpulse.ui.theme.TaskPulseThemeRoot
 
 class MainActivity : ComponentActivity() {
@@ -48,17 +44,6 @@ class MainActivity : ComponentActivity() {
             }
         }
         container = (application as TaskPulseApp).container
-        lifecycleScope.launch {
-            container.ensureDefaultCategoryUseCase()
-            container.ensureStarterAutomationRulesUseCase()
-            container.runEntryLifecycleMaintenanceUseCase()
-            AutomationWorkScheduler.enqueue(
-                context = applicationContext,
-                repeatIntervalHours = container.getAutomationSweepIntervalHours(),
-                settings = container.automationSettingsRepository
-            )
-            AutomationInitialWork.enqueueOnce(applicationContext)
-        }
         enableEdgeToEdge()
         setContent {
             TaskPulseThemeRoot(container) {

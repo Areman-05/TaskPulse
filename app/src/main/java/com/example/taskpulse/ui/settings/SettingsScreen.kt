@@ -17,7 +17,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.taskpulse.R
 import com.example.taskpulse.ui.components.TaskPulsePrimaryButton
 import com.example.taskpulse.ui.components.TaskPulseScrollableColumn
-import com.example.taskpulse.ui.components.TaskPulseSecondaryButton
 import com.example.taskpulse.ui.components.TaskPulseSectionCard
 
 @Composable
@@ -63,28 +62,6 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                TaskPulseSectionCard {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text(
-                            text = stringResource(R.string.settings_appearance_title),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Text(
-                            text = stringResource(R.string.settings_appearance_subtitle),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        TaskPulsePrimaryButton(
-                            text = stringResource(R.string.settings_theme_light),
-                            onClick = viewModel::setLightMode
-                        )
-                        TaskPulseSecondaryButton(
-                            text = stringResource(R.string.settings_theme_dark),
-                            onClick = viewModel::setDarkMode
-                        )
-                    }
-                }
-
                 TaskPulseSectionCard {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Text(

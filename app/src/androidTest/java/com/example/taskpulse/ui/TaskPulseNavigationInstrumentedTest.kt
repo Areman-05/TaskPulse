@@ -12,7 +12,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.taskpulse.MainActivity
-import com.example.taskpulse.ui.splash.SPLASH_DURATION_MS
+import com.example.taskpulse.ui.splash.SPLASH_TEST_ADVANCE_MS
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -40,7 +40,7 @@ class TaskPulseNavigationInstrumentedTest {
         composeRule.waitForIdle()
 
         composeRule.onNodeWithText("Configuración").assertExists()
-        composeRule.onNodeWithText("Mantenimiento automático").assertExists()
+        composeRule.onNodeWithText("Apariencia").assertExists()
     }
 
     @Test
@@ -57,7 +57,7 @@ class TaskPulseNavigationInstrumentedTest {
 
     private fun skipSplash() {
         composeRule.waitForIdle()
-        composeRule.mainClock.advanceTimeBy((SPLASH_DURATION_MS + 500).toLong())
+        composeRule.mainClock.advanceTimeBy(SPLASH_TEST_ADVANCE_MS)
         composeRule.waitForIdle()
     }
 

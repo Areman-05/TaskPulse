@@ -7,13 +7,17 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.taskpulse.core.AppContainer
 import com.example.taskpulse.ui.navigation.TaskPulseNavHost
+import com.example.taskpulse.ui.splash.SplashViewModel
 import com.example.taskpulse.ui.splash.TaskPulseSplashScreen
 
 @Composable
@@ -28,22 +32,31 @@ fun TaskPulseAppRoot(
     Box(modifier = Modifier.fillMaxSize()) {
         AnimatedVisibility(
             visible = !showSplash,
-            enter = fadeIn(animationSpec = tween(500)),
-            exit = fadeOut(animationSpec = tween(300))
+            enter = fadeIn(animationSpec = tween(400)),
+            exit = fadeOut(animationSpec = tween(200))
         ) {
             TaskPulseNavHost(container = container)
         }
 
-        AnimatedVisibility(
-            visible = showSplash,
-            enter = fadeIn(),
-            exit = fadeOut(animationSpec = tween(400))
-        ) {
-            TaskPulseSplashScreen(
-                onFinished = {
+        if (showSplash) {
+            val splashViewModel: SplashViewModel = viewModel(
+                factory = SplashViewModel.Factory(container.runAppBootstrapUseCase)
+            )
+            val splashState by splashViewModel.uiState.collectAsStateWithLifecycle()
+
+            LaunchedEffect(Unit) {
+                splashViewModel.start()
+            }
+
+            LaunchedEffect(splashState.finished) {
+                if (splashState.finished) {
                     showSplash = false
                     onSplashFinished()
-                },
+                }
+            }
+
+            TaskPulseSplashScreen(
+                state = splashState,
                 onFirstFrame = onSplashFirstFrame
             )
         }

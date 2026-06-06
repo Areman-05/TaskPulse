@@ -35,6 +35,7 @@ import com.example.taskpulse.domain.usecase.ObserveArchivedTasksUseCase
 import com.example.taskpulse.domain.usecase.ObserveTasksUseCase
 import com.example.taskpulse.domain.usecase.RescheduleAutomationSweepUseCase
 import com.example.taskpulse.domain.usecase.RestoreArchivedEntryUseCase
+import com.example.taskpulse.domain.usecase.RunAppBootstrapUseCase
 import com.example.taskpulse.domain.usecase.RunAutomationSweepUseCase
 import com.example.taskpulse.domain.usecase.RunEntryLifecycleMaintenanceUseCase
 import com.example.taskpulse.domain.usecase.ScheduleDependentRemindersUseCase
@@ -150,6 +151,15 @@ class AppContainer(context: Context) {
 
     val taskSnapshotFileExporter =
         TaskSnapshotFileExporter(taskRepository, appContext.filesDir)
+
+    val runAppBootstrapUseCase = RunAppBootstrapUseCase(
+        appContext = appContext,
+        ensureDefaultCategoryUseCase = ensureDefaultCategoryUseCase,
+        ensureStarterAutomationRulesUseCase = ensureStarterAutomationRulesUseCase,
+        runEntryLifecycleMaintenanceUseCase = runEntryLifecycleMaintenanceUseCase,
+        getAutomationSweepIntervalUseCase = getAutomationSweepIntervalUseCase,
+        automationSettingsRepository = automationSettingsRepository
+    )
 
     fun getAutomationSweepIntervalHours(): Long = getAutomationSweepIntervalUseCase()
 }

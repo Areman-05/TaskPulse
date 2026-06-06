@@ -25,7 +25,8 @@ fun filterAndPartitionHomeEntries(
     tasks: List<Task>,
     query: String,
     sortField: TaskSortField,
-    sortOrder: TaskSortOrder
+    sortOrder: TaskSortOrder,
+    todayOnly: Boolean = true
 ): HomeDisplayedEntries {
     val q = query.trim().lowercase()
     val filtered = if (q.isBlank()) {
@@ -36,8 +37,14 @@ fun filterAndPartitionHomeEntries(
                 task.description.lowercase().contains(q)
         }
     }
+    val taskItems = filtered.filter { it.isTaskItem }
+    val todayTasks = if (q.isBlank() && todayOnly) {
+        orderTodayTasks(taskItems.filter { isTaskForToday(it) })
+    } else {
+        taskItems
+    }
     return HomeDisplayedEntries(
-        tasks = sortHomeEntries(filtered.filter { it.isTaskItem }, sortField, sortOrder, byPriority = true),
+        tasks = sortHomeEntries(todayTasks, sortField, sortOrder, byPriority = true),
         notes = sortHomeEntries(filtered.filter { it.isNote }, sortField, sortOrder, byPriority = false)
     )
 }

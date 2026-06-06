@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import com.example.taskpulse.R
 import com.example.taskpulse.domain.model.TaskPriority
 import com.example.taskpulse.ui.theme.StitchTypography
+import com.example.taskpulse.ui.theme.StitchThemeColors
 import com.example.taskpulse.ui.theme.TaskPulseColors
 
 @Composable
@@ -69,7 +70,7 @@ private fun SelectionModeTopBar(
     selectedCount: Int,
     onCancel: () -> Unit
 ) {
-    Surface(color = TaskPulseColors.Gray50, tonalElevation = 0.dp) {
+    Surface(color = StitchThemeColors.topBarSurface(), tonalElevation = 0.dp) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -89,7 +90,7 @@ private fun SelectionModeTopBar(
                 textAlign = TextAlign.Center
             )
         }
-        HorizontalDivider(color = TaskPulseColors.OutlineVariant, thickness = 1.dp)
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp)
     }
 }
 
@@ -102,7 +103,7 @@ private fun DefaultHomeTopBar(
     var menuExpanded by remember { mutableStateOf(false) }
     var sortMenuExpanded by remember { mutableStateOf(false) }
 
-    Surface(color = TaskPulseColors.Gray50, tonalElevation = 0.dp) {
+    Surface(color = StitchThemeColors.topBarSurface(), tonalElevation = 0.dp) {
         Column {
             Row(
                 modifier = Modifier
@@ -159,7 +160,7 @@ private fun DefaultHomeTopBar(
                     )
                 }
             }
-            HorizontalDivider(color = TaskPulseColors.OutlineVariant, thickness = 1.dp)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp)
         }
     }
 }

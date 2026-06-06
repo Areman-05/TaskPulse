@@ -24,12 +24,8 @@ class SettingsViewModel(
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
-    fun setLightMode() {
-        themeRepository.setMode(AppThemeMode.LIGHT)
-    }
-
-    fun setDarkMode() {
-        themeRepository.setMode(AppThemeMode.DARK)
+    fun setDarkModeEnabled(enabled: Boolean) {
+        themeRepository.setMode(if (enabled) AppThemeMode.DARK else AppThemeMode.LIGHT)
     }
 
     fun exportJsonSnapshot() {

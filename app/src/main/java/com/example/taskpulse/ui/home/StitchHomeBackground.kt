@@ -5,13 +5,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
+import com.example.taskpulse.ui.theme.StitchThemeColors
 
-/** Fondo Stitch: linear-gradient(135deg, #f8f9fa 0%, rgba(237,221,210,0.3) 100%) */
+/** Fondo Stitch: gradiente nebula según tema claro/oscuro. */
 @Composable
 fun StitchHomeBackground(modifier: Modifier = Modifier) {
-    val start = Color(0xFFF8F9FA)
-    val end = Color(0x4DEDD2D2) // rgba(237, 221, 210, 0.3)
+    val start = StitchThemeColors.pageBackground()
+    val end = StitchThemeColors.homeGradientEnd()
 
     Canvas(modifier = modifier) {
         drawRect(

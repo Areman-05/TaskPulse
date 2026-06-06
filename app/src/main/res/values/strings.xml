@@ -147,13 +147,13 @@
 
     <string name="settings_screen_title">Ajustes</string>
     <string name="settings_screen_heading">Configuración</string>
+    <string name="settings_screen_subtitle">Gestiona tus preferencias de TaskPulse.</string>
     <string name="settings_appearance_title">Apariencia</string>
-    <string name="settings_appearance_subtitle">Elige cómo quieres ver TaskPulse</string>
-    <string name="settings_theme_light">Modo claro</string>
-    <string name="settings_theme_dark">Modo oscuro</string>
-    <string name="settings_archive_title">Archivo</string>
-    <string name="settings_archive_subtitle">Hasta 50 entradas archivadas. Restáuralas o bórralas cuando quieras.</string>
-    <string name="settings_open_archive">Ver archivo</string>
+    <string name="settings_dark_mode_title">Modo oscuro</string>
+    <string name="settings_dark_mode_subtitle">Alternar tema visual</string>
+    <string name="settings_data_section">Datos</string>
+    <string name="settings_archive_row_title">Archivo</string>
+    <string name="settings_archive_row_subtitle">Ver tareas completadas</string>
     <string name="archive_screen_title">Archivo</string>
     <string name="archive_back_cd">Volver</string>
     <string name="archive_empty">No hay entradas archivadas.</string>
@@ -164,11 +164,10 @@
     <string name="archive_delete_confirm_body">Se borrará de forma permanente.</string>
     <string name="archive_delete_confirm_action">Eliminar</string>
 
-    <string name="settings_export_section_title">Exportar y respaldo local</string>
-    <string name="settings_export_json">Exportar JSON</string>
-    <string name="settings_export_csv">Exportar CSV</string>
-    <string name="settings_export_backup">Copia de base de datos</string>
-    <string name="settings_export_hint">Comparte el archivo generado con cualquier app compatible.</string>
+    <string name="settings_export_section_title">Exportar</string>
+    <string name="settings_export_json">Exportar como JSON</string>
+    <string name="settings_export_csv">Exportar como CSV</string>
+    <string name="settings_export_backup">Crear backup</string>
     <string name="settings_export_share_title">Compartir exportación</string>
 
     <string name="widget_title">Pendientes</string>

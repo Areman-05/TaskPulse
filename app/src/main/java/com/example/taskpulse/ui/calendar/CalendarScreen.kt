@@ -40,6 +40,7 @@ import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -72,6 +73,7 @@ import com.example.taskpulse.domain.model.TaskPriority
 import com.example.taskpulse.domain.model.TaskStatus
 import com.example.taskpulse.domain.model.isNote
 import com.example.taskpulse.domain.model.isTaskItem
+import com.example.taskpulse.ui.theme.StitchThemeColors
 import com.example.taskpulse.ui.theme.StitchTypography
 import com.example.taskpulse.ui.theme.TaskPriorityColors
 import com.example.taskpulse.ui.theme.TaskPulseColors
@@ -85,8 +87,6 @@ import java.time.format.TextStyle
 import java.util.Locale
 
 private val CardShape = RoundedCornerShape(12.dp)
-private val StitchBorder = Color(0xFFDADCE0)
-private val OnSurface = Color(0xFF191C1D)
 private val FabShadowColor = Color(0x1F000000)
 private val TimeFormatter = DateTimeFormatter.ofPattern("h:mm a", Locale("es", "ES"))
 
@@ -135,7 +135,7 @@ fun CalendarScreen(
                 Text(
                     text = TaskCalendarDates.formatDayHeading(state.selectedDate),
                     style = StitchTypography.headlineSm,
-                    color = OnSurface,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(start = 8.dp, bottom = 8.dp)
                 )
 
@@ -181,11 +181,13 @@ fun CalendarScreen(
 
 @Composable
 private fun StitchCalendarBackground(modifier: Modifier = Modifier) {
+    val pageBg = StitchThemeColors.pageBackground()
+    val bronzeGlow = StitchThemeColors.calendarGradientBronze()
     Canvas(modifier = modifier) {
-        drawRect(color = TaskPulseColors.Gray50)
+        drawRect(color = pageBg)
         drawCircle(
             brush = Brush.radialGradient(
-                colors = listOf(TaskPulseColors.Bronze.copy(alpha = 0.05f), Color.Transparent),
+                colors = listOf(bronzeGlow, Color.Transparent),
                 center = Offset(size.width / 2f, 0f),
                 radius = size.height * 0.7f
             ),
@@ -197,7 +199,11 @@ private fun StitchCalendarBackground(modifier: Modifier = Modifier) {
 
 @Composable
 private fun StitchCalendarTopBar(onAddClick: () -> Unit) {
-    Surface(color = TaskPulseColors.Gray50, tonalElevation = 0.dp, shadowElevation = 0.dp) {
+    Surface(
+        color = StitchThemeColors.topBarSurface(),
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp
+    ) {
         Column {
             Row(
                 modifier = Modifier
@@ -211,25 +217,25 @@ private fun StitchCalendarTopBar(onAddClick: () -> Unit) {
                     Icon(
                         imageVector = Icons.Outlined.Menu,
                         contentDescription = stringResource(R.string.home_menu_cd),
-                        tint = TaskPulseColors.OnSurfaceVariant,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(24.dp)
                     )
                 }
                 Text(
                     text = stringResource(R.string.calendar_title),
                     style = StitchTypography.headlineMd,
-                    color = TaskPulseColors.Primary
+                    color = MaterialTheme.colorScheme.primary
                 )
                 IconButton(onClick = onAddClick, modifier = Modifier.size(40.dp)) {
                     Icon(
                         imageVector = Icons.Outlined.Add,
                         contentDescription = stringResource(R.string.calendar_fab_create_cd),
-                        tint = TaskPulseColors.Primary,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(24.dp)
                     )
                 }
             }
-            HorizontalDivider(color = TaskPulseColors.OutlineVariant, thickness = 1.dp)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp)
         }
     }
 }
@@ -258,12 +264,14 @@ private fun StitchCalendarCard(
     }
     val cells = remember(month) { buildMonthGrid(month) }
     val today = remember { TaskCalendarDates.today() }
+    val cardBg = StitchThemeColors.cardBackground()
+    val cardBorder = StitchThemeColors.cardBorder()
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = CardShape,
-        color = TaskPulseColors.Gray100,
-        border = BorderStroke(1.dp, StitchBorder),
+        color = cardBg,
+        border = BorderStroke(1.dp, cardBorder),
         tonalElevation = 0.dp,
         shadowElevation = 0.dp
     ) {
@@ -276,7 +284,7 @@ private fun StitchCalendarCard(
                 Text(
                     text = TaskCalendarDates.formatMonthYear(month),
                     style = StitchTypography.headlineSm,
-                    color = OnSurface,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.clickable(onClick = onMonthTitleClick)
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -284,14 +292,14 @@ private fun StitchCalendarCard(
                         Icon(
                             Icons.Outlined.ChevronLeft,
                             stringResource(R.string.calendar_prev_month_cd),
-                            tint = TaskPulseColors.OnSurfaceVariant
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     IconButton(onClick = onNextMonth, modifier = Modifier.size(32.dp)) {
                         Icon(
                             Icons.Outlined.ChevronRight,
                             stringResource(R.string.calendar_next_month_cd),
-                            tint = TaskPulseColors.OnSurfaceVariant
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -306,7 +314,7 @@ private fun StitchCalendarCard(
                         modifier = Modifier.weight(1f),
                         textAlign = TextAlign.Center,
                         style = StitchTypography.labelLg,
-                        color = TaskPulseColors.OnSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -348,11 +356,12 @@ private fun StitchDayCell(
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
 
+    val onSurface = MaterialTheme.colorScheme.onSurface
     val textColor = when {
-        isSelected -> TaskPulseColors.White
-        !cell.inCurrentMonth -> TaskPulseColors.Outline.copy(alpha = 0.55f)
-        isToday -> TaskPulseColors.Primary
-        else -> OnSurface
+        isSelected -> MaterialTheme.colorScheme.onPrimary
+        !cell.inCurrentMonth -> StitchThemeColors.mutedAdjacentDay()
+        isToday -> MaterialTheme.colorScheme.primary
+        else -> onSurface
     }
 
     Box(
@@ -364,15 +373,15 @@ private fun StitchDayCell(
                 .size(40.dp)
                 .shadow(2.dp, CircleShape)
                 .clip(CircleShape)
-                .background(TaskPulseColors.Primary)
+                .background(MaterialTheme.colorScheme.primary)
             isToday -> Modifier
                 .size(40.dp)
                 .clip(CircleShape)
-                .border(2.dp, TaskPulseColors.Primary, CircleShape)
+                .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
             pressed -> Modifier
                 .size(36.dp)
                 .clip(CircleShape)
-                .background(TaskPulseColors.SurfaceVariant)
+                .background(StitchThemeColors.rowHighlight())
             else -> Modifier.size(36.dp)
         }
 
@@ -395,7 +404,7 @@ private fun StitchDayCell(
                             .padding(top = 2.dp)
                             .size(4.dp)
                             .clip(CircleShape)
-                            .background(TaskPulseColors.Primary)
+                            .background(MaterialTheme.colorScheme.primary)
                     )
                 }
             }
@@ -411,17 +420,20 @@ private fun StitchDayEntriesCard(
 ) {
     val entries = tasks + notes
 
+    val cardBg = StitchThemeColors.cardBackground()
+    val cardBorder = StitchThemeColors.cardBorder()
+
     if (entries.isEmpty()) {
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = CardShape,
-            color = TaskPulseColors.Gray100,
-            border = BorderStroke(1.dp, StitchBorder)
+            color = cardBg,
+            border = BorderStroke(1.dp, cardBorder)
         ) {
             Text(
                 text = stringResource(R.string.calendar_empty_day),
                 style = StitchTypography.bodyMd,
-                color = TaskPulseColors.OnSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(16.dp),
                 textAlign = TextAlign.Center
             )
@@ -432,8 +444,8 @@ private fun StitchDayEntriesCard(
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = CardShape,
-        color = TaskPulseColors.Gray100,
-        border = BorderStroke(1.dp, StitchBorder),
+        color = cardBg,
+        border = BorderStroke(1.dp, cardBorder),
         tonalElevation = 0.dp,
         shadowElevation = 0.dp
     ) {
@@ -441,7 +453,7 @@ private fun StitchDayEntriesCard(
             entries.forEachIndexed { index, entry ->
                 StitchDayEntryRow(task = entry, onClick = { onOpenEntry(entry.id) })
                 if (index < entries.lastIndex) {
-                    HorizontalDivider(color = StitchBorder, thickness = 1.dp)
+                    HorizontalDivider(color = cardBorder, thickness = 1.dp)
                 }
             }
         }
@@ -454,10 +466,12 @@ private fun StitchDayEntryRow(task: Task, onClick: () -> Unit) {
     val pressed by interactionSource.collectIsPressedAsState()
     val completed = task.isTaskItem && task.status == TaskStatus.COMPLETED
 
+    val onSurface = MaterialTheme.colorScheme.onSurface
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(if (pressed) TaskPulseColors.SurfaceVariant else Color.Transparent)
+            .background(if (pressed) StitchThemeColors.rowHighlight() else Color.Transparent)
             .clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
             .padding(16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -479,7 +493,7 @@ private fun StitchDayEntryRow(task: Task, onClick: () -> Unit) {
             Text(
                 text = entryTitle(task),
                 style = StitchTypography.bodyLg,
-                color = if (completed) TaskPulseColors.Outline else OnSurface,
+                color = if (completed) MaterialTheme.colorScheme.outline else onSurface,
                 textDecoration = if (completed) TextDecoration.LineThrough else TextDecoration.None,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
@@ -493,13 +507,13 @@ private fun StitchDayEntryRow(task: Task, onClick: () -> Unit) {
                     Icon(
                         imageVector = Icons.Outlined.Schedule,
                         contentDescription = null,
-                        tint = TaskPulseColors.OnSurfaceVariant,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(16.dp)
                     )
                     Text(
                         text = time,
                         style = StitchTypography.bodyMd,
-                        color = TaskPulseColors.OnSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -509,7 +523,7 @@ private fun StitchDayEntryRow(task: Task, onClick: () -> Unit) {
             Icon(
                 imageVector = Icons.Outlined.CheckCircle,
                 contentDescription = null,
-                tint = TaskPulseColors.Primary,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(24.dp)
             )
         }
@@ -561,12 +575,12 @@ private fun MonthYearPickerDialog(
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(8.dp))
                                 .background(
-                                    if (selected) TaskPulseColors.BronzeMuted
+                                    if (selected) MaterialTheme.colorScheme.secondaryContainer
                                     else Color.Transparent
                                 )
                                 .clickable { selectedMonth = month }
                                 .padding(vertical = 10.dp, horizontal = 12.dp),
-                            color = OnSurface
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }

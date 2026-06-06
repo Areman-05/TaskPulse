@@ -83,6 +83,7 @@ import com.example.taskpulse.domain.model.Task
 import com.example.taskpulse.domain.model.TaskPriority
 import com.example.taskpulse.domain.model.TaskStatus
 import com.example.taskpulse.domain.model.isTaskItem
+import com.example.taskpulse.ui.theme.StitchThemeColors
 import com.example.taskpulse.ui.theme.StitchTypography
 import com.example.taskpulse.ui.theme.TaskPriorityColors
 import com.example.taskpulse.ui.theme.TaskPulseColors
@@ -97,9 +98,8 @@ private val GlassCardShape = RoundedCornerShape(12.dp)
 private val TaskCardShape = RoundedCornerShape(8.dp)
 private val SwipeCompleteGreen = Color(0xFF188038)
 private val TimeFormatter = DateTimeFormatter.ofPattern("HH:mm").withZone(ZoneId.systemDefault())
-private val StitchBorder = Color(0xFFDADCE0)
-private const val NOTES_CAROUSEL_LIMIT = 2
 private val FabShadowColor = Color(0x14000000)
+private const val NOTES_CAROUSEL_LIMIT = 2
 
 @Composable
 fun HomeScreen(
@@ -251,14 +251,15 @@ private fun StitchSearchBar(
     onQueryChange: (String) -> Unit,
     focusRequester: FocusRequester
 ) {
+    val borderColor = StitchThemeColors.cardBorder()
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 8.dp)
             .shadow(1.dp, SearchShape, clip = false)
             .clip(SearchShape)
-            .background(TaskPulseColors.Gray100)
-            .border(1.dp, StitchBorder, SearchShape)
+            .background(StitchThemeColors.searchBarBackground())
+            .border(1.dp, borderColor, SearchShape)
             .height(48.dp)
     ) {
         Icon(
@@ -303,15 +304,15 @@ private fun StitchSearchBar(
 @Composable
 private fun StitchGlassCard(
     modifier: Modifier = Modifier,
-    backgroundColor: Color = TaskPulseColors.GlassSurface,
-    borderColor: Color = StitchBorder,
+    backgroundColor: Color? = null,
+    borderColor: Color? = null,
     content: @Composable () -> Unit
 ) {
     Surface(
         modifier = modifier,
         shape = GlassCardShape,
-        color = backgroundColor,
-        border = BorderStroke(1.dp, borderColor),
+        color = backgroundColor ?: StitchThemeColors.glassSurface(),
+        border = BorderStroke(1.dp, borderColor ?: StitchThemeColors.cardBorder()),
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
         content = content
@@ -433,7 +434,7 @@ private fun StitchBentoRow(allTasks: List<Task>) {
                         .padding(top = 8.dp)
                         .height(4.dp)
                         .clip(RoundedCornerShape(999.dp))
-                        .background(TaskPulseColors.BronzeMuted)
+                        .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f))
                 ) {
                     Box(
                         modifier = Modifier
@@ -448,8 +449,8 @@ private fun StitchBentoRow(allTasks: List<Task>) {
 
         StitchGlassCard(
             modifier = Modifier.weight(1f),
-            backgroundColor = TaskPulseColors.SecondaryContainer.copy(alpha = 0.5f),
-            borderColor = TaskPulseColors.OutlineVariant.copy(alpha = 0.3f)
+            backgroundColor = StitchThemeColors.secondaryContainerMuted(),
+            borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
         ) {
             Column(
                 modifier = Modifier
@@ -661,6 +662,7 @@ private fun StitchNoteCard(
 
 @Composable
 private fun StitchNewNoteCard(onClick: () -> Unit) {
+    val borderColor = StitchThemeColors.cardBorder()
     Box(
         modifier = Modifier
             .width(256.dp)
@@ -668,7 +670,7 @@ private fun StitchNewNoteCard(onClick: () -> Unit) {
             .clip(GlassCardShape)
             .drawBehind {
                 drawRoundRect(
-                    color = StitchBorder,
+                    color = borderColor,
                     style = Stroke(
                         width = 1.dp.toPx(),
                         pathEffect = PathEffect.dashPathEffect(floatArrayOf(12f, 8f))
@@ -854,7 +856,7 @@ private fun TaskListItem(
                 )
         )
         if (showBottomBorder) {
-            HorizontalDivider(color = StitchBorder, thickness = 1.dp)
+            HorizontalDivider(color = StitchThemeColors.cardBorder(), thickness = 1.dp)
         }
     }
 
@@ -893,7 +895,7 @@ private fun StitchTaskRow(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
-    val rowBackground = if (pressed) TaskPulseColors.SurfaceContainerLow else Color.Transparent
+    val rowBackground = if (pressed) StitchThemeColors.rowHighlight() else Color.Transparent
 
     Row(
         modifier = modifier

@@ -86,11 +86,12 @@ fun TaskPulseNavHost(container: AppContainer) {
 
     val view = LocalView.current
     val backgroundColor = MaterialTheme.colorScheme.background
+    val navBarColor = MaterialTheme.colorScheme.surfaceContainer
     SideEffect {
         if (!view.isInEditMode) {
             val window = (view.context as Activity).window
             window.navigationBarColor = if (showBottomBar) {
-                TaskPulseColors.SurfaceContainer.toArgb()
+                navBarColor.toArgb()
             } else {
                 backgroundColor.toArgb()
             }
@@ -285,7 +286,7 @@ private fun StitchBottomNavBar(
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp),
-        color = TaskPulseColors.SurfaceContainer,
+        color = MaterialTheme.colorScheme.surfaceContainer,
         tonalElevation = 0.dp,
         shadowElevation = 0.dp
     ) {
@@ -341,14 +342,14 @@ private fun StitchNavItem(
     val scale = if (pressed) 0.9f else 1f
 
     val iconBackground = when {
-        selected -> TaskPulseColors.SecondaryContainer
-        pressed -> TaskPulseColors.BronzeMuted
+        selected -> MaterialTheme.colorScheme.secondaryContainer
+        pressed -> MaterialTheme.colorScheme.surfaceContainerHigh
         else -> Color.Transparent
     }
     val contentColor = when {
-        selected -> TaskPulseColors.Primary
-        pressed -> TaskPulseColors.Bronze
-        else -> TaskPulseColors.OnSurfaceVariant
+        selected -> MaterialTheme.colorScheme.primary
+        pressed -> MaterialTheme.colorScheme.tertiary
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
     Column(
@@ -386,9 +387,9 @@ private fun StitchNavItem(
             text = label,
             style = StitchTypography.labelLg,
             color = when {
-                selected -> TaskPulseColors.OnSecondaryContainer
-                pressed -> TaskPulseColors.Bronze
-                else -> TaskPulseColors.OnSurfaceVariant
+                selected -> MaterialTheme.colorScheme.onSecondaryContainer
+                pressed -> MaterialTheme.colorScheme.tertiary
+                else -> MaterialTheme.colorScheme.onSurfaceVariant
             },
             modifier = Modifier.padding(top = 4.dp)
         )

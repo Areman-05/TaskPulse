@@ -19,6 +19,8 @@ object TaskPulseColors {
     val OutlineVariant = Color(0xFFD9C2B6)
     val SurfaceContainer = Color(0xFFEDEEEF)
     val SurfaceContainerLow = Color(0xFFF3F4F5)
+    val SurfaceContainerHigh = Color(0xFFE7E8E9)
+    val SurfaceContainerHighest = Color(0xFFE1E3E4)
     val SurfaceVariant = Color(0xFFE1E3E4)
     val GlassSurface = Color(0xCCF1F3F4)
 
@@ -27,6 +29,7 @@ object TaskPulseColors {
     val OnErrorContainer = Color(0xFF93000A)
     val PrimaryFixedDim = Color(0xFFFBB97A)
     val Tertiary = Color(0xFF82511C)
+    val TertiaryContainer = Color(0xFF9F6932)
     val Secondary = Color(0xFF675C54)
     val OnPrimaryContainer = Color(0xFFFFFBFF)
     val Outline = Color(0xFF867369)

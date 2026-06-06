@@ -2,7 +2,7 @@
 
 package com.example.taskpulse.ui.create
 
-import androidx.compose.animation.core.animateDpAsState
+import com.example.taskpulse.ui.components.StitchToggle
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -46,6 +46,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -74,6 +75,7 @@ import com.example.taskpulse.R
 import com.example.taskpulse.domain.calendar.TaskCalendarDates
 import com.example.taskpulse.domain.model.TaskEntryType
 import com.example.taskpulse.domain.model.TaskPriority
+import com.example.taskpulse.ui.theme.StitchThemeColors
 import com.example.taskpulse.ui.theme.StitchTypography
 import com.example.taskpulse.ui.theme.TaskPulseColors
 import java.time.LocalDate
@@ -188,10 +190,12 @@ fun CreateTaskScreen(
 
 @Composable
 private fun StitchCreateBackground(modifier: Modifier = Modifier) {
+    val start = StitchThemeColors.pageBackground()
+    val end = MaterialTheme.colorScheme.surfaceContainer
     Canvas(modifier = modifier) {
         drawRect(
             brush = Brush.linearGradient(
-                colors = listOf(TaskPulseColors.Gray50, TaskPulseColors.SurfaceContainer),
+                colors = listOf(start, end),
                 start = Offset(0f, 0f),
                 end = Offset(size.width, size.height)
             )
@@ -206,7 +210,11 @@ private fun StitchCreateTopBar(
     saveEnabled: Boolean,
     saving: Boolean
 ) {
-    Surface(color = TaskPulseColors.Gray50, tonalElevation = 0.dp, shadowElevation = 0.dp) {
+    Surface(
+        color = StitchThemeColors.topBarSurface(),
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -218,14 +226,14 @@ private fun StitchCreateTopBar(
                 Icon(
                     imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
                     contentDescription = stringResource(R.string.create_task_back_cd),
-                    tint = TaskPulseColors.OnSurfaceVariant,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(24.dp)
                 )
             }
             Text(
                 text = stringResource(R.string.create_screen_title),
                 style = StitchTypography.headlineSm,
-                color = TaskPulseColors.Black.copy(alpha = 0.87f),
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.weight(1f),
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
@@ -242,9 +250,9 @@ private fun StitchCreateTopBar(
                     },
                     style = StitchTypography.labelLg,
                     color = if (saveEnabled) {
-                        TaskPulseColors.Primary
+                        MaterialTheme.colorScheme.primary
                     } else {
-                        TaskPulseColors.OnSurfaceVariant.copy(alpha = 0.4f)
+                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
                     }
                 )
             }
@@ -292,9 +300,21 @@ private fun StitchTypeChip(
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
 
-    val background = if (selected) TaskPulseColors.PrimaryContainer else TaskPulseColors.Gray50
-    val borderColor = if (selected) TaskPulseColors.Primary else TaskPulseColors.OutlineVariant
-    val contentColor = if (selected) TaskPulseColors.OnPrimaryContainer else TaskPulseColors.OnSurfaceVariant
+    val background = if (selected) {
+        MaterialTheme.colorScheme.primaryContainer
+    } else {
+        StitchThemeColors.elevatedCardBackground()
+    }
+    val borderColor = if (selected) {
+        MaterialTheme.colorScheme.primary
+    } else {
+        StitchThemeColors.cardBorder()
+    }
+    val contentColor = if (selected) {
+        MaterialTheme.colorScheme.onPrimaryContainer
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    }
 
     Row(
         modifier = modifier
@@ -328,11 +348,16 @@ private fun StitchDetailsCard(
     bodyPlaceholder: String,
     showTitle: Boolean = true
 ) {
+    val cardColor = StitchThemeColors.elevatedCardBackground()
+    val dividerColor = StitchThemeColors.cardBorder()
+    val onSurface = MaterialTheme.colorScheme.onSurface
+    val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = CardShape,
-        color = TaskPulseColors.White,
-        border = BorderStroke(1.dp, TaskPulseColors.SurfaceVariant),
+        color = cardColor,
+        border = BorderStroke(1.dp, dividerColor),
         tonalElevation = 0.dp,
         shadowElevation = 0.dp
     ) {
@@ -343,10 +368,10 @@ private fun StitchDetailsCard(
                     onValueChange = onTitleChange,
                     singleLine = true,
                     textStyle = StitchTypography.headlineMd.copy(
-                        color = Color(0xFF191C1D),
+                        color = onSurface,
                         fontWeight = FontWeight.W600
                     ),
-                    cursorBrush = SolidColor(TaskPulseColors.Primary),
+                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp),
@@ -356,20 +381,20 @@ private fun StitchDetailsCard(
                                 Text(
                                     text = titlePlaceholder,
                                     style = StitchTypography.headlineMd,
-                                    color = TaskPulseColors.OnSurfaceVariant.copy(alpha = 0.5f)
+                                    color = onSurfaceVariant.copy(alpha = 0.5f)
                                 )
                             }
                             inner()
                         }
                     }
                 )
-                HorizontalDivider(color = TaskPulseColors.SurfaceVariant, thickness = 1.dp)
+                HorizontalDivider(color = dividerColor, thickness = 1.dp)
             }
             BasicTextField(
                 value = body,
                 onValueChange = onBodyChange,
-                textStyle = StitchTypography.bodyMd.copy(color = Color(0xFF191C1D)),
-                cursorBrush = SolidColor(TaskPulseColors.Primary),
+                textStyle = StitchTypography.bodyMd.copy(color = onSurface),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(if (showTitle) 128.dp else 200.dp)
@@ -380,7 +405,7 @@ private fun StitchDetailsCard(
                             Text(
                                 text = bodyPlaceholder,
                                 style = StitchTypography.bodyMd,
-                                color = TaskPulseColors.OnSurfaceVariant.copy(alpha = 0.6f)
+                                color = onSurfaceVariant.copy(alpha = 0.6f)
                             )
                         }
                         inner()
@@ -401,6 +426,11 @@ private fun StitchDueDateRow(
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
 
+    val cardColor = StitchThemeColors.elevatedCardBackground()
+    val borderColor = StitchThemeColors.cardBorder()
+    val onSurface = MaterialTheme.colorScheme.onSurface
+    val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -408,8 +438,8 @@ private fun StitchDueDateRow(
                 showPicker = true
             },
         shape = CardShape,
-        color = if (pressed) TaskPulseColors.SurfaceContainerLow else TaskPulseColors.White,
-        border = BorderStroke(1.dp, TaskPulseColors.SurfaceVariant),
+        color = if (pressed) StitchThemeColors.rowHighlight() else cardColor,
+        border = BorderStroke(1.dp, borderColor),
         tonalElevation = 0.dp,
         shadowElevation = 0.dp
     ) {
@@ -427,26 +457,26 @@ private fun StitchDueDateRow(
                 Icon(
                     imageVector = Icons.Outlined.CalendarToday,
                     contentDescription = null,
-                    tint = TaskPulseColors.Primary,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(24.dp)
                 )
                 Column {
                     Text(
                         text = stringResource(R.string.create_due_date_label),
                         style = StitchTypography.bodyMd,
-                        color = Color(0xFF191C1D)
+                        color = onSurface
                     )
                     Text(
                         text = dateLabel,
                         style = StitchTypography.labelLg,
-                        color = TaskPulseColors.OnSurfaceVariant
+                        color = onSurfaceVariant
                     )
                 }
             }
             Icon(
                 imageVector = Icons.Outlined.ChevronRight,
                 contentDescription = stringResource(R.string.create_schedule_date_cd),
-                tint = TaskPulseColors.OnSurfaceVariant,
+                tint = onSurfaceVariant,
                 modifier = Modifier.size(20.dp)
             )
         }
@@ -491,12 +521,16 @@ private fun StitchReminderRow(
     var menuExpanded by remember { mutableStateOf(false) }
     val selectedOption = TaskReminderIntervals.find { it.minutes == selectedMinutes }
         ?: TaskReminderIntervals.first { it.minutes == 30 }
+    val cardColor = StitchThemeColors.elevatedCardBackground()
+    val borderColor = StitchThemeColors.cardBorder()
+    val onSurface = MaterialTheme.colorScheme.onSurface
+    val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = CardShape,
-        color = TaskPulseColors.White,
-        border = BorderStroke(1.dp, TaskPulseColors.SurfaceVariant),
+        color = cardColor,
+        border = BorderStroke(1.dp, borderColor),
         tonalElevation = 0.dp,
         shadowElevation = 0.dp
     ) {
@@ -518,14 +552,14 @@ private fun StitchReminderRow(
                 Icon(
                     imageVector = Icons.Outlined.Notifications,
                     contentDescription = null,
-                    tint = TaskPulseColors.OnSurfaceVariant,
+                    tint = onSurfaceVariant,
                     modifier = Modifier.size(24.dp)
                 )
                 Column {
                     Text(
                         text = stringResource(R.string.create_task_reminder_label),
                         style = StitchTypography.bodyMd,
-                        color = Color(0xFF191C1D)
+                        color = onSurface
                     )
                     if (enabled) {
                         Text(
@@ -534,7 +568,7 @@ private fun StitchReminderRow(
                                 stringResource(selectedOption.labelRes)
                             ),
                             style = StitchTypography.labelLg,
-                            color = TaskPulseColors.OnSurfaceVariant
+                            color = onSurfaceVariant
                         )
                     }
                 }
@@ -561,37 +595,6 @@ private fun StitchReminderRow(
 }
 
 @Composable
-private fun StitchToggle(
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
-) {
-    val thumbOffset by animateDpAsState(
-        targetValue = if (checked) 26.dp else 2.dp,
-        label = "toggleThumb"
-    )
-    val trackColor = if (checked) TaskPulseColors.Primary else TaskPulseColors.SurfaceVariant
-    val thumbColor = if (checked) TaskPulseColors.White else TaskPulseColors.Outline
-
-    Box(
-        modifier = Modifier
-            .width(48.dp)
-            .height(24.dp)
-            .clip(RoundedCornerShape(999.dp))
-            .background(trackColor)
-            .clickable { onCheckedChange(!checked) },
-        contentAlignment = Alignment.CenterStart
-    ) {
-        Box(
-            modifier = Modifier
-                .offset(x = thumbOffset)
-                .size(20.dp)
-                .clip(CircleShape)
-                .background(thumbColor)
-        )
-    }
-}
-
-@Composable
 private fun StitchPrioritySection(
     selected: TaskPriority,
     onPrioritySelected: (TaskPriority) -> Unit
@@ -600,7 +603,7 @@ private fun StitchPrioritySection(
         Text(
             text = stringResource(R.string.create_priority_section).uppercase(),
             style = StitchTypography.labelLg,
-            color = TaskPulseColors.OnSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 4.dp)
         )
         Row(
@@ -657,15 +660,16 @@ private fun StitchPriorityChip(
     }
 }
 
+@Composable
 private fun priorityChipColors(
     priority: TaskPriority,
     selected: Boolean
 ): PriorityChipColors {
     if (!selected) {
         return PriorityChipColors(
-            background = TaskPulseColors.Gray50,
-            borderColor = TaskPulseColors.OutlineVariant,
-            contentColor = TaskPulseColors.OnSurfaceVariant,
+            background = StitchThemeColors.elevatedCardBackground(),
+            borderColor = StitchThemeColors.cardBorder(),
+            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
             dotColor = priorityDotColor(priority)
         )
     }
@@ -677,15 +681,15 @@ private fun priorityChipColors(
             dotColor = TaskPulseColors.Error
         )
         TaskPriority.HIGH -> PriorityChipColors(
-            background = TaskPulseColors.PrimaryContainer,
-            borderColor = TaskPulseColors.Primary,
-            contentColor = TaskPulseColors.OnPrimaryContainer,
+            background = MaterialTheme.colorScheme.primaryContainer,
+            borderColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
             dotColor = TaskPulseColors.PrimaryFixedDim
         )
         else -> PriorityChipColors(
-            background = TaskPulseColors.Gray50,
-            borderColor = TaskPulseColors.OutlineVariant,
-            contentColor = TaskPulseColors.OnSurfaceVariant,
+            background = StitchThemeColors.elevatedCardBackground(),
+            borderColor = StitchThemeColors.cardBorder(),
+            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
             dotColor = priorityDotColor(priority)
         )
     }

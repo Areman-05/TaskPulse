@@ -224,13 +224,6 @@ fun TaskPulseNavHost(container: AppContainer) {
                 val vm: SettingsViewModel = viewModel(
                     factory = SettingsViewModel.Factory(
                         themeRepository = container.themeRepository,
-                        triggerAutomationSweepNowUseCase = container.triggerAutomationSweepNowUseCase,
-                        runEntryLifecycleMaintenanceUseCase = container.runEntryLifecycleMaintenanceUseCase,
-                        getAutomationSweepIntervalUseCase = container.getAutomationSweepIntervalUseCase,
-                        setAutomationSweepIntervalUseCase = container.setAutomationSweepIntervalUseCase,
-                        rescheduleAutomationSweepUseCase = container.rescheduleAutomationSweepUseCase,
-                        automationSettingsRepository = container.automationSettingsRepository,
-                        loadAutomationSweepHistoryUseCase = container.loadAutomationSweepHistoryUseCase,
                         taskSnapshotFileExporter = container.taskSnapshotFileExporter,
                         roomDatabaseFile = appContext.getDatabasePath("taskpulse.db")
                     )
@@ -264,7 +257,7 @@ fun TaskPulseNavHost(container: AppContainer) {
 private fun navItemColors() = NavigationBarItemDefaults.colors(
     selectedIconColor = MaterialTheme.colorScheme.primary,
     selectedTextColor = MaterialTheme.colorScheme.primary,
-    indicatorColor = MaterialTheme.colorScheme.surfaceVariant,
+    indicatorColor = MaterialTheme.colorScheme.primaryContainer,
     unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
     unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
 )

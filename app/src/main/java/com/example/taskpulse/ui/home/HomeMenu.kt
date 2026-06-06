@@ -89,21 +89,19 @@ private fun DefaultHomeTopBar(
     var menuExpanded by remember { mutableStateOf(false) }
     var sortMenuExpanded by remember { mutableStateOf(false) }
 
-    Box(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 12.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = stringResource(R.string.app_name),
-            style = MaterialTheme.typography.displayMedium,
+            style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier
-                .align(Alignment.Center)
-                .padding(horizontal = 48.dp),
-            textAlign = TextAlign.Center
+            modifier = Modifier.weight(1f)
         )
-        Box(modifier = Modifier.align(Alignment.CenterEnd)) {
+        Box {
             IconButton(onClick = { menuExpanded = true }) {
                 Icon(
                     imageVector = Icons.Outlined.MoreVert,
@@ -265,7 +263,7 @@ private fun SortMenuItem(
                 Icon(
                     Icons.Outlined.Check,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.tertiary
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
         },

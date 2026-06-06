@@ -65,9 +65,9 @@ import java.time.format.DateTimeFormatter
 private val ListDateFormatter =
     DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm").withZone(ZoneId.systemDefault())
 
-private val SearchShape = RoundedCornerShape(10.dp)
-private val TaskCardShape = RoundedCornerShape(12.dp)
-private val SwipeCompleteGreen = Color(0xFF3D9A5F)
+private val SearchShape = RoundedCornerShape(28.dp)
+private val TaskCardShape = RoundedCornerShape(8.dp)
+private val SwipeCompleteGreen = Color(0xFF188038)
 
 @Composable
 fun HomeScreen(
@@ -91,7 +91,7 @@ fun HomeScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
-                    .padding(start = 20.dp, end = 8.dp),
+                    .padding(start = 16.dp, end = 16.dp),
                 contentPaddingBottom = if (state.selectionMode) 160.dp else 100.dp
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
@@ -110,10 +110,10 @@ fun HomeScreen(
                         singleLine = true,
                         shape = SearchShape,
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.25f),
-                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
+                            focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.65f),
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.45f),
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
                         )
                     )
 
@@ -229,8 +229,8 @@ fun HomeScreen(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(end = 24.dp, bottom = 88.dp),
-                containerColor = MaterialTheme.colorScheme.tertiary,
-                contentColor = MaterialTheme.colorScheme.onTertiary,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 shape = CircleShape
             ) {
                 Icon(
@@ -271,7 +271,7 @@ private fun SelectionActionBar(
                 TextButton(onClick = onComplete, enabled = enabled) {
                     Text(
                         stringResource(R.string.home_selection_complete),
-                        color = MaterialTheme.colorScheme.tertiary
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
@@ -313,7 +313,7 @@ private fun HomeSectionHeader(
         }
         Text(
             text = title,
-            style = MaterialTheme.typography.labelLarge,
+            style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(modifier = Modifier.height(4.dp))
@@ -611,7 +611,7 @@ private fun SelectionIndicator(
             .border(
                 width = 1.5.dp,
                 color = if (selected) {
-                    MaterialTheme.colorScheme.tertiary
+                    MaterialTheme.colorScheme.primary
                 } else {
                     MaterialTheme.colorScheme.outline
                 },
@@ -619,7 +619,7 @@ private fun SelectionIndicator(
             )
             .background(
                 if (selected) {
-                    MaterialTheme.colorScheme.tertiary
+                    MaterialTheme.colorScheme.primary
                 } else {
                     MaterialTheme.colorScheme.surface
                 },
@@ -631,7 +631,7 @@ private fun SelectionIndicator(
             Icon(
                 imageVector = Icons.Outlined.Check,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onTertiary,
+                tint = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.size(14.dp)
             )
         }
@@ -640,10 +640,10 @@ private fun SelectionIndicator(
 
 @Composable
 private fun cardBorderColor(task: Task, selected: Boolean, completed: Boolean) = when {
-    selected -> MaterialTheme.colorScheme.tertiary
-    completed && task.isTaskItem -> MaterialTheme.colorScheme.outline.copy(alpha = 0.55f)
-    task.isNote -> MaterialTheme.colorScheme.outline.copy(alpha = 0.45f)
-    else -> MaterialTheme.colorScheme.tertiary
+    selected -> MaterialTheme.colorScheme.primary
+    completed && task.isTaskItem -> MaterialTheme.colorScheme.outline.copy(alpha = 0.45f)
+    task.isNote -> MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)
+    else -> MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
 }
 
 private fun entryListTitle(task: Task): String {
@@ -667,7 +667,7 @@ private fun CompletedTaskBadge(
     Icon(
         imageVector = Icons.Outlined.Check,
         contentDescription = stringResource(R.string.home_entry_task_completed_cd),
-        tint = MaterialTheme.colorScheme.tertiary,
+        tint = MaterialTheme.colorScheme.primary,
         modifier = modifier.size(22.dp)
     )
 }
@@ -681,12 +681,7 @@ private fun BorderedTaskCard(
     modifier: Modifier = Modifier
 ) {
     val borderColor = cardBorderColor(task, selected, completed)
-    val borderWidth = when {
-        selected -> 2.dp
-        completed && task.isTaskItem -> 1.dp
-        task.isNote -> 1.dp
-        else -> 1.5.dp
-    }
+    val borderWidth = if (selected) 2.dp else 0.dp
 
     val titleColor = if (completed && task.isTaskItem) {
         MaterialTheme.colorScheme.onSurfaceVariant
@@ -694,17 +689,21 @@ private fun BorderedTaskCard(
         MaterialTheme.colorScheme.onSurface
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(TaskCardShape)
-            .border(borderWidth, borderColor, TaskCardShape)
-            .background(MaterialTheme.colorScheme.surface, TaskCardShape)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 14.dp)
-    ) {
+    Column(modifier = modifier.fillMaxWidth()) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .then(
+                    if (borderWidth > 0.dp) {
+                        Modifier
+                            .clip(TaskCardShape)
+                            .border(borderWidth, borderColor, TaskCardShape)
+                    } else {
+                        Modifier
+                    }
+                )
+                .clickable(onClick = onClick)
+                .padding(horizontal = 4.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -712,16 +711,16 @@ private fun BorderedTaskCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = entryListTitle(task),
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.bodyLarge,
                     color = titleColor,
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
-                Spacer(modifier = Modifier.size(6.dp))
+                Spacer(modifier = Modifier.size(4.dp))
                 Text(
                     text = formatCreatedAt(task.createdAtMillis),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.9f),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -734,5 +733,9 @@ private fun BorderedTaskCard(
                 CompletedTaskBadge(task = task)
             }
         }
+        HorizontalDivider(
+            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f),
+            thickness = 1.dp
+        )
     }
 }

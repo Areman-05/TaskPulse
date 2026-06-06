@@ -5,14 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.taskpulse.data.export.TaskSnapshotFileExporter
 import com.example.taskpulse.domain.model.AppThemeMode
-import com.example.taskpulse.domain.repository.AutomationSettingsRepository
 import com.example.taskpulse.domain.repository.ThemeRepository
-import com.example.taskpulse.domain.usecase.GetAutomationSweepIntervalUseCase
-import com.example.taskpulse.domain.usecase.LoadAutomationSweepHistoryUseCase
-import com.example.taskpulse.domain.usecase.RescheduleAutomationSweepUseCase
-import com.example.taskpulse.domain.usecase.RunEntryLifecycleMaintenanceUseCase
-import com.example.taskpulse.domain.usecase.SetAutomationSweepIntervalUseCase
-import com.example.taskpulse.domain.usecase.TriggerAutomationSweepNowUseCase
 import java.io.File
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,13 +15,6 @@ import kotlinx.coroutines.launch
 
 class SettingsViewModel(
     private val themeRepository: ThemeRepository,
-    private val triggerAutomationSweepNowUseCase: TriggerAutomationSweepNowUseCase,
-    private val runEntryLifecycleMaintenanceUseCase: RunEntryLifecycleMaintenanceUseCase,
-    private val getAutomationSweepIntervalUseCase: GetAutomationSweepIntervalUseCase,
-    private val setAutomationSweepIntervalUseCase: SetAutomationSweepIntervalUseCase,
-    private val rescheduleAutomationSweepUseCase: RescheduleAutomationSweepUseCase,
-    private val automationSettingsRepository: AutomationSettingsRepository,
-    private val loadAutomationSweepHistoryUseCase: LoadAutomationSweepHistoryUseCase,
     private val taskSnapshotFileExporter: TaskSnapshotFileExporter,
     private val roomDatabaseFile: File
 ) : ViewModel() {
@@ -38,76 +24,12 @@ class SettingsViewModel(
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
-    init {
-        _uiState.update {
-            it.copy(
-                sweepIntervalHours = getAutomationSweepIntervalUseCase().toString(),
-                sweepUnmeteredOnly = automationSettingsRepository.isSweepUnmeteredOnly(),
-                sweepRequiresCharging = automationSettingsRepository.isSweepRequiresCharging()
-            )
-        }
-        refreshSweepHistory()
-    }
-
     fun setLightMode() {
         themeRepository.setMode(AppThemeMode.LIGHT)
     }
 
     fun setDarkMode() {
         themeRepository.setMode(AppThemeMode.DARK)
-    }
-
-    fun refreshSweepHistory() {
-        viewModelScope.launch {
-            val runs = loadAutomationSweepHistoryUseCase()
-            _uiState.update { it.copy(recentSweepRuns = runs) }
-        }
-    }
-
-    fun runMaintenanceNow() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isMaintenanceRunning = true) }
-            runEntryLifecycleMaintenanceUseCase()
-            triggerAutomationSweepNowUseCase()
-            _uiState.update { it.copy(isMaintenanceRunning = false) }
-            refreshSweepHistory()
-        }
-    }
-
-    fun onSweepIntervalChange(value: String) {
-        _uiState.update {
-            it.copy(
-                sweepIntervalHours = value.filter { ch -> ch.isDigit() },
-                intervalFeedback = null
-            )
-        }
-    }
-
-    fun saveSweepInterval() {
-        val hours = _uiState.value.sweepIntervalHours.toLongOrNull()?.coerceAtLeast(1L) ?: run {
-            _uiState.update { it.copy(intervalFeedback = SettingsIntervalFeedback.Invalid) }
-            return
-        }
-        setAutomationSweepIntervalUseCase(hours)
-        rescheduleAutomationSweepUseCase(hours)
-        _uiState.update {
-            it.copy(
-                sweepIntervalHours = hours.toString(),
-                intervalFeedback = SettingsIntervalFeedback.Saved
-            )
-        }
-    }
-
-    fun onSweepUnmeteredChange(enabled: Boolean) {
-        automationSettingsRepository.setSweepUnmeteredOnly(enabled)
-        _uiState.update { it.copy(sweepUnmeteredOnly = enabled) }
-        rescheduleAutomationSweepUseCase(getAutomationSweepIntervalUseCase())
-    }
-
-    fun onSweepRequiresChargingChange(enabled: Boolean) {
-        automationSettingsRepository.setSweepRequiresCharging(enabled)
-        _uiState.update { it.copy(sweepRequiresCharging = enabled) }
-        rescheduleAutomationSweepUseCase(getAutomationSweepIntervalUseCase())
     }
 
     fun exportJsonSnapshot() {
@@ -145,13 +67,6 @@ class SettingsViewModel(
 
     class Factory(
         private val themeRepository: ThemeRepository,
-        private val triggerAutomationSweepNowUseCase: TriggerAutomationSweepNowUseCase,
-        private val runEntryLifecycleMaintenanceUseCase: RunEntryLifecycleMaintenanceUseCase,
-        private val getAutomationSweepIntervalUseCase: GetAutomationSweepIntervalUseCase,
-        private val setAutomationSweepIntervalUseCase: SetAutomationSweepIntervalUseCase,
-        private val rescheduleAutomationSweepUseCase: RescheduleAutomationSweepUseCase,
-        private val automationSettingsRepository: AutomationSettingsRepository,
-        private val loadAutomationSweepHistoryUseCase: LoadAutomationSweepHistoryUseCase,
         private val taskSnapshotFileExporter: TaskSnapshotFileExporter,
         private val roomDatabaseFile: File
     ) : ViewModelProvider.Factory {
@@ -159,13 +74,6 @@ class SettingsViewModel(
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             return SettingsViewModel(
                 themeRepository,
-                triggerAutomationSweepNowUseCase,
-                runEntryLifecycleMaintenanceUseCase,
-                getAutomationSweepIntervalUseCase,
-                setAutomationSweepIntervalUseCase,
-                rescheduleAutomationSweepUseCase,
-                automationSettingsRepository,
-                loadAutomationSweepHistoryUseCase,
                 taskSnapshotFileExporter,
                 roomDatabaseFile
             ) as T

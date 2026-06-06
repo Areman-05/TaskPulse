@@ -40,8 +40,8 @@ fun SettingsScreen(
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)
             ) {
                 Text(
-                    text = stringResource(R.string.settings_screen_title).uppercase(),
-                    style = MaterialTheme.typography.labelLarge,
+                    text = stringResource(R.string.settings_screen_title),
+                    style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
@@ -55,8 +55,7 @@ fun SettingsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(start = 20.dp, end = 8.dp),
-            showAmbientGrid = false,
+                .padding(horizontal = 16.dp),
             showScrollbar = false,
             contentPaddingBottom = 32.dp
         ) {
@@ -104,8 +103,6 @@ fun SettingsScreen(
                     }
                 }
 
-                SettingsMaintenanceSection(state = state, viewModel = viewModel)
-                SettingsMaintenanceHistorySection(state = state, viewModel = viewModel)
                 SettingsExportSection(viewModel = viewModel)
             }
         }

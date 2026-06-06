@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">TaskPulse</string>
-    <string name="splash_brand_name">TASKPULSE</string>
-    <string name="splash_tagline">AUTOMATION</string>
+    <string name="splash_brand_name">TaskPulse</string>
+    <string name="splash_tagline">Notas y tareas</string>
     <string name="notification_channel_automation_title">Automatización TaskPulse</string>
     <string name="notification_automation_title">Regla de automatización</string>
     <string name="post_notifications_denied_hint">Si desactivas notificaciones, algunos recordatorios no aparecerán.</string>
@@ -132,7 +132,7 @@
     <string name="settings_theme_light">Modo claro</string>
     <string name="settings_theme_dark">Modo oscuro</string>
     <string name="settings_archive_title">Archivo</string>
-    <string name="settings_archive_subtitle">Tareas y notas archivadas automáticamente (máx. 50). Restáuralas o bórralas.</string>
+    <string name="settings_archive_subtitle">Hasta 50 entradas archivadas. Restáuralas o bórralas cuando quieras.</string>
     <string name="settings_open_archive">Ver archivo</string>
     <string name="archive_screen_title">Archivo</string>
     <string name="archive_back_cd">Volver</string>
@@ -144,23 +144,6 @@
     <string name="archive_delete_confirm_body">Se borrará de forma permanente.</string>
     <string name="archive_delete_confirm_action">Eliminar</string>
 
-    <string name="settings_maintenance_title">Mantenimiento automático</string>
-    <string name="settings_maintenance_subtitle">Completa tareas vencidas, archiva entradas antiguas (tareas y notas) y programa el barrido en segundo plano.</string>
-    <string name="settings_maintenance_run_now">Ejecutar mantenimiento ahora</string>
-    <string name="settings_maintenance_running">Ejecutando…</string>
-    <string name="settings_sweep_unmetered_label">Barrido solo sin coste datos (Wi‑Fi típ.)</string>
-    <string name="settings_sweep_charging_label">Barrido solo cargando</string>
-    <string name="settings_sweep_interval_label">Frecuencia barrido (horas)</string>
-    <string name="settings_save_interval">Guardar frecuencia</string>
-    <string name="settings_interval_invalid">Frecuencia inválida.</string>
-    <string name="settings_interval_saved">Frecuencia guardada.</string>
-    <string name="settings_maintenance_history_title">Historial de mantenimiento</string>
-    <string name="settings_maintenance_history_subtitle">Últimas ejecuciones del barrido en segundo plano (tareas y notas).</string>
-    <string name="settings_maintenance_history_empty">Aún sin ejecuciones</string>
-    <string name="settings_maintenance_history_empty_hint">Pulsa «Ejecutar mantenimiento ahora» o espera al barrido programado.</string>
-    <string name="settings_maintenance_history_line_idle">Sin cambios en esta ejecución</string>
-    <string name="settings_maintenance_history_line_actions">%1$d acciones (completar, archivar o reglas)</string>
-    <string name="settings_maintenance_history_refresh">Actualizar historial</string>
     <string name="settings_export_section_title">Exportar y respaldo local</string>
     <string name="settings_export_json">Exportar JSON</string>
     <string name="settings_export_csv">Exportar CSV</string>

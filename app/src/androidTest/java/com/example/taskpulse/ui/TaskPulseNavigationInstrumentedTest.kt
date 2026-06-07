@@ -44,6 +44,13 @@ class TaskPulseNavigationInstrumentedTest {
     }
 
     @Test
+    fun showsHomeTodaySectionAfterSplash() {
+        skipSplash()
+
+        composeRule.onNodeWithText("Tareas de hoy").assertExists()
+    }
+
+    @Test
     fun navigatesToCalendarTab() {
         skipSplash()
 

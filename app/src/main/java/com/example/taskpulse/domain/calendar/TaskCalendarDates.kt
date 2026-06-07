@@ -6,6 +6,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
@@ -23,6 +24,10 @@ object TaskCalendarDates {
 
     fun toLocalDate(millis: Long): LocalDate =
         Instant.ofEpochMilli(millis).atZone(zone).toLocalDate()
+
+    /** Día elegido en DatePicker (medianoche UTC del calendario Material). */
+    fun localDateFromPickerMillis(pickerMillis: Long): LocalDate =
+        Instant.ofEpochMilli(pickerMillis).atZone(ZoneOffset.UTC).toLocalDate()
 
     fun millisFromPickerUtcDay(utcDayMillis: Long): Long =
         defaultDueMillis(

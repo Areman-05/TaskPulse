@@ -1,29 +1,22 @@
 package com.example.taskpulse.domain.sort
 
+import com.example.taskpulse.domain.calendar.TaskCalendarDates
 import com.example.taskpulse.domain.model.Task
 import com.example.taskpulse.domain.model.TaskStatus
 import com.example.taskpulse.domain.model.isTaskItem
-import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneId
 
 /**
- * Tareas visibles en "Tareas de hoy": vencen hoy, sin fecha activas, o completadas hoy.
+ * Tareas activas en "Tareas de hoy": vencen hoy o antes, o no tienen fecha.
+ * Las completadas no se muestran (aunque se editen hoy, p. ej. al archivar).
  */
-fun isTaskForToday(task: Task, zone: ZoneId = ZoneId.systemDefault()): Boolean {
+fun isTaskForToday(task: Task): Boolean {
     if (!task.isTaskItem) return false
-    val today = LocalDate.now(zone)
-    val dueDate = task.dueAtMillis?.let { Instant.ofEpochMilli(it).atZone(zone).toLocalDate() }
-    val updatedDate = Instant.ofEpochMilli(task.updatedAtMillis).atZone(zone).toLocalDate()
+    if (task.status == TaskStatus.COMPLETED) return false
 
-    if (task.status == TaskStatus.COMPLETED) {
-        return updatedDate == today
-    }
-    return dueDate == null || dueDate == today
+    val today = TaskCalendarDates.today()
+    val dueDate = task.dueAtMillis?.let(TaskCalendarDates::toLocalDate)
+    if (dueDate == null) return true
+    return !dueDate.isAfter(today)
 }
 
-fun orderTodayTasks(tasks: List<Task>): List<Task> {
-    val pending = tasks.filter { it.status != TaskStatus.COMPLETED }
-    val completed = tasks.filter { it.status == TaskStatus.COMPLETED }
-    return pending + completed
-}
+fun orderTodayTasks(tasks: List<Task>): List<Task> = tasks

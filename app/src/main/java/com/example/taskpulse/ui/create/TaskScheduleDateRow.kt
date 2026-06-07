@@ -123,7 +123,7 @@ fun TaskScheduleDateRow(
                 TextButton(
                     onClick = {
                         pickerState.selectedDateMillis?.let { millis ->
-                            onDateSelected(TaskCalendarDates.toLocalDate(millis))
+                            onDateSelected(TaskCalendarDates.localDateFromPickerMillis(millis))
                         }
                         showPicker = false
                     }

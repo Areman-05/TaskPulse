@@ -40,6 +40,10 @@ class CreateTaskViewModel(
         _uiState.update {
             it.copy(
                 entryType = type,
+                scheduleDateEnabled = when (type) {
+                    TaskEntryType.TASK -> true
+                    TaskEntryType.NOTE -> it.scheduleDateEnabled
+                },
                 reminderEnabled = if (type == TaskEntryType.NOTE) false else it.reminderEnabled,
                 reminderMinutes = if (type == TaskEntryType.NOTE) 30 else it.reminderMinutes
             )
@@ -67,7 +71,7 @@ class CreateTaskViewModel(
     }
 
     fun onScheduleDateChange(date: LocalDate) {
-        _uiState.update { it.copy(scheduleDate = date) }
+        _uiState.update { it.copy(scheduleDate = date, scheduleDateEnabled = true) }
     }
 
     fun onReminderEnabledChange(enabled: Boolean) {
@@ -96,7 +100,10 @@ class CreateTaskViewModel(
             } else {
                 state.title.trim() to state.description.trim()
             }
-            val hasCalendarDate = state.scheduleDateEnabled
+            val hasCalendarDate = when (entryType) {
+                TaskEntryType.TASK -> true
+                TaskEntryType.NOTE -> state.scheduleDateEnabled
+            }
             val dueAtMillis = resolveDueAtMillis(
                 hasCalendarDate = hasCalendarDate,
                 scheduleDate = state.scheduleDate,

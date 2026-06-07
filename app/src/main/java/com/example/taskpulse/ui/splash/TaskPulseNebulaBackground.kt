@@ -15,17 +15,21 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import com.example.taskpulse.core.UiPerformance
 import com.example.taskpulse.ui.theme.StitchThemeColors
 import com.example.taskpulse.ui.theme.TaskPulseColors
 
 /** Fondo nebula Stitch con foco central para el hero de splash. */
 @Composable
-fun TaskPulseNebulaBackground(modifier: Modifier = Modifier) {
+fun TaskPulseNebulaBackground(
+    modifier: Modifier = Modifier,
+    animated: Boolean = UiPerformance.decorativeMotionEnabled
+) {
     val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val infinite = rememberInfiniteTransition(label = "nebula")
     val drift by infinite.animateFloat(
         initialValue = 0f,
-        targetValue = 1f,
+        targetValue = if (animated) 1f else 0f,
         animationSpec = infiniteRepeatable(
             animation = tween(durationMillis = 20_000, easing = LinearEasing),
             repeatMode = RepeatMode.Reverse
@@ -33,8 +37,8 @@ fun TaskPulseNebulaBackground(modifier: Modifier = Modifier) {
         label = "drift"
     )
     val shimmer by infinite.animateFloat(
-        initialValue = 0.85f,
-        targetValue = 1.15f,
+        initialValue = if (animated) 0.85f else 1f,
+        targetValue = if (animated) 1.15f else 1f,
         animationSpec = infiniteRepeatable(
             animation = tween(6_000, easing = LinearEasing),
             repeatMode = RepeatMode.Reverse

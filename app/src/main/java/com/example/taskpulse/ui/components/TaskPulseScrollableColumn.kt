@@ -26,6 +26,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.example.taskpulse.core.UiPerformance
+import com.example.taskpulse.ui.home.StitchHomeBackground
 import com.example.taskpulse.ui.splash.TaskPulseNebulaBackground
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -46,7 +48,11 @@ fun TaskPulseScrollableColumn(
 
     Box(modifier = modifier.fillMaxSize()) {
         if (showAmbientGrid) {
-            TaskPulseNebulaBackground(Modifier.fillMaxSize())
+            if (UiPerformance.useLightMainBackground) {
+                StitchHomeBackground(Modifier.fillMaxSize())
+            } else {
+                TaskPulseNebulaBackground(Modifier.fillMaxSize(), animated = false)
+            }
         }
 
         Column(

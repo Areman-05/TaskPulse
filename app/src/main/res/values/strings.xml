@@ -54,7 +54,7 @@
     <string name="home_no_upcoming">Sin eventos próximos</string>
     <string name="home_recent_notes">Notas recientes</string>
     <string name="home_view_all">Ver todas</string>
-    <string name="home_productivity_today_delta">+%1$d%% hoy</string>
+    <string name="home_productivity_today_delta">+%1$d hoy</string>
     <string name="home_new_note">Nueva nota</string>
     <string name="home_no_tasks_match">Ninguna tarea coincide con los filtros actuales.</string>
     <string name="home_priority_critical_short">Crit</string>

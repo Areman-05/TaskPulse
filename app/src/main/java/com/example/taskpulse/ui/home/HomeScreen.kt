@@ -84,13 +84,14 @@ import com.example.taskpulse.domain.model.Task
 import com.example.taskpulse.domain.model.TaskPriority
 import com.example.taskpulse.domain.model.TaskStatus
 import com.example.taskpulse.domain.model.isTaskItem
+import com.example.taskpulse.domain.sort.computeTodayTaskStats
+import com.example.taskpulse.domain.sort.findNextUpcomingTask
 import com.example.taskpulse.ui.theme.StitchThemeColors
 import com.example.taskpulse.ui.theme.StitchTypography
 import com.example.taskpulse.ui.theme.TaskPriorityColors
 import com.example.taskpulse.ui.theme.TaskPulseColors
 import java.time.Duration
 import java.time.Instant
-import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -380,11 +381,7 @@ private fun StitchTasksSection(
 
 @Composable
 private fun StitchBentoRow(allTasks: List<Task>) {
-    val taskItems = allTasks.filter { it.isTaskItem }
-    val completionPercent = if (taskItems.isEmpty()) 0 else {
-        (taskItems.count { it.status == TaskStatus.COMPLETED } * 100) / taskItems.size
-    }
-    val todayCompletedPercent = computeTodayCompletedPercent(taskItems)
+    val stats = computeTodayTaskStats(allTasks)
     val nextTask = findNextUpcomingTask(allTasks)
 
     Row(
@@ -413,15 +410,15 @@ private fun StitchBentoRow(allTasks: List<Task>) {
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = "$completionPercent%",
+                        text = "${stats.completionPercent}%",
                         style = StitchTypography.headlineMd,
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                    if (todayCompletedPercent > 0) {
+                    if (stats.completedTodayCount > 0) {
                         Text(
                             text = stringResource(
                                 R.string.home_productivity_today_delta,
-                                todayCompletedPercent
+                                stats.completedTodayCount
                             ),
                             style = StitchTypography.labelLg,
                             color = TaskPriorityColors.Low,
@@ -440,7 +437,7 @@ private fun StitchBentoRow(allTasks: List<Task>) {
                     Box(
                         modifier = Modifier
                             .fillMaxHeight()
-                            .fillMaxWidth(completionPercent / 100f)
+                            .fillMaxWidth(stats.completionPercent / 100f)
                             .clip(RoundedCornerShape(999.dp))
                             .background(MaterialTheme.colorScheme.primary)
                     )
@@ -1131,25 +1128,6 @@ private fun entrySubtitle(task: Task): String? {
         ?: return null
     if (line.equals(task.title.trim(), ignoreCase = true)) return null
     return line
-}
-
-private fun findNextUpcomingTask(tasks: List<Task>): Task? {
-    val now = System.currentTimeMillis()
-    return tasks
-        .filter { it.isTaskItem && it.status != TaskStatus.COMPLETED && it.dueAtMillis != null }
-        .filter { it.dueAtMillis!! > now }
-        .minByOrNull { it.dueAtMillis!! }
-}
-
-private fun computeTodayCompletedPercent(tasks: List<Task>): Int {
-    if (tasks.isEmpty()) return 0
-    val zone = ZoneId.systemDefault()
-    val today = LocalDate.now(zone)
-    val completedToday = tasks.count { task ->
-        task.status == TaskStatus.COMPLETED &&
-            Instant.ofEpochMilli(task.updatedAtMillis).atZone(zone).toLocalDate() == today
-    }
-    return (completedToday * 100) / tasks.size
 }
 
 private fun formatDueTimeRange(dueAtMillis: Long): String {

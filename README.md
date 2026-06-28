@@ -1,152 +1,104 @@
 # TaskPulse
 
-**Organiza tareas y notas, mídelas por día y sigue tu pulso con calendario, recordatorios y archivo automático.**
+**Organiza tareas y notas con calendario, recordatorios y mantenimiento automático.**
 
-TaskPulse es una app Android para quienes quieren un sitio claro para lo pendiente: ver **tareas de hoy** en un panel legible, crear entradas con prioridad y fecha, apuntar notas al lado, revisar el mes en calendario y dejar que la app archive lo antiguo sin limpiar a mano cada semana. No es otra lista infinita sin contexto ni un bloc de notas desconectado: une splash de carga real, inicio, calendario, archivo y ajustes en un flujo coherente, con interfaz **Stitch** (bronce, glass cards, Hanken Grotesk) pensada para el uso diario en móvil.
+TaskPulse es una app Android para quienes quieren un sitio claro para lo pendiente: crear tareas con prioridad y fecha, apuntar notas al lado, ver el mes en calendario y dejar que la app archive lo antiguo sin tener que limpiar a mano cada semana. No es otra lista infinita sin contexto: une lista activa, calendario, archivo y ajustes en un flujo coherente, con una interfaz moderna y legible.
 
 ## La idea en una frase
 
-Llevar el pulso de lo que importa en un solo sitio: priorizar hoy, recordar a tiempo, revisar por fechas y recuperar lo archivado cuando haga falta — sin mezclar apps de notas, calendario y recordatorios por separado.
+Llevar el pulso de lo que importa en un solo lugar: priorizar, recordar, revisar por fechas y recuperar lo archivado cuando haga falta—sin mezclar apps de notas, calendario y recordatorios por separado.
 
 ## Para quién es
 
-- **Quien quiere claridad al abrir la app:** sección *Tareas de hoy*, búsqueda, métricas de productividad y próximo vencimiento en el inicio.
-- **Quien mezcla tareas y notas:** mismos datos, distinta presentación; notas en carrusel bajo las tareas activas.
-- **Quien entrena constancia sin microgestión:** archivado automático, barrido en segundo plano y archivo consultable (hasta 50 entradas).
-- **Quien cuida sus datos locales:** exportación JSON, CSV y copia de base de datos desde Ajustes; todo en Room en el dispositivo.
-- **Quien alterna claro y oscuro:** tema Stitch coherente en Home, Calendario, Crear, Archivo y Ajustes.
+- **Quien vive con tareas reales:** prioridades, fechas de vencimiento y completar con un gesto.
+- **Quien mezcla notas y tareas:** las notas conviven en Home y en el calendario, separadas pero en la misma app.
+- **Quien quiere orden sin microgestión:** archivado automático, barrido en segundo plano y un archivo consultable de hasta 50 entradas.
+- **Quien cuida sus datos:** exportación local (JSON, CSV, copia de base de datos) desde Ajustes.
 
 ## Qué hace la app (en lenguaje humano)
 
-### Splash
-
-Arranque con mark animado (pulso bronce), carga real de categorías, tareas, notas, reglas, exportaciones y workers, y barra de progreso minimalista integrada en el fondo. Tiempo mínimo visible para que la transición se lea con calma.
-
 ### Inicio (Tareas)
 
-- **Tareas de hoy:** solo pendientes relevantes (vencen hoy o antes, o sin fecha). Las completadas desaparecen de la lista; las de días futuros no aparecen hasta su fecha.
-- Búsqueda por título o descripción; orden por prioridad, edición, creación o título; vista lista o galería (notas).
-- Gestos: deslizar para completar o eliminar; selección múltiple para completar, cambiar prioridad o borrar.
-- **Bento:** productividad del día y tarjeta de próximo evento con recordatorio.
+Busca por título o descripción, ordena por prioridad, fecha de edición, creación o título, y alterna entre vista lista o galería. Las **tareas** van arriba (ordenadas por prioridad: crítica → baja); las **notas** debajo, con su propia sección. Puedes seleccionar varias tareas para completarlas, cambiar prioridad o borrarlas, o deslizar una fila para completar o eliminar.
 
 ### Calendario
 
-Navega por meses, elige un día y ve tareas y notas de esa fecha. Desde el lápiz creas una entrada ya ligada al día seleccionado.
+Navega por meses, elige un día y ve qué tareas y notas caen ahí. Desde el lápiz de la barra superior creas una entrada ya ligada a ese día. La vista del día separa tareas y notas igual que en el inicio.
 
 ### Crear y editar
 
-Elige **tarea** o **nota**, prioridad, fecha en calendario y recordatorio opcional (30 min, 1 h, 1 día…). El detalle permite editar, completar tareas o borrar entradas.
-
-### Archivo
-
-Entradas completadas o descartadas automáticamente. Desliza para restaurar o eliminar permanentemente. Fechas relativas (*Hoy*, *Ayer*…).
+Al crear eliges **tarea** o **nota**, título, prioridad (en tareas), fecha en calendario y, si quieres, **recordatorio** (30 min, 1 h, 1 día antes del vencimiento, etc.). El detalle permite editar, completar tareas o borrar entradas.
 
 ### Ciclo de vida automático
 
-- Tareas con fecha **pasada** pueden marcarse completadas en el mantenimiento.
-- Tras **2 días** desde el vencimiento (o **14 días** sin fecha), pasan al **archivo** y salen de Home y calendario activo.
-- Hasta **50** entradas archivadas; al superar el límite se elimina la más antigua.
+- Las tareas con fecha **pasada** se marcan completadas en el mantenimiento.
+- Tras **2 días** desde la fecha de vencimiento (o **14 días** sin fecha), las entradas pasan al **archivo** y desaparecen de Home y del calendario activo.
+- El archivo guarda hasta **50** entradas; puedes **restaurar** o **eliminar** definitivamente.
 
 ### Ajustes
 
-Modo claro/oscuro, acceso al archivo, mantenimiento automático (frecuencia, Wi‑Fi/carga, historial de barridos) y exportación de datos.
+- **Apariencia:** modo claro u oscuro.
+- **Archivo:** acceso directo a lo archivado.
+- **Mantenimiento automático:** ejecutar ahora, frecuencia del barrido en horas, Wi‑Fi o solo cargando; historial de ejecuciones.
+- **Exportar:** JSON, CSV o copia de la base de datos para compartir o respaldar.
 
 ### Recordatorios y widget
 
-Notificaciones con acciones (completar, posponer, abrir) y reglas de automatización en segundo plano. **Widget** con contador de pendientes.
+Notificaciones para recordatorios de tareas (con acciones completar, posponer o abrir) y alertas de reglas de automatización en segundo plano. Un **widget** muestra cuántas tareas siguen pendientes y abre la app al pulsar.
+
+### Automatización (segundo plano)
+
+Reglas predefinidas (por ejemplo, avisos de tareas vencidas o tareas estancadas) se evalúan en barridos periódicos vía WorkManager, junto con el mantenimiento del ciclo de vida. No hace falta configurarlas desde la app para que el motor trabaje.
 
 ## Por qué TaskPulse y no “otra app de tareas”
 
-- **Un solo viaje:** de la splash con carga real a “veo mi día”, “creo”, “me avisa” y “archiva solo”.
-- **Tareas de hoy con criterio:** no es un volcado de todo el inbox; filtra por fecha y estado activo.
-- **Tareas y notas juntas, pero ordenadas:** misma base Room, presentación distinta.
-- **Mantenimiento con sentido:** archivar y completar vencidas está en el núcleo, no es un extra escondido.
-- **Experiencia cuidada:** paleta bronce Stitch, tarjetas glass, splash con pulso, navegación por pestañas (Tareas · Calendario · Ajustes).
-
-## UI y UX: diseño, flujo y rendimiento en móvil
-
-### Principio rector: claridad antes que espectáculo
-
-Las animaciones decorativas (nebula, anillos de pulso, trazo ECG) viven en la **splash**. El shell diario usa fondos **estáticos** ligeros para scroll fluido y menos trabajo de GPU.
-
-### Flujo de navegación
-
-```
-Splash (carga) → Shell principal (3 tabs)
-                      │
-        ┌─────────────┼─────────────┐
-        ▼             ▼             ▼
-    Crear/Detalle  Calendario    Ajustes → Archivo
-    (desde FAB     (día +        (tema, export,
-     o calendario)  entradas)     mantenimiento)
-```
-
-- **Bottom bar** con tres destinos fijos; barra superior contextual por pantalla.
-- **Home** con scroll único: tareas de hoy → bento → notas; FAB para crear.
-- **Estados vacíos** con copy útil cuando no hay tareas o notas.
-
-### Rendimiento (`UiPerformance`)
-
-| Decisión | Efecto |
-|----------|--------|
-| `decorativeMotionEnabled` | Pulso y nebula animada solo en splash |
-| `useLightMainBackground` | Gradientes estáticos en Home, Calendario, Ajustes |
-| Carga en splash | Precalienta Room y workers antes del shell |
-| Sin `LazyColumn` anidado en Home | Evita crashes de altura infinita; lista acotada por día |
+- **Un solo viaje de usuario:** de “apunto algo” a “lo veo en el calendario”, “me avisa” y “desaparece del día a día cuando toca” sin exportar a otra herramienta.
+- **Tareas y notas juntas, pero ordenadas:** misma base de datos, distinta presentación; no es un bloc genérico ni un GTD complejo.
+- **Mantenimiento con sentido:** archivar y completar vencidas no es un extra escondido; está en Ajustes y en el barrido programado.
+- **Experiencia cuidada:** prioridades con color, scroll y secciones claras, splash y navegación por pestañas (Tareas · Calendario · Ajustes).
 
 ## Cómo probarla en tu máquina
 
-Todo funciona **sin backend**: cuentas no requeridas; datos en Room y SharedPreferences en el dispositivo.
+No necesitas claves de API: todo es **local** (Room en el dispositivo, preferencias para tema y automatización, WorkManager para barridos).
 
-**Requisitos:** Android Studio reciente, JDK 11+, SDK **API 26+** (minSdk 26).
+Requisitos habituales: Android Studio reciente, JDK 11+, SDK con **API 26+** (minSdk 26).
 
 ```bash
-# Windows
-gradlew.bat :app:assembleDebug
-
-# macOS / Linux
 ./gradlew :app:assembleDebug
 ```
 
-No hay APK en el repositorio (`build/` no se sube a Git). Genera el instalable en tu máquina o ejecuta desde Android Studio.
-
-| Build | Comando | Archivo |
-|-------|---------|---------|
-| Debug (pruebas) | `gradlew.bat :app:assembleDebug` | `app/build/outputs/apk/debug/app-debug.apk` |
-| Release | `gradlew.bat :app:assembleRelease` | `app/build/outputs/apk/release/app-release-unsigned.apk` |
-
-Copia el `.apk` al móvil o usa **Run** en emulador/dispositivo. El release sale sin firmar: configura tu keystore en `app/build.gradle.kts` para distribuir fuera del IDE.
+Instala el APK generado en `app/build/outputs/apk/debug/` o ejecuta desde Android Studio en emulador o dispositivo.
 
 ### Tests automatizados
 
 ```bash
 # Unitarios (JVM, sin emulador)
-gradlew.bat :app:testDebugUnitTest
+./gradlew testDebugUnitTest
 
 # Instrumentados (emulador o dispositivo conectado)
-gradlew.bat :app:connectedDebugAndroidTest
+./gradlew connectedDebugAndroidTest
 ```
 
-**Unitarios:** filtro *Tareas de hoy*, stats de productividad, ordenación Home, calendario, ciclo de vida, automatización, mappers y casos de uso (~18 clases).
+Los unitarios cubren ordenación, calendario, ciclo de vida, automatización y mappers; los instrumentados, Room, repositorio y navegación principal.
 
-**Instrumentados:** Room, repositorio offline, navegación por tabs, sección *Tareas de hoy* tras splash y pantalla de Ajustes.
 
 ## Detalle técnico (opcional)
 
+Si te interesa el cómo está hecha:
+
 | Área | Tecnología |
 |------|------------|
-| UI | Kotlin, Jetpack Compose, Material 3, diseño Stitch |
-| Arquitectura | MVVM, casos de uso en `domain/`, repositorios |
-| Datos | Room (SQLite), SharedPreferences (tema, barrido) |
-| Segundo plano | WorkManager (barrido, recordatorios, automatización) |
-| DI | `AppContainer` manual en `TaskPulseApp` |
-| Splash | Bootstrap con progreso real (`RunAppBootstrapUseCase`) |
+| UI | Kotlin, Jetpack Compose, Material 3 |
+| Arquitectura | MVVM, casos de uso en `domain`, repositorios |
+| Datos | Room (SQLite), SharedPreferences (tema, ajustes de barrido) |
+| Segundo plano | WorkManager (barrido, recordatorios) |
+| DI | `AppContainer` manual en `TaskPulseApp` (instancia única) |
 | Tests | JUnit, MockK, coroutines-test, Compose UI Test, Room in-memory |
 
-**Paquetes:** `ui/` (pantallas, ViewModels, tema Stitch), `domain/` (modelos, reglas, use cases), `data/` (Room, mappers, export), `worker/`, `notification/`, `widget/`, `core/` (`UiPerformance`, `AppContainer`).
+Estructura de paquetes resumida: `ui/` (pantallas y ViewModels), `domain/` (modelos, reglas, use cases), `data/` (Room, mappers, export), `worker/`, `notification/`, `widget/`, `core/`.
 
-Versión de referencia: **1.0.5** (`versionCode` 6).
+Versión actual de referencia: **1.0.5** (`versionCode` 6).
 
 ---
 
-**TaskPulse: del pendiente de hoy al archivo, con calendario y recordatorios en un solo sitio.**
+**TaskPulse: del pendiente al archivo, con calendario y recordatorios en un solo sitio.**
